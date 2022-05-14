@@ -10,8 +10,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLMarkupsRingNode.h
   vtkMRMLMarkupsRingNode.cxx
-  vtkMRMLMeasurementRingArea.h
-  vtkMRMLMeasurementRingArea.cxx
+  vtkMRMLMeasurementRing.h
+  vtkMRMLMeasurementRing.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES
