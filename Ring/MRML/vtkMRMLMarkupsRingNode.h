@@ -21,13 +21,13 @@
 #ifndef __vtkmrmlmarkupsringnode_h_
 #define __vtkmrmlmarkupsringnode_h_
 
-#include <vtkMRMLMarkupsLineNode.h>
+#include <vtkMRMLMarkupsNode.h>
 
 #include "vtkSlicerRingModuleMRMLExport.h"
 
 //-----------------------------------------------------------------------------
 class VTK_SLICER_RING_MODULE_MRML_EXPORT vtkMRMLMarkupsRingNode
-: public vtkMRMLMarkupsLineNode
+: public vtkMRMLMarkupsNode
 {
 public:
   enum
@@ -36,7 +36,7 @@ public:
     Circumferential
   };
   static vtkMRMLMarkupsRingNode* New();
-  vtkTypeMacro(vtkMRMLMarkupsRingNode, vtkMRMLMarkupsLineNode);
+  vtkTypeMacro(vtkMRMLMarkupsRingNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //--------------------------------------------------------------------------------
@@ -63,11 +63,7 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsRingNode);
 
-  // What to do with this ? It is used extensively in 3D representation.
-  vtkPolyData* GetTargetOrgan() const {return this->TargetOrgan;}
-  void SetTargetOrgan(vtkPolyData* targetOrgan) {this->TargetOrgan = targetOrgan;}
-  
-  void SetMode(int mode);
+  vtkSetMacro(Mode, int);
   vtkGetMacro(Mode, int);
   
   vtkSetMacro(Resolution, double);
@@ -85,10 +81,8 @@ protected:
   void operator=(const vtkMRMLMarkupsRingNode&);
 
 private:
-  vtkPolyData *TargetOrgan = nullptr;
   int Mode { Centered };
   double Resolution { 45.0 };
-  void UpdateMeasurementLabel(int mode);
   vtkPolyData * RingWorld = nullptr;
 };
 

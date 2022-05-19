@@ -43,12 +43,14 @@
 #include "vtkSlicerRingModuleVTKWidgetsExport.h"
 
 // Markups VTKWidgets includes
-#include "vtkSlicerLineRepresentation2D.h"
+#include "vtkSlicerMarkupsWidgetRepresentation2D.h"
 
 // VTK includes
 #include <vtkSmartPointer.h>
+#include <vtkSampleImplicitFunctionFilter.h>
 
 #include "vtkDiskSource.h"
+#include <vtkLineSource.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -66,11 +68,11 @@ class vtkActor2D;
  * vtkSlicerMarkupsWidgetRepresentation2D vtkMRMLAbstractWidget
 */
 class VTK_SLICER_RING_MODULE_VTKWIDGETS_EXPORT vtkSlicerRingRepresentation2D
-: public vtkSlicerLineRepresentation2D
+: public vtkSlicerMarkupsWidgetRepresentation2D
 {
 public:
   static vtkSlicerRingRepresentation2D* New();
-  vtkTypeMacro(vtkSlicerRingRepresentation2D, vtkSlicerLineRepresentation2D);
+  vtkTypeMacro(vtkSlicerRingRepresentation2D, vtkSlicerMarkupsWidgetRepresentation2D);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr) override;
@@ -86,6 +88,9 @@ public:
 protected:
   vtkSlicerRingRepresentation2D();
   ~vtkSlicerRingRepresentation2D() override;
+  
+  void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
+  void UpdateInteractionPipeline() override;
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
@@ -94,6 +99,13 @@ protected:
   vtkSmartPointer<vtkDiskSource> RingSource;
   vtkSmartPointer<vtkPolyDataMapper2D> RingMapper;
   vtkSmartPointer<vtkActor2D> RingActor;
+  
+  vtkSmartPointer<vtkLineSource> RadiusSource;
+  vtkSmartPointer<vtkPolyDataMapper2D> RadiusMapper;
+  vtkSmartPointer<vtkActor2D> RadiusActor;
+  
+  vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
+  vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
 
 private:
   vtkSlicerRingRepresentation2D(const vtkSlicerRingRepresentation2D&) = delete;

@@ -23,20 +23,21 @@
 
 #include "vtkSlicerRingModuleVTKWidgetsExport.h"
 
-#include <vtkSlicerLineWidget.h>
+#include <vtkSlicerMarkupsWidget.h>
 
 class VTK_SLICER_RING_MODULE_VTKWIDGETS_EXPORT vtkSlicerRingWidget
-: public vtkSlicerLineWidget
+: public vtkSlicerMarkupsWidget
 {
 public:
   static vtkSlicerRingWidget *New();
-  vtkTypeMacro(vtkSlicerRingWidget, vtkSlicerLineWidget);
+  vtkTypeMacro(vtkSlicerRingWidget, vtkSlicerMarkupsWidget);
 
   void CreateDefaultRepresentation(vtkMRMLMarkupsDisplayNode* markupsDisplayNode,
                                   vtkMRMLAbstractViewNode* viewNode,
                                   vtkRenderer* renderer) override;
 
   /// Create instance of the markups widget
+  VTK_NEWINSTANCE
   virtual vtkSlicerMarkupsWidget* CreateInstance() const override;
 
 protected:

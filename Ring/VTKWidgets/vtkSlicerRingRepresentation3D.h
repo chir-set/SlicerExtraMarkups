@@ -24,11 +24,12 @@
 #include "vtkSlicerRingModuleVTKWidgetsExport.h"
 
 // Markups VTKWidgets includes
-#include "vtkSlicerLineRepresentation3D.h"
+#include "vtkSlicerMarkupsWidgetRepresentation3D.h"
 
 // VTK includes
 #include <vtkWeakPointer.h>
 #include <vtkDiskSource.h>
+#include <vtkLineSource.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -46,11 +47,11 @@ class vtkPlane;
 */
 
 class VTK_SLICER_RING_MODULE_VTKWIDGETS_EXPORT vtkSlicerRingRepresentation3D
-: public vtkSlicerLineRepresentation3D
+: public vtkSlicerMarkupsWidgetRepresentation3D
 {
 public:
   static vtkSlicerRingRepresentation3D* New();
-  vtkTypeMacro(vtkSlicerRingRepresentation3D, vtkSlicerLineRepresentation3D);
+  vtkTypeMacro(vtkSlicerRingRepresentation3D, vtkSlicerMarkupsWidgetRepresentation3D);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr) override;
@@ -67,19 +68,19 @@ protected:
   vtkSlicerRingRepresentation3D();
   ~vtkSlicerRingRepresentation3D() override;
 
-  vtkSmartPointer<vtkCutter> Cutter;
-  vtkSmartPointer<vtkPolyDataMapper> ContourMapper;
-  vtkSmartPointer<vtkActor> ContourActor;
   vtkSmartPointer<vtkPolyData> MiddlePoint;
   vtkSmartPointer<vtkPolyDataMapper> MiddlePointMapper;
   vtkSmartPointer<vtkActor> MiddlePointActor;
-  vtkWeakPointer<vtkPolyData> TargetOrgan;
   vtkSmartPointer<vtkSphereSource> MiddlePointSource;
   vtkSmartPointer<vtkPlane> SlicingPlane;
   
   vtkSmartPointer<vtkDiskSource> RingSource;
   vtkSmartPointer<vtkPolyDataMapper> RingMapper;
   vtkSmartPointer<vtkActor> RingActor;
+  
+  vtkSmartPointer<vtkLineSource> RadiusSource;
+  vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
+  vtkSmartPointer<vtkActor> RadiusActor;
 
   void BuildMiddlePoint();
   void BuildSlicingPlane();
@@ -87,6 +88,9 @@ protected:
 private:
   vtkSlicerRingRepresentation3D(const vtkSlicerRingRepresentation3D&) = delete;
   void operator=(const vtkSlicerRingRepresentation3D&) = delete;
+  
+  // p3 is moved during UpdateFromMRML, block recursion.
+  bool DoUpdateFromMRML = true;
 };
 
 #endif // __vtkslicerringrepresentation3d_h_

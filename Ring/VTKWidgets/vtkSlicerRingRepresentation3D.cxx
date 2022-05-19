@@ -31,29 +31,16 @@
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkProperty.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerRingRepresentation3D);
 
 //------------------------------------------------------------------------------
 vtkSlicerRingRepresentation3D::vtkSlicerRingRepresentation3D()
-  :TargetOrgan(nullptr)
 {
-
   this->SlicingPlane = vtkSmartPointer<vtkPlane>::New();
-
-  this->Cutter =  vtkSmartPointer<vtkCutter>::New();
-  this->Cutter->SetInputData(this->TargetOrgan);
-  this->Cutter->SetCutFunction(this->SlicingPlane);
-  this->Cutter->SetNumberOfContours(1);
-  this->Cutter->GenerateTrianglesOn();
-  this->Cutter->GenerateCutScalarsOff();
-
-  this->ContourMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->ContourMapper->SetInputConnection(this->Cutter->GetOutputPort());
-
-  this->ContourActor = vtkSmartPointer<vtkActor>::New();
-  this->ContourActor->SetMapper(this->ContourMapper);
 
   this->MiddlePointSource = vtkSmartPointer<vtkSphereSource>::New();
 
@@ -73,6 +60,15 @@ vtkSlicerRingRepresentation3D::vtkSlicerRingRepresentation3D()
   this->RingActor->SetMapper(this->RingMapper);
   this->RingActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
   
+  this->RadiusSource = vtkSmartPointer<vtkLineSource>::New();
+  
+  this->RadiusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->RadiusMapper->SetInputConnection(this->RadiusSource->GetOutputPort());
+  this->RadiusMapper->SetScalarVisibility(true);
+  
+  this->RadiusActor = vtkSmartPointer<vtkActor>::New();
+  this->RadiusActor->SetMapper(this->RadiusMapper);
+  this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
 }
 
 //------------------------------------------------------------------------------
@@ -90,6 +86,14 @@ void vtkSlicerRingRepresentation3D::PrintSelf(ostream& os, vtkIndent indent)
     {
       os << indent << "Ring Visibility: (none)\n";
     }
+  if (this->RadiusActor)
+    {
+      os << indent << "Radius Visibility: " << this->RadiusActor->GetVisibility() << "\n";
+    }
+    else
+    {
+      os << indent << "Radius Visibility: (none)\n";
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -97,13 +101,10 @@ void vtkSlicerRingRepresentation3D::GetActors(vtkPropCollection* pc)
 {
   this->Superclass::GetActors(pc);
 
-  if (this->TargetOrgan)
-    {
-    this->ContourActor->GetActors(pc);
-    }
-
   this->MiddlePointActor->GetActors(pc);
   this->RingActor->GetActors(pc);
+  this->RadiusActor->GetActors(pc);
+  this->TextActor->GetActors(pc);
 }
 
 //------------------------------------------------------------------------------
@@ -111,33 +112,34 @@ void vtkSlicerRingRepresentation3D::ReleaseGraphicsResources(vtkWindow* win)
 {
   this->Superclass::ReleaseGraphicsResources(win);
 
-  if (this->TargetOrgan)
-    {
-    this->ContourActor->ReleaseGraphicsResources(win);
-    }
-
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->RingActor->ReleaseGraphicsResources(win);
+  this->RadiusActor->ReleaseGraphicsResources(win);
+  this->TextActor->ReleaseGraphicsResources(win);
 }
 
 //------------------------------------------------------------------------------
 int vtkSlicerRingRepresentation3D::RenderOverlay(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderOverlay(viewport);
-  if (this->TargetOrgan && this->ContourActor->GetVisibility())
-    {
-    count += this->ContourActor->RenderOverlay(viewport);
-    }
-
   if (this->MiddlePointActor->GetVisibility())
     {
     count += this->MiddlePointActor->RenderOverlay(viewport);
     }
-  
+
   if (this->RingActor->GetVisibility())
     {
       count +=  this->RingActor->RenderOverlay(viewport);
     }
+  
+  if (this->RadiusActor->GetVisibility())
+  {
+    count +=  this->RadiusActor->RenderOverlay(viewport);
+  }
+  if (this->TextActor->GetVisibility())
+  {
+    count +=  this->TextActor->RenderOverlay(viewport);
+  }
   
   return count;
 }
@@ -146,11 +148,6 @@ int vtkSlicerRingRepresentation3D::RenderOverlay(vtkViewport* viewport)
 int vtkSlicerRingRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderOpaqueGeometry(viewport);
-  if (this->TargetOrgan && this->ContourActor->GetVisibility())
-    {
-    count += this->ContourActor->RenderOpaqueGeometry(viewport);
-    }
-
   if (this->MiddlePointActor->GetVisibility())
     {
     count += this->MiddlePointActor->RenderOpaqueGeometry(viewport);
@@ -161,6 +158,16 @@ int vtkSlicerRingRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
       count += this->RingActor->RenderOpaqueGeometry(viewport);
     }
   
+  if (this->RadiusActor->GetVisibility())
+  {
+    count += this->RadiusActor->RenderOpaqueGeometry(viewport);
+  }
+  
+  if (this->TextActor->GetVisibility())
+  {
+    count += this->TextActor->RenderOpaqueGeometry(viewport);
+  }
+  
   return count;
 }
 
@@ -168,12 +175,6 @@ int vtkSlicerRingRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
 int vtkSlicerRingRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
-  if (this->TargetOrgan && this->ContourActor->GetVisibility())
-    {
-    this->ContourActor->SetPropertyKeys(this->GetPropertyKeys());
-    count += this->ContourActor->RenderTranslucentPolygonalGeometry(viewport);
-    }
-
   if (this->MiddlePointActor->GetVisibility())
     {
     this->MiddlePointActor->SetPropertyKeys(this->GetPropertyKeys());
@@ -186,6 +187,18 @@ int vtkSlicerRingRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewpor
       count += this->RingActor->RenderTranslucentPolygonalGeometry(viewport);
     }
   
+  if (this->RadiusActor->GetVisibility())
+  {
+    this->RadiusActor->SetPropertyKeys(this->GetPropertyKeys());
+    count += this->RadiusActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+  
+  if (this->TextActor->GetVisibility())
+  {
+    this->TextActor->SetPropertyKeys(this->GetPropertyKeys());
+    count += this->TextActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+  
   return count;
 }
 
@@ -193,12 +206,6 @@ int vtkSlicerRingRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewpor
 vtkTypeBool vtkSlicerRingRepresentation3D::HasTranslucentPolygonalGeometry()
 {
   if (this->Superclass::HasTranslucentPolygonalGeometry())
-    {
-    return true;
-    }
-
-  if (this->TargetOrgan && this->ContourActor->GetVisibility() &&
-      this->ContourActor->HasTranslucentPolygonalGeometry())
     {
     return true;
     }
@@ -215,6 +222,18 @@ vtkTypeBool vtkSlicerRingRepresentation3D::HasTranslucentPolygonalGeometry()
     return true;
   }
 
+  if (this->RadiusActor->GetVisibility() &&
+    this->RadiusActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
+  
+  if (this->TextActor->GetVisibility() &&
+    this->TextActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
+  
   return false;
 }
 
@@ -226,33 +245,29 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->Superclass::UpdateFromMRML(caller, event, callData);
 
   this->NeedToRenderOn();
+  
+  if (!this->DoUpdateFromMRML)
+  {
+    return;
+  }
 
   this->BuildMiddlePoint();
   this->BuildSlicingPlane();
 
-  vtkMRMLMarkupsRingNode* liverMarkupsRingNode=
-    vtkMRMLMarkupsRingNode::SafeDownCast(this->GetMarkupsNode());
-
-  if (!liverMarkupsRingNode)
-    {
-    return;
-    }
-
-  this->TargetOrgan = liverMarkupsRingNode->GetTargetOrgan();
-  this->Cutter->SetInputData(this->TargetOrgan);
-
 ///////////////////////////////////////////////////////////////////////
   vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
-  if (!markupsNode)
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints() != 3)
   {
     return;
   }
 
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
   double center[3] = {0.0};
   markupsNode->GetNthControlPointPositionWorld(0, p1);
   markupsNode->GetNthControlPointPositionWorld(1, p2);
+  markupsNode->GetNthControlPointPositionWorld(2, p3);
   center[0] = (p1[0] + p2[0]) / 2.0;
   center[1] = (p1[1] + p2[1]) / 2.0;
   center[2] = (p1[2] + p2[2]) / 2.0;
@@ -267,11 +282,20 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   // Centered mode : p1 is center, line length is radius.
   if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
   {
-    vtkMath::Cross(p1, p2, normal);
+    // Relative to p1 (center)
+    double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
+    double rp3[3] = { p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2] };
+    
+    vtkMath::Cross(rp2, rp3, normal);
+    if (normal[0] == 0.0 && normal[1] == 0.0 && normal[2] == 0.0)
+    {
+      return;
+    }
     this->RingSource->SetCenter(p1);
     this->RingSource->SetNormal(normal);
     this->RingSource->SetOuterRadius(lineLength);
     this->RingSource->SetInnerRadius(lineLength - 1.0);
+    this->RadiusSource->SetPoint1(p1);
     
     this->MiddlePointActor->SetVisibility(false);
   }
@@ -280,11 +304,17 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   {
     double radius = lineLength / 2.0;
     double center[3] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0, (p1[2] + p2[2]) / 2.0 };
-    vtkMath::Cross(center, p2, normal);
+    
+    // relative to center
+    double rp2[3] = { p2[0] - center[0], p2[1] - center[1], p2[2] - center[2] };
+    double rp3[3] = { p3[0] - center[0], p3[1] - center[1], p3[2] - center[2] };
+    
+    vtkMath::Cross(rp2, rp3, normal);
     this->RingSource->SetCenter(center);
     this->RingSource->SetNormal(normal);
     this->RingSource->SetOuterRadius(radius);
     this->RingSource->SetInnerRadius(radius - 1.0);
+    this->RadiusSource->SetPoint1(center);
     
     this->MiddlePointActor->SetVisibility(true);
   }
@@ -292,15 +322,30 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->RingSource->SetCircumferentialResolution((int) ringNode->GetResolution());
   this->RingSource->Update();
   ringNode->SetRingWorld(this->RingSource->GetOutput());
+  
+  this->RadiusSource->SetPoint2(p2);
+  RingSource->Update();
+  
+  this->RingActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->RadiusActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
 
-  this->RingActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-
-  int controlPointType = Active;
-  if (this->MarkupsDisplayNode->GetActiveComponentType() != vtkMRMLMarkupsDisplayNode::ComponentLine)
-  {
-    controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
-  }
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->RingActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  // Text is badly colored
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  // Stick p3 on ring.
+  this->DoUpdateFromMRML = false;
+  vtkIdType closestIdOnRing = this->RingSource->GetOutput()->FindPoint(p3);
+  double * closestPointOnRing = this->RingSource->GetOutput()->GetPoint(closestIdOnRing);
+  ringNode->SetNthControlPointPositionWorld(2, closestPointOnRing);
+  this->DoUpdateFromMRML = true;
+  
+  this->TextActorPositionWorld[0] = p3[0];
+  this->TextActorPositionWorld[1] = p3[1];
+  this->TextActorPositionWorld[2] = p3[2];
 }
 
 //------------------------------------------------------------------------------
@@ -312,7 +357,7 @@ void vtkSlicerRingRepresentation3D::BuildMiddlePoint()
     return;
     }
 
-  if (markupsNode->GetNumberOfControlPoints() != 2)
+  if (markupsNode->GetNumberOfControlPoints() != 3)
     {
     return;
     }
@@ -327,7 +372,7 @@ void vtkSlicerRingRepresentation3D::BuildSlicingPlane()
     return;
     }
 
-  if (markupsNode->GetNumberOfControlPoints() != 2)
+  if (markupsNode->GetNumberOfControlPoints() != 3)
     {
     return;
     }

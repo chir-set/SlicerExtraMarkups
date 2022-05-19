@@ -19,7 +19,7 @@
 ==============================================================================*/
 
 #include "vtkMRMLMarkupsRingNode.h"
-#include "vtkMRMLMeasurementRingArea.h"
+#include "vtkMRMLMeasurementRing.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -32,10 +32,23 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsRingNode);
 //--------------------------------------------------------------------------------
 vtkMRMLMarkupsRingNode::vtkMRMLMarkupsRingNode()
 {
-  this->UpdateMeasurementLabel(Mode);
+  // Third point is used to calculate normal relative to the center in 3D view.
+  this->MaximumNumberOfControlPoints = 3;
+  this->RequiredNumberOfControlPoints = 3;
   
-  vtkNew<vtkMRMLMeasurementRingArea> areaMeasurement;
+  vtkNew<vtkMRMLMeasurementRing> radiusMeasurement;
+  radiusMeasurement->SetName("radius");
+  radiusMeasurement->SetUnits("mm");
+  radiusMeasurement->SetPrintFormat("%-#4.4g%s");
+  radiusMeasurement->SetInputMRMLNode(this);
+  radiusMeasurement->SetEnabled(true);
+  this->Measurements->AddItem(radiusMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementRing> areaMeasurement;
   areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g%s");
   areaMeasurement->SetInputMRMLNode(this);
   areaMeasurement->SetEnabled(false);
   this->Measurements->AddItem(areaMeasurement);
@@ -48,34 +61,4 @@ vtkMRMLMarkupsRingNode::~vtkMRMLMarkupsRingNode()=default;
 void vtkMRMLMarkupsRingNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
-}
-
-void vtkMRMLMarkupsRingNode::SetMode(int mode)
-{
-  Mode = mode;
-  this->UpdateMeasurementLabel(Mode);
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLMarkupsRingNode::UpdateMeasurementLabel(int mode)
-{
-  vtkMRMLMeasurement * lengthMeasurement = this->GetNthMeasurement(0); // The first one is length, natively.
-  if (!lengthMeasurement)
-  {
-    return; // Should not happen.
-  }
-  if (mode == Centered)
-  {
-    lengthMeasurement->SetName("radius");
-  }
-  else
-  {
-    lengthMeasurement->SetName("diameter");
-  }
-  /* The label of the checkbox in the widget is never changed to 'diameter',
-   * and the checkbox does not work in 'Circumferential' mode.
-   * The two other labels are updated.
-   * Switching between nodes updates all labels.
-  */
-  this->UpdateAllMeasurements();
 }
