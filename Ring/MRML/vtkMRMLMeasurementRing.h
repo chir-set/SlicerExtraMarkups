@@ -14,6 +14,9 @@ public:
     vtkTypeMacro(vtkMRMLMeasurementRing, vtkMRMLMeasurement);
     void PrintSelf(ostream& os, vtkIndent indent) override;
     
+    // Needed since 3fd4633168
+    VTK_NEWINSTANCE
+    virtual vtkMRMLMeasurementRing* CreateInstance() const override;
     void Compute() override;
 
 protected:
