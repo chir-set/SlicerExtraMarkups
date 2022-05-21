@@ -16,7 +16,8 @@ public:
     
     // Needed since 3fd4633168
     VTK_NEWINSTANCE
-    virtual vtkMRMLMeasurementRing* CreateInstance() const override;
+    virtual vtkMRMLMeasurementRing* CreateInstance() const override
+      { return vtkMRMLMeasurementRing::New(); }
     void Compute() override;
 
 protected:
