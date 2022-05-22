@@ -18,20 +18,18 @@
 
 ==============================================================================*/
 
-#ifndef __qSlicerRingWidget_h_
-#define __qSlicerRingWidget_h_
+#ifndef __qSlicerDiskWidget_h_
+#define __qSlicerDiskWidget_h_
 
 // Markups widgets includes
 #include "qMRMLMarkupsAbstractOptionsWidget.h"
-#include "qSlicerRingModuleWidgetsExport.h"
+#include "qSlicerDiskModuleWidgetsExport.h"
 
-#include <vtkMRMLNode.h>
-
-class qMRMLMarkupsRingWidgetPrivate;
+class qMRMLMarkupsDiskWidgetPrivate;
 class vtkMRMLMarkupsNode;
 
-class Q_SLICER_MODULE_RING_WIDGETS_EXPORT
-qMRMLMarkupsRingWidget : public qMRMLMarkupsAbstractOptionsWidget
+class Q_SLICER_MODULE_DISK_WIDGETS_EXPORT
+qMRMLMarkupsDiskWidget : public qMRMLMarkupsAbstractOptionsWidget
 {
   Q_OBJECT
 
@@ -40,11 +38,11 @@ qMRMLMarkupsRingWidget : public qMRMLMarkupsAbstractOptionsWidget
 public:
 
   typedef qMRMLMarkupsAbstractOptionsWidget Superclass;
-  qMRMLMarkupsRingWidget(QWidget* parent=nullptr);
-  ~qMRMLMarkupsRingWidget() override;
+  qMRMLMarkupsDiskWidget(QWidget* parent=nullptr);
+  ~qMRMLMarkupsDiskWidget() override;
 
   /// Gets the name of the additional options widget type
-  const QString className() const override {return "qMRMLMarkupsRingWidget";}
+  const QString className() const override {return "qMRMLMarkupsDiskWidget";}
 
   /// Updates the widget based on information from MRML.
   void updateWidgetFromMRML() override;
@@ -54,26 +52,23 @@ public:
 
   /// Returns an instance of the widget
   qMRMLMarkupsAbstractOptionsWidget* createInstance() const override
-  { return new qMRMLMarkupsRingWidget(); }
+  { return new qMRMLMarkupsDiskWidget(); }
 
 public slots:
 /// Set the MRML node of interest
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
-  
-  void onModeChanged();
-  void onResolutionChanged(double value);
-  void onResliceNodeChanged(vtkMRMLNode * node);
-  void onResliceButtonClicked();
 
+  void onResolutionChanged(double value);
+  
 protected:
   void setup();
 
 protected:
-  QScopedPointer<qMRMLMarkupsRingWidgetPrivate> d_ptr;
+  QScopedPointer<qMRMLMarkupsDiskWidgetPrivate> d_ptr;
 
 private:
-  Q_DECLARE_PRIVATE(qMRMLMarkupsRingWidget);
-  Q_DISABLE_COPY(qMRMLMarkupsRingWidget);
+  Q_DECLARE_PRIVATE(qMRMLMarkupsDiskWidget);
+  Q_DISABLE_COPY(qMRMLMarkupsDiskWidget);
 };
 
-#endif // __qSlicerRingWidget_h_
+#endif // __qSlicerDiskWidget_h_

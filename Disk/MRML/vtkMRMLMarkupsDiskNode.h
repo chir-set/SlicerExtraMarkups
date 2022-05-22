@@ -18,26 +18,20 @@
 
 ==============================================================================*/
 
-#ifndef __vtkmrmlmarkupsringnode_h_
-#define __vtkmrmlmarkupsringnode_h_
+#ifndef __vtkmrmlmarkupsdisknode_h_
+#define __vtkmrmlmarkupsdisknode_h_
 
 #include <vtkMRMLMarkupsNode.h>
-#include <vtkMRMLNode.h>
 
-#include "vtkSlicerRingModuleMRMLExport.h"
+#include "vtkSlicerDiskModuleMRMLExport.h"
 
 //-----------------------------------------------------------------------------
-class VTK_SLICER_RING_MODULE_MRML_EXPORT vtkMRMLMarkupsRingNode
+class VTK_SLICER_DISK_MODULE_MRML_EXPORT vtkMRMLMarkupsDiskNode
 : public vtkMRMLMarkupsNode
 {
 public:
-  enum
-  {
-    Centered = 0,
-    Circumferential
-  };
-  static vtkMRMLMarkupsRingNode* New();
-  vtkTypeMacro(vtkMRMLMarkupsRingNode, vtkMRMLMarkupsNode);
+  static vtkMRMLMarkupsDiskNode* New();
+  vtkTypeMacro(vtkMRMLMarkupsDiskNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //--------------------------------------------------------------------------------
@@ -50,47 +44,43 @@ public:
   vtkMRMLNode* CreateNodeInstance() override;
   /// Get node XML tag name (like Volume, Model)
   ///
-  const char* GetNodeTagName() override {return "MarkupsRing";}
+  const char* GetNodeTagName() override {return "MarkupsDisk";}
 
   /// Get markup type internal name
-  const char* GetMarkupType() override {return "Ring";}
+  const char* GetMarkupType() override {return "Disk";}
 
   // Get markup type GUI display name
-  const char* GetTypeDisplayName() override {return "Ring";};
+  const char* GetTypeDisplayName() override {return "Disk";};
 
   /// Get markup short name
-  const char* GetDefaultNodeNamePrefix() override {return "RI";}
+  const char* GetDefaultNodeNamePrefix() override {return "D";}
 
   /// \sa vtkMRMLNode::CopyContent
-  vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsRingNode);
-
-  vtkSetMacro(Mode, int);
-  vtkGetMacro(Mode, int);
+  vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsDiskNode);
   
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
+  vtkSetMacro(InnerRadius, double);
+  vtkGetMacro(InnerRadius, double);
+  vtkSetMacro(OuterRadius, double);
+  vtkGetMacro(OuterRadius, double);
   
-  vtkPolyData * GetRingWorld() const {return this->RingWorld;}
-  // Used by 3D representation. Needs validation by experts.
-  // Is it really RingWorld ? CurveWorld for a markups curve is much more complex.
-  void SetRingWorld(vtkPolyData * polydata) {this->RingWorld = polydata;}
-  
-  vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
-  vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
-  
-  void ResliceToRingPlane();
+  vtkPolyData * GetDiskWorld() const {return this->DiskWorld;}
+  // Used by 3D representation.
+  void SetDiskWorld(vtkPolyData * polydata) {this->DiskWorld = polydata;}
 
 protected:
-  vtkMRMLMarkupsRingNode();
-  ~vtkMRMLMarkupsRingNode() override;
-  vtkMRMLMarkupsRingNode(const vtkMRMLMarkupsRingNode&);
-  void operator=(const vtkMRMLMarkupsRingNode&);
+  vtkMRMLMarkupsDiskNode();
+  ~vtkMRMLMarkupsDiskNode() override;
+  vtkMRMLMarkupsDiskNode(const vtkMRMLMarkupsDiskNode&);
+  void operator=(const vtkMRMLMarkupsDiskNode&);
 
 private:
-  int Mode { Centered };
   double Resolution { 45.0 };
-  vtkPolyData * RingWorld = nullptr;
-  vtkMRMLNode * ResliceNode = nullptr;
+  double InnerRadius { 0.0 };
+  double OuterRadius { 0.0 };
+  
+  vtkPolyData * DiskWorld = nullptr;
 };
 
-#endif //vtkmrmlmarkupsringnode_h_
+#endif //vtkmrmlmarkupsdisknode_h_

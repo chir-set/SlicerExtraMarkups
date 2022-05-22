@@ -26,6 +26,8 @@
 #include <vtkObjectFactory.h>
 #include <vtkCollection.h>
 
+#include <vtkMRMLSliceNode.h>
+
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsRingNode);
 
@@ -61,4 +63,41 @@ vtkMRMLMarkupsRingNode::~vtkMRMLMarkupsRingNode()=default;
 void vtkMRMLMarkupsRingNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsRingNode::ResliceToRingPlane()
+{
+  if (!this->ResliceNode)
+  {
+    return;
+  }
+  vtkMRMLSliceNode * resliceNode = vtkMRMLSliceNode::SafeDownCast(this->ResliceNode);
+  if (!resliceNode)
+  {
+    return;
+  }
+  double rasP1[3] = { 0.0 };
+  double rasP2[3] = { 0.0 };
+  double rasP3[3] = { 0.0 };
+  double rasNormal[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, rasP1);
+  this->GetNthControlPointPositionWorld(1, rasP2);
+  this->GetNthControlPointPositionWorld(2, rasP3);
+  
+  // Relative to rasP1 (center)
+  double rRasP2[3] = { rasP2[0] - rasP1[0], rasP2[1] - rasP1[1], rasP2[2] - rasP1[2] };
+  double rRasP3[3] = { rasP3[0] - rasP1[0], rasP3[1] - rasP1[1], rasP3[2] - rasP1[2] };
+
+  vtkMath::Cross(rRasP2, rRasP3, rasNormal);
+  if (rasNormal[0] == 0.0 && rasNormal[1] == 0.0 && rasNormal[2] == 0.0)
+  {
+    return;
+  }
+  resliceNode->SetSliceToRASByNTP(
+    rasNormal[0], rasNormal[1], rasNormal[2],
+    rasP2[0], rasP2[1], rasP2[2],
+    rasP1[0], rasP1[1], rasP1[2],
+    0);
+  resliceNode->UpdateMatrices();
 }
