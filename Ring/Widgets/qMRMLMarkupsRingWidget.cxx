@@ -27,6 +27,8 @@
 // VTK includes
 #include <vtkWeakPointer.h>
 
+#include <qSlicerCoreApplication.h>
+
 // --------------------------------------------------------------------------
 class qMRMLMarkupsRingWidgetPrivate:
   public Ui_qMRMLMarkupsRingWidget
@@ -61,11 +63,16 @@ void qMRMLMarkupsRingWidgetPrivate::setupUi(qMRMLMarkupsRingWidget* widget)
   this->ringCollapsibleButton->setCollapsed(true);
   this->modeComboBox->addItem("Centered");
   this->modeComboBox->addItem("Circumferential");
+  this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onModeChanged()));
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
+  QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   q, SLOT(onResliceNodeChanged(vtkMRMLNode*)));
+  QObject::connect(this->reslicePushButton, SIGNAL(clicked()),
+                   q, SLOT(onResliceButtonClicked()));
 }
 
 // --------------------------------------------------------------------------
@@ -74,6 +81,7 @@ qMRMLMarkupsRingWidget(QWidget *parent)
   : Superclass(parent),
     d_ptr(new qMRMLMarkupsRingWidgetPrivate(this))
 {
+  this->setMRMLScene(qSlicerCoreApplication::application()->mrmlScene());
   this->setup();
 }
 
@@ -126,6 +134,7 @@ void qMRMLMarkupsRingWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode)
     {
       d->modeComboBox->setCurrentIndex(d->MarkupsRingNode->GetMode());
       d->resolutionSliderWidget->setValue(d->MarkupsRingNode->GetResolution());
+      d->resliceInputSelector->setCurrentNode(d->MarkupsRingNode->GetResliceNode());
     }
 }
 
@@ -152,5 +161,31 @@ void qMRMLMarkupsRingWidget::onResolutionChanged(double value)
     return;
   }
   d->MarkupsRingNode->SetResolution(value);
+  d->MarkupsRingNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsRingWidget::onResliceNodeChanged(vtkMRMLNode * node)
+{
+  Q_D(qMRMLMarkupsRingWidget);
+  
+  if (!d->MarkupsRingNode)
+  {
+    return;
+  }
+  d->MarkupsRingNode->SetResliceNode(node);
+  d->MarkupsRingNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsRingWidget::onResliceButtonClicked()
+{
+  Q_D(qMRMLMarkupsRingWidget);
+  
+  if (!d->MarkupsRingNode)
+  {
+    return;
+  }
+  d->MarkupsRingNode->ResliceToRingPlane();
   d->MarkupsRingNode->UpdateScene(this->mrmlScene());
 }

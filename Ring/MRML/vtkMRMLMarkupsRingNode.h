@@ -22,6 +22,7 @@
 #define __vtkmrmlmarkupsringnode_h_
 
 #include <vtkMRMLMarkupsNode.h>
+#include <vtkMRMLNode.h>
 
 #include "vtkSlicerRingModuleMRMLExport.h"
 
@@ -73,6 +74,11 @@ public:
   // Used by 3D representation. Needs validation by experts.
   // Is it really RingWorld ? CurveWorld for a markups curve is much more complex.
   void SetRingWorld(vtkPolyData * polydata) {this->RingWorld = polydata;}
+  
+  vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
+  vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
+  
+  void ResliceToRingPlane();
 
 protected:
   vtkMRMLMarkupsRingNode();
@@ -84,6 +90,7 @@ private:
   int Mode { Centered };
   double Resolution { 45.0 };
   vtkPolyData * RingWorld = nullptr;
+  vtkMRMLNode * ResliceNode = nullptr;
 };
 
 #endif //vtkmrmlmarkupsringnode_h_

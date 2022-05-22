@@ -25,6 +25,8 @@
 #include "qMRMLMarkupsAbstractOptionsWidget.h"
 #include "qSlicerRingModuleWidgetsExport.h"
 
+#include <vtkMRMLNode.h>
+
 class qMRMLMarkupsRingWidgetPrivate;
 class vtkMRMLMarkupsNode;
 
@@ -60,6 +62,8 @@ public slots:
   
   void onModeChanged();
   void onResolutionChanged(double value);
+  void onResliceNodeChanged(vtkMRMLNode * node);
+  void onResliceButtonClicked();
 
 protected:
   void setup();
