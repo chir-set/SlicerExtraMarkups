@@ -101,6 +101,18 @@
              <string>vtkMRMLSliceNode</string>
             </stringlist>
            </property>
+           <property name="showChildNodeTypes">
+            <bool>false</bool>
+           </property>
+           <property name="noneEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="addEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="removeEnabled">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
         </layout>
