@@ -27,6 +27,8 @@
 // VTK includes
 #include <vtkWeakPointer.h>
 
+#include <qSlicerCoreApplication.h>
+
 // --------------------------------------------------------------------------
 class qMRMLMarkupsDiskWidgetPrivate:
   public Ui_qMRMLMarkupsDiskWidget
@@ -59,9 +61,14 @@ void qMRMLMarkupsDiskWidgetPrivate::setupUi(qMRMLMarkupsDiskWidget* widget)
   this->Ui_qMRMLMarkupsDiskWidget::setupUi(widget);
   this->diskCollapsibleButton->setCollapsed(true);
   this->diskCollapsibleButton->setVisible(false);
+  this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
+  QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   q, SLOT(onResliceNodeChanged(vtkMRMLNode*)));
+  QObject::connect(this->reslicePushButton, SIGNAL(clicked()),
+                   q, SLOT(onResliceButtonClicked()));
 }
 
 // --------------------------------------------------------------------------
@@ -70,6 +77,7 @@ qMRMLMarkupsDiskWidget(QWidget *parent)
   : Superclass(parent),
     d_ptr(new qMRMLMarkupsDiskWidgetPrivate(this))
 {
+  this->setMRMLScene(qSlicerCoreApplication::application()->mrmlScene());
   this->setup();
 }
 
@@ -121,6 +129,7 @@ void qMRMLMarkupsDiskWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode)
   if (d->MarkupsDiskNode)
   {
     d->resolutionSliderWidget->setValue(d->MarkupsDiskNode->GetResolution());
+    d->resliceInputSelector->setCurrentNode(d->MarkupsDiskNode->GetResliceNode());
   }
 }
 
@@ -134,5 +143,31 @@ void qMRMLMarkupsDiskWidget::onResolutionChanged(double value)
     return;
   }
   d->MarkupsDiskNode->SetResolution(value);
+  d->MarkupsDiskNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsDiskWidget::onResliceNodeChanged(vtkMRMLNode * node)
+{
+  Q_D(qMRMLMarkupsDiskWidget);
+  
+  if (!d->MarkupsDiskNode)
+  {
+    return;
+  }
+  d->MarkupsDiskNode->SetResliceNode(node);
+  d->MarkupsDiskNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsDiskWidget::onResliceButtonClicked()
+{
+  Q_D(qMRMLMarkupsDiskWidget);
+  
+  if (!d->MarkupsDiskNode)
+  {
+    return;
+  }
+  d->MarkupsDiskNode->ResliceToDiskPlane();
   d->MarkupsDiskNode->UpdateScene(this->mrmlScene());
 }

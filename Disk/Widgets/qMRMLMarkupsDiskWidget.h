@@ -25,6 +25,8 @@
 #include "qMRMLMarkupsAbstractOptionsWidget.h"
 #include "qSlicerDiskModuleWidgetsExport.h"
 
+#include <vtkMRMLNode.h>
+
 class qMRMLMarkupsDiskWidgetPrivate;
 class vtkMRMLMarkupsNode;
 
@@ -59,6 +61,8 @@ public slots:
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
 
   void onResolutionChanged(double value);
+  void onResliceNodeChanged(vtkMRMLNode * node);
+  void onResliceButtonClicked();
   
 protected:
   void setup();

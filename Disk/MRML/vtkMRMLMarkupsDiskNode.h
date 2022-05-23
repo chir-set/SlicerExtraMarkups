@@ -68,6 +68,11 @@ public:
   vtkPolyData * GetDiskWorld() const {return this->DiskWorld;}
   // Used by 3D representation.
   void SetDiskWorld(vtkPolyData * polydata) {this->DiskWorld = polydata;}
+  
+  vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
+  vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
+  
+  void ResliceToDiskPlane();
 
 protected:
   vtkMRMLMarkupsDiskNode();
@@ -81,6 +86,7 @@ private:
   double OuterRadius { 0.0 };
   
   vtkPolyData * DiskWorld = nullptr;
+  vtkMRMLNode * ResliceNode = nullptr;
 };
 
 #endif //vtkmrmlmarkupsdisknode_h_
