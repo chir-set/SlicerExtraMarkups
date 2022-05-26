@@ -1,6 +1,8 @@
 # ExtraMarkups
 
-Custom [Ring](https://github.com/chir-set/ExtraMarkups/tree/main/Ring/) markups.
+[Ring](https://github.com/chir-set/ExtraMarkups/tree/main/Ring/)
+
+[Label](https://github.com/chir-set/ExtraMarkups/tree/main/Label/)
 
 
 
