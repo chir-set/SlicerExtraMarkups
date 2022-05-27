@@ -20,8 +20,8 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(Ring)
-#add_subdirectory(Disk)
 add_subdirectory(Label)
+add_subdirectory(Disk)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
