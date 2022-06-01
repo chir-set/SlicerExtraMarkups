@@ -102,10 +102,9 @@ void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
     this->GetNthControlPointDisplayPosition(0, p1);
     this->GetNthControlPointDisplayPosition(1, p2);
   
-    this->GetNthControlPointDisplayPosition(1, p2);
-    glyphRotationAngle = vtkMath::DegreesFromRadians(std::atan((p1[1] - p2[1]) / (p1[0] - p2[0])));
-    // Negative x
-    if ((p1[0] >= p2[0]))
+    glyphRotationAngle = vtkMath::DegreesFromRadians(std::atan((p2[1] - p1[1]) / (p2[0] - p1[0])));
+    // On negative x
+    if ((p2[0] >= p1[0]))
     {
       glyphRotationAngle += 180.0;
     }
@@ -128,7 +127,7 @@ void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
   }
   
   this->TextActor->SetInput(labelNode->GetLabel().toStdString().c_str());
-  this->TextActor->SetPosition(p2[0], p2[1]);
+  this->TextActor->SetPosition(p1[0], p1[1]);
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->LineActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -136,8 +135,8 @@ void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
   
   vtkMarkupsGlyphSource2D * glyphSource2D = this->GetControlPointsPipeline(controlPointType)->GlyphSource2D;
   /* Unfortunately, there is apparently no selective control of the glyph to use on each control point.
-   * ::None would have looked better for p2. ::None for p1 and p2 is still a good option.
-   * We choose the arrow glyph, through it's not good looking for p2.
+   * ::None would have looked better for p1. ::None for p1 and p2 is still a good option.
+   * We choose the arrow glyph, through it's not good looking for p1.
    */
   glyphSource2D->SetGlyphTypeToArrow();
   glyphSource2D->SetRotationAngle(glyphRotationAngle);

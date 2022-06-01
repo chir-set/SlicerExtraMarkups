@@ -189,12 +189,12 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   markupsNode->GetNthControlPointPositionWorld(0, p1);
   markupsNode->GetNthControlPointPositionWorld(1, p2);
   double direction[3] = { 0.0 };
-  vtkMath::Subtract(p1, p2, direction);
+  vtkMath::Subtract(p2, p1, direction);
   
   this->LineSource->SetPoint1(p1);
   this->LineSource->SetPoint2(p2);
   this->LineSource->Update();
-  this->ConeSource->SetCenter(p1);
+  this->ConeSource->SetCenter(p2);
   this->ConeSource->SetRadius(1.0);
   this->ConeSource->SetHeight(2.5);
   this->ConeSource->SetResolution(45);
@@ -202,21 +202,21 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->ConeSource->Update();
   
   // p1, the center (tip) of the cone, has always id 0.
-  vtkIdType closestIdToP2 = this->ConeSource->GetOutput()->FindPoint(p2);
+  vtkIdType closestIdToP2 = this->ConeSource->GetOutput()->FindPoint(p1);
   // If the tip is closest, it's inversely oriented.
   if (closestIdToP2 == 0)
   {
     // Invert direction.
-    vtkMath::Subtract(p2, p1, direction);
+    vtkMath::Subtract(p1, p2, direction);
     this->ConeSource->SetDirection(direction);
     this->ConeSource->Update();
   }
   
   this->AppendedArrow->Update();
   this->TextActor->SetInput(labelNode->GetLabel().toStdString().c_str());
-  this->TextActorPositionWorld[0] = p2[0];
-  this->TextActorPositionWorld[1] = p2[1];
-  this->TextActorPositionWorld[2] = p2[2];
+  this->TextActorPositionWorld[0] = p1[0];
+  this->TextActorPositionWorld[1] = p1[1];
+  this->TextActorPositionWorld[2] = p1[2];
   
   this->ArrowActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
   this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
