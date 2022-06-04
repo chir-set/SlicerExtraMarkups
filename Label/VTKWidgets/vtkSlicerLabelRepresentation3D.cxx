@@ -32,6 +32,9 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkGlyph3DMapper.h>
+#include <vtkRenderer.h>
+#include <vtkCamera.h>
+//#include <vtkMRMLScene.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerLabelRepresentation3D);
@@ -56,10 +59,21 @@ vtkSlicerLabelRepresentation3D::vtkSlicerLabelRepresentation3D()
   
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(Unselected)->TextProperty);
   this->ConeSource->SetAngle(30.0);
+
+  this->CameraModifiedCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
+  this->CameraModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
+  this->CameraModifiedCallbackCommand->SetCallback( vtkSlicerLabelRepresentation3D::OnCameraModified );
 }
 
 //------------------------------------------------------------------------------
-vtkSlicerLabelRepresentation3D::~vtkSlicerLabelRepresentation3D() = default;
+vtkSlicerLabelRepresentation3D::~vtkSlicerLabelRepresentation3D()
+{
+  if (this->CameraIsBeingObserved)
+  {
+    this->GetRenderer()->GetActiveCamera()->RemoveObserver(this->CameraModifiedCallbackCommand);
+    //this->SetCameraObservationStatus(false);
+  }
+}
 
 //------------------------------------------------------------------------------
 void vtkSlicerLabelRepresentation3D::PrintSelf(ostream& os, vtkIndent indent)
@@ -183,7 +197,12 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     return;
   }
   vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
-  
+  if (!this->CameraIsBeingObserved)
+  {
+    this->GetRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, this->CameraModifiedCallbackCommand);
+    this->CameraIsBeingObserved = true; // remove if using vtkMRMLCameraNode
+    //this->SetCameraObservationStatus(true);
+  }
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
   markupsNode->GetNthControlPointPositionWorld(0, p1);
@@ -224,15 +243,63 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ArrowActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
-  /*
-   * Hide a control point by decreasing its size.
-   * Caveat : doesn't play well when the 3D view is zoomed.
-   * Control point size is bigger than the cone with low level of zooming.
-   * It is shrinked by code below when mouse is hovered on the control point.
-   * ::SetScaling(false) after shrinking the control point just restores its size.
-   * TODO : Find a zoom event to observe and react when the 3D view is zoomed.
-   */
+
+  //Hide a control point by decreasing its size.
   this->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
   // Shrink the control points on markups creation.
   this->UpdateViewScaleFactor();
 }
+
+//---------------------------------------------------------------------------
+/*
+ * Try to hide a control point :
+ *  - success : on rotation, translation
+ *  - failure : on zooming
+ * Same results with :
+ * - vtkCamera observed via vtkCommand::ModifiedEvent
+ * - vtkMRMLCameraNode observed via vtkMRMLCameraNode::CameraInteractionEvent
+ * Got better, but insufficient.
+ */
+void vtkSlicerLabelRepresentation3D::OnCameraModified(vtkObject *caller,
+                 unsigned long event, void *clientData, void *callData)
+{
+  vtkSlicerLabelRepresentation3D * client = reinterpret_cast<vtkSlicerLabelRepresentation3D*>(clientData);
+  if (!client)
+  {
+    return;
+  }
+  int controlPointType = client->GetAllControlPointsSelected() ? Selected : Unselected;
+  client->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
+}
+
+//---------------------------------------------------------------------------
+/*bool vtkSlicerLabelRepresentation3D::SetCameraObservationStatus(bool observe)
+{
+  vtkWeakPointer<vtkCollection> mrmlCameraNodes = this->GetViewNode()->GetScene()->GetNodesByClass("vtkMRMLCameraNode");
+  if (!mrmlCameraNodes.GetPointer())
+  {
+    return false;
+  }
+  for (uint i = 0; i < mrmlCameraNodes->GetNumberOfItems(); i++)
+  {
+    this->MRMLCamera = vtkMRMLCameraNode::SafeDownCast(mrmlCameraNodes->GetItemAsObject(i));
+    if (!this->MRMLCamera.GetPointer())
+    {
+      return false;
+    }
+    if (this->MRMLCamera->GetCamera() == this->GetRenderer()->GetActiveCamera())
+    {
+      if (observe)
+      {
+        this->MRMLCamera->AddObserver(vtkMRMLCameraNode::CameraInteractionEvent, this->CameraModifiedCallbackCommand);
+      }
+      else
+      {
+        this->MRMLCamera->RemoveObserver(this->CameraModifiedCallbackCommand);
+      }
+      this->CameraIsBeingObserved = observe;
+      return true;
+    }
+  }
+  return false;
+}*/

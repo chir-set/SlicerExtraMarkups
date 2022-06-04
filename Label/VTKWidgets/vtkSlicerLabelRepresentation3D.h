@@ -30,6 +30,8 @@
 #include <vtkWeakPointer.h>
 #include <vtkConeSource.h>
 #include <vtkLineSource.h>
+#include <vtkCallbackCommand.h>
+//#include <vtkMRMLCameraNode.h>
 
 //------------------------------------------------------------------------------
 /**
@@ -64,16 +66,24 @@ public:
 protected:
   vtkSlicerLabelRepresentation3D();
   ~vtkSlicerLabelRepresentation3D() override;
-  
+
   vtkSmartPointer<vtkLineSource> LineSource;
   vtkSmartPointer<vtkConeSource> ConeSource;
   vtkSmartPointer<vtkAppendPolyData> AppendedArrow;
   vtkSmartPointer<vtkPolyDataMapper> ArrowMapper;
   vtkSmartPointer<vtkActor> ArrowActor;
-
+  
+  vtkSmartPointer<vtkCallbackCommand> CameraModifiedCallbackCommand;
+  static void OnCameraModified(vtkObject *caller,
+                               unsigned long event, void *clientData, void *callData);
+  bool CameraIsBeingObserved = false;
+  //vtkWeakPointer<vtkMRMLCameraNode> MRMLCamera;
+  //bool SetCameraObservationStatus(bool observe);
+  
 private:
   vtkSlicerLabelRepresentation3D(const vtkSlicerLabelRepresentation3D&) = delete;
   void operator=(const vtkSlicerLabelRepresentation3D&) = delete;
+  
 };
 
 #endif // __vtkslicerLabel_LOWERrepresentation3d_h_
