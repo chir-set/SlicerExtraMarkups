@@ -22,6 +22,7 @@ include(${Slicer_USE_FILE})
 add_subdirectory(Ring)
 add_subdirectory(Label)
 add_subdirectory(Disk)
+add_subdirectory(Sphere)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
