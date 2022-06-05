@@ -251,10 +251,6 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     return;
   }
 
-  this->BuildMiddlePoint();
-  this->BuildSlicingPlane();
-
-///////////////////////////////////////////////////////////////////////
   vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
   if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints() != 3)
   {
@@ -303,7 +299,6 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   else
   {
     double radius = lineLength / 2.0;
-    double center[3] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0, (p1[2] + p2[2]) / 2.0 };
     
     // relative to center
     double rp2[3] = { p2[0] - center[0], p2[1] - center[1], p2[2] - center[2] };
@@ -324,7 +319,7 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   ringNode->SetRingWorld(this->RingSource->GetOutput());
   
   this->RadiusSource->SetPoint2(p2);
-  RingSource->Update();
+  this->RadiusSource->Update();
   
   this->RingActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
   this->RadiusActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
@@ -346,53 +341,4 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerRingRepresentation3D::BuildMiddlePoint()
-{
-  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
-  if (!markupsNode)
-    {
-    return;
-    }
-
-  if (markupsNode->GetNumberOfControlPoints() != 3)
-    {
-    return;
-    }
-}
-
-//------------------------------------------------------------------------------
-void vtkSlicerRingRepresentation3D::BuildSlicingPlane()
-{
-  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
-  if (!markupsNode)
-    {
-    return;
-    }
-
-  if (markupsNode->GetNumberOfControlPoints() != 3)
-    {
-    return;
-    }
-
-  double p1[3] = { 0.0 };
-  double p2[3] = { 0.0 };
-  double origin[3] = {0.0};
-  double normal[3] = {0.0};
-
-  markupsNode->GetNthControlPointPositionWorld(0, p1);
-  markupsNode->GetNthControlPointPositionWorld(1, p2);
-
-  origin[0] = (p1[0] + p2[0]) / 2.0;
-  origin[1] = (p1[1] + p2[1]) / 2.0;
-  origin[2] = (p1[2] + p2[2]) / 2.0;
-
-  normal[0] = p2[0] - p1[0];
-  normal[1] = p2[1] - p1[1];
-  normal[2] = p2[2] - p1[2];
-
-  this->SlicingPlane->SetOrigin(origin);
-  this->SlicingPlane->SetNormal(normal);
 }
