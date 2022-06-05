@@ -82,9 +82,6 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
   vtkSmartPointer<vtkActor> RadiusActor;
 
-  void BuildMiddlePoint();
-  void BuildSlicingPlane();
-
 private:
   vtkSlicerRingRepresentation3D(const vtkSlicerRingRepresentation3D&) = delete;
   void operator=(const vtkSlicerRingRepresentation3D&) = delete;
