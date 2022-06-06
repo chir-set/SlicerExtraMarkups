@@ -37,7 +37,7 @@ void vtkMRMLMeasurementSphere::Compute()
     
     if (this->GetName() == std::string("radius"))
     {
-        if (sphereNode->GetMode() == vtkMRMLMarkupsSphereNode::Centered)
+        if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
         {
             measurement = lineLength;
         }
@@ -49,7 +49,7 @@ void vtkMRMLMeasurementSphere::Compute()
     else
     if (this->GetName() == std::string("area"))
     {
-        if (sphereNode->GetMode() == vtkMRMLMarkupsSphereNode::Centered)
+        if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
         {
             measurement = 4.0 * vtkMath::Pi() * (lineLength * lineLength);
         }
@@ -62,7 +62,7 @@ void vtkMRMLMeasurementSphere::Compute()
     else
     if (this->GetName() == std::string("volume"))
     {
-        if (sphereNode->GetMode() == vtkMRMLMarkupsSphereNode::Centered)
+        if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
         {
             measurement = (4.0 / 3.0) * vtkMath::Pi() * (lineLength * lineLength * lineLength);
         }

@@ -110,6 +110,8 @@ protected:
 private:
   vtkSlicerSphereRepresentation2D(const vtkSlicerSphereRepresentation2D&) = delete;
   void operator=(const vtkSlicerSphereRepresentation2D&) = delete;
+  
+  void XyzToRas(double * inputXyz, double * outputRas);
 };
 
 #endif // __vtkslicerSphere_LOWERrepresentation3d_h_
