@@ -118,32 +118,77 @@ void vtkSlicerSphereRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsign
     this->TextActor->SetVisibility(false);
   }
 
+  vtkMRMLMeasurement * radiusMeasurement = sphereNode->GetMeasurement("radius");
+  const double sphereRadius = radiusMeasurement->GetValue();
+  
   if (markupsNode->GetNumberOfDefinedControlPoints(true) == 2)
   {
+    // Display positions
     double p1[3] = { 0.0 };
     double p2[3] = { 0.0 };
     this->GetNthControlPointDisplayPosition(0, p1);
     this->GetNthControlPointDisplayPosition(1, p2);
-    double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
-    this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
+    double centerDisplayPos[3] = { (p1[0] + p2[0]) / 2.0,
+                                (p1[1] + p2[1]) / 2.0,
+                                0.0 };
+    this->MiddlePointSource->SetCenter(centerDisplayPos);
     this->MiddlePointSource->Update();
     
-    double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));  
-    // Centered mode : p1 is center, line length is radius.
-    if (sphereNode->GetMode() == vtkMRMLMarkupsSphereNode::Centered)
+    // Display distance between p1, p2
+    const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+    // Centered mode : p1 is center.
+    if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
     { 
+      // Cut sphere by slice plane as in 3D view.
+      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldPlaneCut)
+      {
+        double p1WorldPos[3] = { 0.0 };
+        sphereNode->GetNthControlPointPositionWorld(0, p1WorldPos);
+        double p1DisplayPosToWorldPos[3] = { 0.0 };
+        this->XyzToRas(p1, p1DisplayPosToWorldPos);
+        const double offsetWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldPos, p1DisplayPosToWorldPos));
+        double planeCutRadiusWorld = std::sqrt((sphereRadius * sphereRadius) - (offsetWorld * offsetWorld));
+        planeCutRadiusWorld /= this->ViewScaleFactorMmPerPixel;
+        
+        this->SphereSource->SetRadius(planeCutRadiusWorld);
+      }
+      else
+      {
+        // Cut a virtual sphre from control point positions projected in 2D.
+        this->SphereSource->SetRadius(lineLength);
+      }
       this->SphereSource->SetCenter(p1);
-      this->SphereSource->SetRadius(lineLength);
       this->MiddlePointActor->SetVisibility(false);
       this->RadiusSource->SetPoint1(p1);
     }
-    // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
+    // Circumferential mode : center is half way between p1 and p2.
     else
-    {      
-      this->SphereSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
-      this->SphereSource->SetRadius(lineLength / 2.0);
+    {
+      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldPlaneCut)
+      {
+        double p1WorldPos[3] = { 0.0 };
+        double p2WorldPos[3] = { 0.0 };
+        sphereNode->GetNthControlPointPositionWorld(0, p1WorldPos);
+        sphereNode->GetNthControlPointPositionWorld(1, p2WorldPos);
+        const double centerWorldPos[3] = { (p1WorldPos[0] + p2WorldPos[0]) / 2.0,
+                                          (p1WorldPos[1] + p2WorldPos[1]) / 2.0,
+                                          (p1WorldPos[2] + p2WorldPos[2]) / 2.0 };
+        
+        double centerDisplayPosToWorldPos[3] = { 0.0 };
+        this->XyzToRas(centerDisplayPos, centerDisplayPosToWorldPos);
+        const double offsetWorld = std::sqrt(vtkMath::Distance2BetweenPoints(centerWorldPos, centerDisplayPosToWorldPos));
+        double planeCutRadiusWorld = std::sqrt((sphereRadius * sphereRadius) - (offsetWorld * offsetWorld));
+        planeCutRadiusWorld /= this->ViewScaleFactorMmPerPixel;
+        
+        this->SphereSource->SetRadius(planeCutRadiusWorld);
+      }
+      else
+      {
+        this->SphereSource->SetRadius(lineLength / 2.0);
+      }
+      this->SphereSource->SetCenter(centerDisplayPos);
       this->MiddlePointActor->SetVisibility(true);
-      this->RadiusSource->SetPoint1(middlePointPos[0], middlePointPos[1], 0.0);
+      this->RadiusSource->SetPoint1(centerDisplayPos);
     }
     this->SphereSource->SetPhiResolution(sphereNode->GetResolution());
     this->SphereSource->SetThetaResolution(sphereNode->GetResolution());
@@ -179,7 +224,7 @@ void vtkSlicerSphereRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode* markups
     }
     else
     {
-      this->SliceDistance->SetInputData(this->SliceViewCutter->GetOutput());
+      this->SliceDistance->SetInputData(this->SliceViewCutter->GetOutput());;
     }
   }
   this->Superclass::SetMarkupsNode(markupsNode);
@@ -301,4 +346,20 @@ vtkTypeBool vtkSlicerSphereRepresentation2D::HasTranslucentPolygonalGeometry()
       return true;
     }
   return false;
+}
+
+//-----------------------------------------------------------------------------
+// Modules/Loadable/Segmentations/EditorEffects/qSlicerSegmentEditorAbstractEffect.cxx
+void vtkSlicerSphereRepresentation2D::XyzToRas(double * inputXyz, double * outputRas)
+{
+  outputRas[0] = outputRas[1] = outputRas[2] = 0.0;
+  
+  vtkMRMLSliceNode* sliceNode = this->GetSliceNode();
+  
+  double xyzw[4] = {inputXyz[0], inputXyz[1], inputXyz[2], 1.0};
+  double rast[4] = {0.0, 0.0, 0.0, 1.0};
+  sliceNode->GetXYToRAS()->MultiplyPoint(xyzw, rast);
+  outputRas[0] = rast[0];
+  outputRas[1] = rast[1];
+  outputRas[2] = rast[2];
 }

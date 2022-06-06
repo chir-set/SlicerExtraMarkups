@@ -61,12 +61,16 @@ void qMRMLMarkupsSphereWidgetPrivate::setupUi(qMRMLMarkupsSphereWidget* widget)
   this->Ui_qMRMLMarkupsSphereWidget::setupUi(widget);
   this->sphereCollapsibleButton->setVisible(false);
   this->sphereCollapsibleButton->setCollapsed(true);
-  this->modeComboBox->addItem("Centered");
-  this->modeComboBox->addItem("Circumferential");
+  this->radiusModeComboBox->addItem("Centered");
+  this->radiusModeComboBox->addItem("Circumferential");
+  this->sliceDrawModeComboBox->addItem(("World plane cut"));
+  this->sliceDrawModeComboBox->addItem(("Slice view projection"));
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
-  QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
-                   q, SLOT(onModeChanged()));
+  QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onRadiusModeChanged()));
+  QObject::connect(this->sliceDrawModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onSliceDrawModeChanged()));
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
   QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
@@ -132,14 +136,15 @@ void qMRMLMarkupsSphereWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNod
   this->setEnabled(markupsNode != nullptr);
   if (d->MarkupsSphereNode)
   {
-    d->modeComboBox->setCurrentIndex(d->MarkupsSphereNode->GetMode());
+    d->radiusModeComboBox->setCurrentIndex(d->MarkupsSphereNode->GetRadiusMode());
+    d->sliceDrawModeComboBox->setCurrentIndex(d->MarkupsSphereNode->GetDrawMode2D());
     d->resolutionSliderWidget->setValue(d->MarkupsSphereNode->GetResolution());
     d->resliceInputSelector->setCurrentNode(d->MarkupsSphereNode->GetResliceNode());
   }
 }
 
 // --------------------------------------------------------------------------
-void qMRMLMarkupsSphereWidget::onModeChanged()
+void qMRMLMarkupsSphereWidget::onRadiusModeChanged()
 {
   Q_D(qMRMLMarkupsSphereWidget);
   
@@ -147,8 +152,21 @@ void qMRMLMarkupsSphereWidget::onModeChanged()
   {
     return;
   }
-  d->MarkupsSphereNode->SetMode(d->modeComboBox->currentIndex());
+  d->MarkupsSphereNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
   d->MarkupsSphereNode->UpdateAllMeasurements();
+  d->MarkupsSphereNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsSphereWidget::onSliceDrawModeChanged()
+{
+  Q_D(qMRMLMarkupsSphereWidget);
+  
+  if (!d->MarkupsSphereNode)
+  {
+    return;
+  }
+  d->MarkupsSphereNode->SetDrawMode2D(d->sliceDrawModeComboBox->currentIndex());
   d->MarkupsSphereNode->UpdateScene(this->mrmlScene());
 }
 

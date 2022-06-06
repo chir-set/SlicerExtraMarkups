@@ -260,14 +260,14 @@ void vtkSlicerSphereRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
   
   // Centered mode : p1 is center, line length is radius.
-  if (sphereNode->GetMode() == vtkMRMLMarkupsSphereNode::Centered)
+  if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
   {
     this->SphereSource->SetCenter(p1);
     this->SphereSource->SetRadius(lineLength);
     this->RadiusSource->SetPoint1(p1);
     this->MiddlePointActor->SetVisibility(false);
   }
-  // Circumferentiale mode : center is half way between p1 and p2, radius is half of line length.
+  // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
   else
   {
     double radius = lineLength / 2.0;

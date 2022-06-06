@@ -36,6 +36,11 @@ public:
     Centered = 0,
     Circumferential
   };
+  enum
+  {
+    WorldPlaneCut = 0,
+    SliceViewProjection
+  };
   static vtkMRMLMarkupsSphereNode* New();
   vtkTypeMacro(vtkMRMLMarkupsSphereNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -64,8 +69,11 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsSphereNode);
 
-  vtkSetMacro(Mode, int);
-  vtkGetMacro(Mode, int);
+  vtkSetMacro(RadiusMode, int);
+  vtkGetMacro(RadiusMode, int);
+  
+  vtkSetMacro(DrawMode2D, int);
+  vtkGetMacro(DrawMode2D, int);
   
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
@@ -87,7 +95,8 @@ protected:
   void operator=(const vtkMRMLMarkupsSphereNode&);
 
 private:
-  int Mode { Centered };
+  int RadiusMode { Centered };
+  int DrawMode2D { WorldPlaneCut };
   double Resolution { 36.0 };
   vtkPolyData * SphereWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;
