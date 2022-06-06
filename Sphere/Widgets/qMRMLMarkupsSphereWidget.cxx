@@ -148,6 +148,7 @@ void qMRMLMarkupsSphereWidget::onModeChanged()
     return;
   }
   d->MarkupsSphereNode->SetMode(d->modeComboBox->currentIndex());
+  d->MarkupsSphereNode->UpdateAllMeasurements();
   d->MarkupsSphereNode->UpdateScene(this->mrmlScene());
 }
 
