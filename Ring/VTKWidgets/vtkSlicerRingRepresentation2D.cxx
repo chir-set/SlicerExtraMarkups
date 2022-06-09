@@ -103,7 +103,23 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
   this->RingActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
   this->RadiusActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
   this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-
+  
+  auto prn2 = [&](double * p, const char * lbl)
+  {
+    cout << lbl << " : (" 
+        << p[0] << ", "
+        << p[1] << ")"
+        << endl;
+  };
+  auto prn3 = [&](double * p, const char * lbl)
+  {
+    cout << lbl << " : (" 
+    << p[0] << ", "
+    << p[1] << ", "
+    << p[2] << ")"
+    << endl;
+  };
+  
   if (markupsNode->GetNumberOfDefinedControlPoints(true) == 3)
   {
     double p1[3] = { 0.0 };
@@ -112,6 +128,75 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     this->GetNthControlPointDisplayPosition(0, p1);
     this->GetNthControlPointDisplayPosition(1, p2);
     this->GetNthControlPointDisplayPosition(2, p3);
+    double p1World[3] = { 0.0 };
+    double p2World[3] = { 0.0 };
+    double p3World[3] = { 0.0 };
+    ringNode->GetNthControlPointPositionWorld(0, p1World);
+    ringNode->GetNthControlPointPositionWorld(1, p2World);
+    ringNode->GetNthControlPointPositionWorld(2, p3World);
+    
+    double p1WorldToDisplay[3] = { 0.0 };
+    double p2WorldToDisplay[3] = { 0.0 };
+    double p3WorldToDisplay[3] = { 0.0 };
+    this->GetWorldToDisplayCoordinates(p1World, p1WorldToDisplay);
+    this->GetWorldToDisplayCoordinates(p2World, p2WorldToDisplay);
+    this->GetWorldToDisplayCoordinates(p3World, p3WorldToDisplay);
+    
+    double p1SliceToWorld[3] = { 0.0 };
+    double p2SliceToWorld[3] = { 0.0 };
+    double p3SliceToWorld[3] = { 0.0 };
+    this->GetSliceToWorldCoordinates(p1, p1SliceToWorld);
+    this->GetSliceToWorldCoordinates(p2, p2SliceToWorld);
+    this->GetSliceToWorldCoordinates(p3, p3SliceToWorld);
+    
+    double p1WorldToSlice[3] = { 0.0 };
+    double p2WorldToSlice[3] = { 0.0 };
+    double p3WorldToSlice[3] = { 0.0 };
+    this->GetWorldToSliceCoordinates(p1World, p1WorldToSlice);
+    this->GetWorldToSliceCoordinates(p2World, p2WorldToSlice);
+    this->GetWorldToSliceCoordinates(p3World, p3WorldToSlice);
+    
+    double rp2World[3] = { 0.0 };
+    double rp3World[3] = { 0.0 };
+    double normalWorld[3] = { 0.0 };
+    vtkMath::Subtract(p2World, p1World, rp2World);
+    vtkMath::Subtract(p3World, p1World, rp3World);
+    vtkMath::Cross(rp2World, rp3World, normalWorld);
+    double normalWorldToDisplay[3] = { 0.0 };
+    this->GetWorldToDisplayCoordinates(normalWorld, normalWorldToDisplay);
+    
+    double p1WorldToDisplayScaled[3] = { p1WorldToDisplay[0],
+                                        p1WorldToDisplay[1],
+                                        p1WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    double p2WorldToDisplayScaled[3] = { p2WorldToDisplay[0],
+                                        p2WorldToDisplay[1],
+                                        p2WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    double normalWorldToDisplayScaled[3] = { normalWorldToDisplay[0],
+                                            normalWorldToDisplay[1],
+                                            normalWorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    
+    double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldToDisplay, p2WorldToDisplay));    
+    const double normal[3] = { 0.0, 0.0, 1.0 };
+    double radiusMeasurement = ringNode->GetMeasurement("radius")->GetValue();
+    
+    if (this->GetSliceNode()->GetName() == std::string("Green"))
+    {
+      prn3(p1, "p1");
+      prn3(p1World, "p1World");
+      prn3(p1WorldToSlice, "p1WorldToSlice");
+      prn3(p1SliceToWorld, "p1SliceToWorld");
+      prn3(p1WorldToDisplay, "p1WorldToDisplay");
+      prn3(normalWorld, "normalWorld");
+      prn3(normalWorldToDisplay, "normalWorldToDisplay");
+      cout << "lineLength : " << lineLength << endl;
+      cout << "radiusMeasurement : " << radiusMeasurement << endl;
+      prn3(p2, "p2");
+      prn3(p2World, "p2World");
+      prn3(p2WorldToSlice, "p2WorldToSlice");
+      prn3(p2SliceToWorld, "p2SliceToWorld");
+      prn3(p2WorldToDisplay, "p2WorldToDisplay");
+    }
+    
     double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
     // this->MiddlePointActor->SetDisplayPosition(static_cast<int>(middlePointPos[0]),
     //                                            static_cast<int>(middlePointPos[1]));
@@ -119,21 +204,18 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     this->MiddlePointSource->Update();
     this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
   
-    double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));    
-    const double normal[3] = { 0.0, 0.0, 1.0 };
-    
     // Centered mode : p1 is center, line length is radius.
     if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
     { 
-      this->RingSource->SetCenter(p1);
-      this->RingSource->SetNormal(normal);
+      this->RingSource->SetCenter(p1WorldToDisplay);
+      this->RingSource->SetNormal(normalWorldToDisplay);
       this->RingSource->SetOuterRadius(lineLength);
-      this->RingSource->SetInnerRadius(lineLength - 1.0);
+      this->RingSource->SetInnerRadius((lineLength - 1.0) );
 
       this->MiddlePointActor->SetVisibility(false);
       this->RadiusSource->SetPoint1(p1);
     }
-    // Circumferentiale mode : center is half way between p1 and p2, radius is half of line length.
+    // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
     else
     {
       double radius = lineLength / 2.0;
@@ -336,3 +418,16 @@ vtkTypeBool vtkSlicerRingRepresentation2D::HasTranslucentPolygonalGeometry()
     }
   return false;
 }
+
+//****************************************************************************
+/*
+ * GetSliceToWorldCoordinates :
+ *  Result is a world coordinate, that is always on the slice; is a projection
+ *  of the source world coordinate, in the current slice view orientation.
+ * GetWorldToSliceCoordinates :
+ *  Same result as GetNthControlPointDisplayPosition() - (p[0], p[1], 0)
+ *  Not a world coordinate.
+ * GetWorldToDisplayCoordinates :
+ *  Same result as GetWorldToSliceCoordinates, plus an offset value - (p[0], p[1], offset)
+ *  Not a world coordinate.
+*/
