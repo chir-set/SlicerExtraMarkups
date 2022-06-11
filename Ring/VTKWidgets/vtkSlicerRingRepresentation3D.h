@@ -81,7 +81,7 @@ protected:
   vtkSmartPointer<vtkLineSource> RadiusSource;
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
   vtkSmartPointer<vtkActor> RadiusActor;
-
+  
 private:
   vtkSlicerRingRepresentation3D(const vtkSlicerRingRepresentation3D&) = delete;
   void operator=(const vtkSlicerRingRepresentation3D&) = delete;

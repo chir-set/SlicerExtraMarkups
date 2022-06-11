@@ -276,7 +276,7 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   double normal[3] = { 0.0 };
 
   // Centered mode : p1 is center, line length is radius.
-  if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
+  if (ringNode->GetRadiusMode() == vtkMRMLMarkupsRingNode::Centered)
   {
     // Relative to p1 (center)
     double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
@@ -321,15 +321,18 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
   
-  this->RingActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->RadiusActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
+  bool visibility = (this->GetAllControlPointsVisible() && markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->RingActor->SetVisibility(visibility);
+  this->RadiusActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
 
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->RingActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   // Text is badly colored
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  //this->RingModel->GetModelDisplayNode()->SetColor(this->GetControlPointsPipeline(controlPointType)->Property->GetColor());
   
   // Stick p3 on ring.
   this->DoUpdateFromMRML = false;

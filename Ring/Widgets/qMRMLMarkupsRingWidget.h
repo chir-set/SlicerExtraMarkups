@@ -60,7 +60,8 @@ public slots:
 /// Set the MRML node of interest
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
   
-  void onModeChanged();
+  void onRadiusModeChanged();
+  void onDrawModeChanged();
   void onResolutionChanged(double value);
   void onResliceNodeChanged(vtkMRMLNode * node);
   void onResliceButtonClicked();

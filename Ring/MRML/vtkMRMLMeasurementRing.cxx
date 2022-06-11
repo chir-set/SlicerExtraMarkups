@@ -37,7 +37,7 @@ void vtkMRMLMeasurementRing::Compute()
   
   if (this->GetName() == std::string("radius"))
   {
-    if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
+    if (ringNode->GetRadiusMode() == vtkMRMLMarkupsRingNode::Centered)
     {
       measurement = lineLength;
     }
@@ -48,7 +48,7 @@ void vtkMRMLMeasurementRing::Compute()
   }
   else if (this->GetName() == std::string("area"))
   {
-    if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
+    if (ringNode->GetRadiusMode() == vtkMRMLMarkupsRingNode::Centered)
       {
         measurement = vtkMath::Pi() * (lineLength * lineLength);
       }

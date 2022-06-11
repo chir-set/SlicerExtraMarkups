@@ -36,6 +36,12 @@ public:
     Centered = 0,
     Circumferential
   };
+  enum
+  {
+    WorldProjection = 0,
+    WorldIntersection,
+    SliceProjection
+  };
   static vtkMRMLMarkupsRingNode* New();
   vtkTypeMacro(vtkMRMLMarkupsRingNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -64,8 +70,11 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsRingNode);
 
-  vtkSetMacro(Mode, int);
-  vtkGetMacro(Mode, int);
+  vtkSetMacro(RadiusMode, int);
+  vtkGetMacro(RadiusMode, int);
+  
+  vtkSetMacro(DrawMode2D, int);
+  vtkGetMacro(DrawMode2D, int);
   
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
@@ -87,7 +96,8 @@ protected:
   void operator=(const vtkMRMLMarkupsRingNode&);
 
 private:
-  int Mode { Centered };
+  int RadiusMode { Centered };
+  int DrawMode2D { WorldProjection };
   double Resolution { 45.0 };
   vtkPolyData * RingWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;

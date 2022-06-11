@@ -72,6 +72,21 @@ vtkSlicerRingRepresentation2D::vtkSlicerRingRepresentation2D()
   this->RadiusActor = vtkSmartPointer<vtkActor2D>::New();
   this->RadiusActor->SetMapper(this->RadiusMapper);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
+  
+  this->SliceViewPlane = vtkSmartPointer<vtkPlane>::New();
+  this->SliceViewPlane->SetNormal(0.0, 0.0, 1.0);
+  double * slicePlaneOrigin = this->SlicePlane->GetOrigin();
+  this->SliceViewPlane->SetOrigin(slicePlaneOrigin[0], slicePlaneOrigin[1], slicePlaneOrigin[2]);
+  
+  this->SliceViewCutter = vtkSmartPointer<vtkCutter>::New();
+  this->SliceViewCutter->SetInputConnection(this->RingSource->GetOutputPort());
+  this->SliceViewCutter->SetCutFunction(this->SliceViewPlane);
+  
+  this->SliceViewCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  this->SliceViewCutMapper->SetInputConnection(this->SliceViewCutter->GetOutputPort());
+  
+  this->SliceViewCutActor = vtkSmartPointer<vtkActor2D>::New();
+  this->SliceViewCutActor->SetMapper(this->SliceViewCutMapper);
 }
 
 //------------------------------------------------------------------------------
@@ -99,35 +114,24 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
   this->VisibilityOn();
   vtkMRMLMarkupsRingNode * ringNode = vtkMRMLMarkupsRingNode::SafeDownCast(markupsNode);
 
-  this->MiddlePointActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->RingActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->RadiusActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 3);
-  
-  auto prn2 = [&](double * p, const char * lbl)
-  {
-    cout << lbl << " : (" 
-        << p[0] << ", "
-        << p[1] << ")"
-        << endl;
-  };
-  auto prn3 = [&](double * p, const char * lbl)
-  {
-    cout << lbl << " : (" 
-    << p[0] << ", "
-    << p[1] << ", "
-    << p[2] << ")"
-    << endl;
-  };
+  bool visibility = markupsNode->GetNumberOfDefinedControlPoints(true) == 3;
+  this->MiddlePointActor->SetVisibility(visibility);
+  this->RingActor->SetVisibility(visibility);
+  this->RadiusActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
+  this->SliceViewCutActor->SetVisibility(visibility);
   
   if (markupsNode->GetNumberOfDefinedControlPoints(true) == 3)
   {
+    // Display coordinates.
     double p1[3] = { 0.0 };
     double p2[3] = { 0.0 };
     double p3[3] = { 0.0 };
     this->GetNthControlPointDisplayPosition(0, p1);
     this->GetNthControlPointDisplayPosition(1, p2);
     this->GetNthControlPointDisplayPosition(2, p3);
+    
+    // World coordinates.
     double p1World[3] = { 0.0 };
     double p2World[3] = { 0.0 };
     double p3World[3] = { 0.0 };
@@ -135,6 +139,7 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     ringNode->GetNthControlPointPositionWorld(1, p2World);
     ringNode->GetNthControlPointPositionWorld(2, p3World);
     
+    // Display coordinates with Z.
     double p1WorldToDisplay[3] = { 0.0 };
     double p2WorldToDisplay[3] = { 0.0 };
     double p3WorldToDisplay[3] = { 0.0 };
@@ -142,96 +147,109 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     this->GetWorldToDisplayCoordinates(p2World, p2WorldToDisplay);
     this->GetWorldToDisplayCoordinates(p3World, p3WorldToDisplay);
     
-    double p1SliceToWorld[3] = { 0.0 };
-    double p2SliceToWorld[3] = { 0.0 };
-    double p3SliceToWorld[3] = { 0.0 };
-    this->GetSliceToWorldCoordinates(p1, p1SliceToWorld);
-    this->GetSliceToWorldCoordinates(p2, p2SliceToWorld);
-    this->GetSliceToWorldCoordinates(p3, p3SliceToWorld);
-    
-    double p1WorldToSlice[3] = { 0.0 };
-    double p2WorldToSlice[3] = { 0.0 };
-    double p3WorldToSlice[3] = { 0.0 };
-    this->GetWorldToSliceCoordinates(p1World, p1WorldToSlice);
-    this->GetWorldToSliceCoordinates(p2World, p2WorldToSlice);
-    this->GetWorldToSliceCoordinates(p3World, p3WorldToSlice);
-    
-    double rp2World[3] = { 0.0 };
-    double rp3World[3] = { 0.0 };
-    double normalWorld[3] = { 0.0 };
-    vtkMath::Subtract(p2World, p1World, rp2World);
-    vtkMath::Subtract(p3World, p1World, rp3World);
-    vtkMath::Cross(rp2World, rp3World, normalWorld);
-    double normalWorldToDisplay[3] = { 0.0 };
-    this->GetWorldToDisplayCoordinates(normalWorld, normalWorldToDisplay);
-    
+    // Account for slice view zooming. Why doesn't GetWorldToDisplayCoordinates do that ?
     double p1WorldToDisplayScaled[3] = { p1WorldToDisplay[0],
                                         p1WorldToDisplay[1],
                                         p1WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
     double p2WorldToDisplayScaled[3] = { p2WorldToDisplay[0],
                                         p2WorldToDisplay[1],
                                         p2WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
-    double normalWorldToDisplayScaled[3] = { normalWorldToDisplay[0],
-                                            normalWorldToDisplay[1],
-                                            normalWorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    double p3WorldToDisplayScaled[3] = { p3WorldToDisplay[0],
+                                          p3WorldToDisplay[1],
+                                          p3WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
     
-    double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldToDisplay, p2WorldToDisplay));    
-    const double normal[3] = { 0.0, 0.0, 1.0 };
-    double radiusMeasurement = ringNode->GetMeasurement("radius")->GetValue();
-    
-    if (this->GetSliceNode()->GetName() == std::string("Green"))
-    {
-      prn3(p1, "p1");
-      prn3(p1World, "p1World");
-      prn3(p1WorldToSlice, "p1WorldToSlice");
-      prn3(p1SliceToWorld, "p1SliceToWorld");
-      prn3(p1WorldToDisplay, "p1WorldToDisplay");
-      prn3(normalWorld, "normalWorld");
-      prn3(normalWorldToDisplay, "normalWorldToDisplay");
-      cout << "lineLength : " << lineLength << endl;
-      cout << "radiusMeasurement : " << radiusMeasurement << endl;
-      prn3(p2, "p2");
-      prn3(p2World, "p2World");
-      prn3(p2WorldToSlice, "p2WorldToSlice");
-      prn3(p2SliceToWorld, "p2SliceToWorld");
-      prn3(p2WorldToDisplay, "p2WorldToDisplay");
-    }
-    
-    double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
-    // this->MiddlePointActor->SetDisplayPosition(static_cast<int>(middlePointPos[0]),
-    //                                            static_cast<int>(middlePointPos[1]));
-    this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
-    this->MiddlePointSource->Update();
-    this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-  
-    // Centered mode : p1 is center, line length is radius.
-    if (ringNode->GetMode() == vtkMRMLMarkupsRingNode::Centered)
-    { 
-      this->RingSource->SetCenter(p1WorldToDisplay);
-      this->RingSource->SetNormal(normalWorldToDisplay);
-      this->RingSource->SetOuterRadius(lineLength);
-      this->RingSource->SetInnerRadius((lineLength - 1.0) );
+    // Calculate normal relative to p1WorldToDisplayScaled
+    double normalWorldToDisplayScaled[3] = { 0.0 };
+    double rp2WorldToDisplayScaled[3] = { 0.0 };
+    double rp3WorldToDisplayScaled[3] = { 0.0 };
+    vtkMath::Subtract(p2WorldToDisplayScaled, p1WorldToDisplayScaled, rp2WorldToDisplayScaled);
+    vtkMath::Subtract(p3WorldToDisplayScaled, p1WorldToDisplayScaled, rp3WorldToDisplayScaled);
+    vtkMath::Cross(rp2WorldToDisplayScaled, rp3WorldToDisplayScaled, normalWorldToDisplayScaled);
 
-      this->MiddlePointActor->SetVisibility(false);
-      this->RadiusSource->SetPoint1(p1);
-    }
-    // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
-    else
+    // Scaled distance. This is not world radius.
+    double lineLengthScaled = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldToDisplayScaled, p2WorldToDisplayScaled));    
+    
+    // Draw mode : WorldProjection or WorldIntersection
+    if (ringNode->GetDrawMode2D() != vtkMRMLMarkupsRingNode::SliceProjection)
     {
-      double radius = lineLength / 2.0;
-      double center[3] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0, (p1[2] + p2[2]) / 2.0 };
+      // Centered mode.
+      if (ringNode->GetRadiusMode() == vtkMRMLMarkupsRingNode::Centered)
+      { 
+        this->RingSource->SetCenter(p1WorldToDisplayScaled);
+        this->RingSource->SetNormal(normalWorldToDisplayScaled);
+        this->RingSource->SetOuterRadius(lineLengthScaled);
+        this->RingSource->SetInnerRadius((lineLengthScaled - 1.0) );
+
+        this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
+        this->MiddlePointSource->Update();
+        // The middle point's properties are distinct.
+        this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+        
+        this->RadiusSource->SetPoint1(p1);
+      }
+      // Circumferential mode : center is half way between p1 and p2 WorldToDisplayScaled.
+      else
+      {
+        double radiusScaled = lineLengthScaled / 2.0;
+        double center[3] = { (p1WorldToDisplayScaled[0] + p2WorldToDisplayScaled[0]) / 2.0,
+                          (p1WorldToDisplayScaled[1] + p2WorldToDisplayScaled[1]) / 2.0,
+                          (p1WorldToDisplayScaled[2] + p2WorldToDisplayScaled[2]) / 2.0 };
+        
+        this->RingSource->SetCenter(center);
+        this->RingSource->SetNormal(normalWorldToDisplayScaled);
+        this->RingSource->SetOuterRadius(radiusScaled);
+        this->RingSource->SetInnerRadius(radiusScaled - 1.0);
+        
+        double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
+        this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
+        this->MiddlePointSource->Update();
+        this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+        
+        this->RadiusSource->SetPoint1(center);
+      }
+      // Showing the radius here is confusing in UI.
+      this->RadiusActor->SetVisibility(ringNode->GetDrawMode2D() == vtkMRMLMarkupsRingNode::WorldProjection);
+      // Show the projection. SliceViewCutActor is also visible, but will blend with the projection. 
+      this->RingActor->SetVisibility(ringNode->GetDrawMode2D() == vtkMRMLMarkupsRingNode::WorldProjection);
+    }
+    else
+      // Draw mode : SliceProjection.
+    {
+      double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));    
+      const double normal[3] = { 0.0, 0.0, 1.0 };
       
-      this->RingSource->SetCenter(center);
-      this->RingSource->SetNormal(normal);
-      this->RingSource->SetOuterRadius(radius);
-      this->RingSource->SetInnerRadius(radius - 1.0);
-      
-      this->MiddlePointActor->SetVisibility(true);
-      this->RadiusSource->SetPoint1(center);
+      // Centered mode : p1 is center, line length is radius.
+      if (ringNode->GetRadiusMode() == vtkMRMLMarkupsRingNode::Centered)
+      { 
+        this->RingSource->SetCenter(p1);
+        this->RingSource->SetNormal(normal);
+        this->RingSource->SetOuterRadius(lineLength);
+        this->RingSource->SetInnerRadius(lineLength - 1.0);
+        
+        this->MiddlePointActor->SetVisibility(false);
+        this->RadiusSource->SetPoint1(p1);
+      }
+      // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
+      else
+      {
+        double radius = lineLength / 2.0;
+        double center[3] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0, (p1[2] + p2[2]) / 2.0 };
+        
+        this->RingSource->SetCenter(center);
+        this->RingSource->SetNormal(normal);
+        this->RingSource->SetOuterRadius(radius);
+        this->RingSource->SetInnerRadius(radius - 1.0);
+        
+        this->MiddlePointActor->SetVisibility(true);
+        this->RadiusSource->SetPoint1(center);
+      }
+      this->RadiusActor->SetVisibility(true);
+      this->RingActor->SetVisibility(true);
     }
     
     this->RingSource->SetCircumferentialResolution((int) ringNode->GetResolution());
     this->RingSource->Update();
+    this->SliceViewCutter->Update();
     
     this->RadiusSource->SetPoint2(p2);
     this->RadiusSource->Update();
@@ -244,6 +262,7 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     this->RingActor->SetVisibility(false);
     this->RadiusActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
+    this->SliceViewCutActor->SetVisibility(false);
   }
   
   // Hide the line actor if it doesn't intersect the current slice
@@ -254,11 +273,13 @@ void vtkSlicerRingRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
     this->RingActor->SetVisibility(false);
     this->RadiusActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
+    this->SliceViewCutActor->SetVisibility(false);
   }
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->RingActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  this->SliceViewCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   
   /*if (this->MarkupsDisplayNode->GetLineColorNode() && this->MarkupsDisplayNode->GetLineColorNode()->GetColorTransferFunction())
   {
@@ -292,6 +313,7 @@ void vtkSlicerRingRepresentation2D::UpdateInteractionPipeline()
 {
   if (!this->MiddlePointActor->GetVisibility() || !this->RingActor->GetVisibility()
     || !this->RadiusActor->GetVisibility() || !this->TextActor->GetVisibility()
+    || !this->SliceViewCutActor->GetVisibility()
   )
   {
     this->InteractionPipeline->Actor->SetVisibility(false);
@@ -308,6 +330,7 @@ void vtkSlicerRingRepresentation2D::GetActors(vtkPropCollection *pc)
   this->RingActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
   this->TextActor->GetActors(pc);
+  this->SliceViewCutActor->GetActors(pc);
   this->Superclass::GetActors(pc);
 }
 
@@ -318,6 +341,7 @@ void vtkSlicerRingRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
   this->RingActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
   this->TextActor->ReleaseGraphicsResources(win);
+  this->SliceViewCutActor->ReleaseGraphicsResources(win);
   this->Superclass::ReleaseGraphicsResources(win);
 }
 
@@ -340,6 +364,10 @@ int vtkSlicerRingRepresentation2D::RenderOverlay(vtkViewport *viewport)
   if (this->TextActor->GetVisibility())
     {
       count +=  this->TextActor->RenderOverlay(viewport);
+    }
+  if (this->SliceViewCutActor->GetVisibility())
+    {
+      count +=  this->SliceViewCutActor->RenderOverlay(viewport);
     }
   count += this->Superclass::RenderOverlay(viewport);
   return count;
@@ -365,6 +393,10 @@ int vtkSlicerRingRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
     {
       count += this->TextActor->RenderOpaqueGeometry(viewport);
     }
+  if (this->SliceViewCutActor->GetVisibility())
+    {
+      count += this->SliceViewCutActor->RenderOpaqueGeometry(viewport);
+    }
   count = this->Superclass::RenderOpaqueGeometry(viewport);
   return count;
 }
@@ -388,6 +420,10 @@ int vtkSlicerRingRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpor
   if (this->TextActor->GetVisibility())
     {
       count += this->TextActor->RenderTranslucentPolygonalGeometry(viewport);
+    }
+  if (this->SliceViewCutActor->GetVisibility())
+    {
+      count += this->SliceViewCutActor->RenderTranslucentPolygonalGeometry(viewport);
     }
   count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
   return count;
@@ -416,11 +452,16 @@ vtkTypeBool vtkSlicerRingRepresentation2D::HasTranslucentPolygonalGeometry()
     {
       return true;
     }
+  if (this->SliceViewCutActor->GetVisibility() && this->SliceViewCutActor->HasTranslucentPolygonalGeometry())
+    {
+      return true;
+    }
   return false;
 }
 
 //****************************************************************************
 /*
+ * ////// Notes \\\\\\
  * GetSliceToWorldCoordinates :
  *  Result is a world coordinate, that is always on the slice; is a projection
  *  of the source world coordinate, in the current slice view orientation.
@@ -429,5 +470,17 @@ vtkTypeBool vtkSlicerRingRepresentation2D::HasTranslucentPolygonalGeometry()
  *  Not a world coordinate.
  * GetWorldToDisplayCoordinates :
  *  Same result as GetWorldToSliceCoordinates, plus an offset value - (p[0], p[1], offset)
- *  Not a world coordinate.
+ *  Not a world coordinate. Kind of 3D coordinate system unique for each slice view, where
+ *  each axis value is influenced by translation, rotation and zooming.
+ *  The latter does not alter the Z-axis however. It must be updated with ViewScaleFactorMmPerPixel.
 */
+
+/*
+ * ////// Comparative validation \\\\\\
+ * In slice views, if we compare to a model that can be created from the ring's polydata, radius is very slightly 
+ * greater in WorldProjection mode, as we get further away from control points.
+ * Is it the result of different drawing techniques between vtkRingSource and vtkMRMLModelNode ?
+ * 
+ * r = slicer.util.getNode("RI")
+ * mod = slicer.modules.models.logic().AddModel(r.GetRingWorld())
+ */

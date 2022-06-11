@@ -61,12 +61,17 @@ void qMRMLMarkupsRingWidgetPrivate::setupUi(qMRMLMarkupsRingWidget* widget)
   this->Ui_qMRMLMarkupsRingWidget::setupUi(widget);
   this->ringCollapsibleButton->setVisible(false);
   this->ringCollapsibleButton->setCollapsed(true);
-  this->modeComboBox->addItem("Centered");
-  this->modeComboBox->addItem("Circumferential");
+  this->radiusModeComboBox->addItem("Centered");
+  this->radiusModeComboBox->addItem("Circumferential");
+  this->drawModeComboBox->addItem("World projection");
+  this->drawModeComboBox->addItem("World intersection");
+  this->drawModeComboBox->addItem("Slice projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
-  QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
-                   q, SLOT(onModeChanged()));
+  QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onRadiusModeChanged()));
+  QObject::connect(this->drawModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onDrawModeChanged()));
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
   QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
@@ -132,14 +137,15 @@ void qMRMLMarkupsRingWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode)
   this->setEnabled(markupsNode != nullptr);
   if (d->MarkupsRingNode)
     {
-      d->modeComboBox->setCurrentIndex(d->MarkupsRingNode->GetMode());
+      d->radiusModeComboBox->setCurrentIndex(d->MarkupsRingNode->GetRadiusMode());
+      d->drawModeComboBox->setCurrentIndex(d->MarkupsRingNode->GetDrawMode2D());
       d->resolutionSliderWidget->setValue(d->MarkupsRingNode->GetResolution());
       d->resliceInputSelector->setCurrentNode(d->MarkupsRingNode->GetResliceNode());
     }
 }
 
 // --------------------------------------------------------------------------
-void qMRMLMarkupsRingWidget::onModeChanged()
+void qMRMLMarkupsRingWidget::onRadiusModeChanged()
 {
   Q_D(qMRMLMarkupsRingWidget);
   
@@ -147,7 +153,20 @@ void qMRMLMarkupsRingWidget::onModeChanged()
     {
       return;
     }
-  d->MarkupsRingNode->SetMode(d->modeComboBox->currentIndex());
+  d->MarkupsRingNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
+  d->MarkupsRingNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsRingWidget::onDrawModeChanged()
+{
+  Q_D(qMRMLMarkupsRingWidget);
+  
+  if (!d->MarkupsRingNode)
+  {
+    return;
+  }
+  d->MarkupsRingNode->SetDrawMode2D(d->drawModeComboBox->currentIndex());
   d->MarkupsRingNode->UpdateScene(this->mrmlScene());
 }
 
