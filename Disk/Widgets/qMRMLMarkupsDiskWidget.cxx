@@ -61,8 +61,13 @@ void qMRMLMarkupsDiskWidgetPrivate::setupUi(qMRMLMarkupsDiskWidget* widget)
   this->Ui_qMRMLMarkupsDiskWidget::setupUi(widget);
   this->diskCollapsibleButton->setCollapsed(true);
   this->diskCollapsibleButton->setVisible(false);
+  this->drawModeComboBox->addItem("World projection");
+  this->drawModeComboBox->addItem("World intersection");
+  this->drawModeComboBox->addItem("Slice projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
+  QObject::connect(this->drawModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onDrawModeChanged()));
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
   QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
@@ -128,9 +133,23 @@ void qMRMLMarkupsDiskWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode)
   this->setEnabled(markupsNode != nullptr);
   if (d->MarkupsDiskNode)
   {
+    d->drawModeComboBox->setCurrentIndex(d->MarkupsDiskNode->GetDrawMode2D());
     d->resolutionSliderWidget->setValue(d->MarkupsDiskNode->GetResolution());
     d->resliceInputSelector->setCurrentNode(d->MarkupsDiskNode->GetResliceNode());
   }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsDiskWidget::onDrawModeChanged()
+{
+  Q_D(qMRMLMarkupsDiskWidget);
+  
+  if (!d->MarkupsDiskNode)
+  {
+    return;
+  }
+  d->MarkupsDiskNode->SetDrawMode2D(d->drawModeComboBox->currentIndex());
+  d->MarkupsDiskNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------

@@ -30,6 +30,12 @@ class VTK_SLICER_DISK_MODULE_MRML_EXPORT vtkMRMLMarkupsDiskNode
 : public vtkMRMLMarkupsNode
 {
 public:
+  enum
+  {
+    WorldProjection = 0,
+    WorldIntersection,
+    SliceProjection
+  };
   static vtkMRMLMarkupsDiskNode* New();
   vtkTypeMacro(vtkMRMLMarkupsDiskNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -58,6 +64,8 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsDiskNode);
   
+  vtkSetMacro(DrawMode2D, int);
+  vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
   vtkSetMacro(InnerRadius, double);
@@ -81,6 +89,7 @@ protected:
   void operator=(const vtkMRMLMarkupsDiskNode&);
 
 private:
+  int DrawMode2D { WorldProjection };
   double Resolution { 45.0 };
   double InnerRadius { 0.0 };
   double OuterRadius { 0.0 };

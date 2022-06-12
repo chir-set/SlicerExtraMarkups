@@ -49,6 +49,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkDiskSource.h>
 #include <vtkSampleImplicitFunctionFilter.h>
+#include <vtkCutter.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -95,6 +96,11 @@ protected:
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkPolyDataMapper2D> DiskMapper;
   vtkSmartPointer<vtkActor2D> DiskActor;
+  
+  vtkSmartPointer<vtkPlane> SliceViewPlane;
+  vtkSmartPointer<vtkCutter> SliceViewCutter;
+  vtkSmartPointer<vtkPolyDataMapper2D> SliceViewCutMapper;
+  vtkSmartPointer<vtkActor2D> SliceViewCutActor;
   
   vtkSmartPointer<vtkProperty2D> DiskProperty;
 
