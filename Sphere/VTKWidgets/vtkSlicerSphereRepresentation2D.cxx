@@ -140,7 +140,7 @@ void vtkSlicerSphereRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsign
     if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
     { 
       // Cut sphere by slice plane as in 3D view.
-      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldPlaneCut)
+      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection)
       {
         double p1WorldPos[3] = { 0.0 };
         sphereNode->GetNthControlPointPositionWorld(0, p1WorldPos);
@@ -164,7 +164,7 @@ void vtkSlicerSphereRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsign
     // Circumferential mode : center is half way between p1 and p2.
     else
     {
-      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldPlaneCut)
+      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection)
       {
         double p1WorldPos[3] = { 0.0 };
         double p2WorldPos[3] = { 0.0 };

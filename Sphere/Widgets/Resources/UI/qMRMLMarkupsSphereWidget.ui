@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>459</width>
-    <height>256</height>
+    <height>265</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,7 +93,7 @@ Circumferential : both control points lie on the circumference.</string>
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="sliceDrawModeLabel">
+         <widget class="QLabel" name="drawModeLabel">
           <property name="text">
            <string>Slice draw
 mode:</string>
@@ -101,11 +101,11 @@ mode:</string>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QComboBox" name="sliceDrawModeComboBox">
+         <widget class="QComboBox" name="drawModeComboBox">
           <property name="toolTip">
-           <string>World plane cut : the slice plane cuts the sphere in 3D view, and the outline is drawn in the slice view.
+           <string>World intersection : the slice plane cuts the sphere in 3D view, and the outline is drawn in the slice view.
 
-Slice view projection : the slice plane cuts a virtual sphere, created from the projection of the control points in slice coordinates, and the outline is drawn in the slice view.</string>
+Slice projection : the slice plane cuts a virtual sphere, created from the projection of the control points in slice views, and the outline is drawn.</string>
           </property>
          </widget>
         </item>
