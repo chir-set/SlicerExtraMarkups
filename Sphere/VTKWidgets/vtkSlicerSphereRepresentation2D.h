@@ -51,6 +51,7 @@
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
 #include <vtkCutter.h>
+#include <vtkProperty2D.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -98,6 +99,10 @@ protected:
   vtkSmartPointer<vtkActor2D> RadiusActor;
   
   vtkSmartPointer<vtkSphereSource> SphereSource;
+  vtkSmartPointer<vtkPolyDataMapper2D> SphereMapper;
+  vtkSmartPointer<vtkActor2D> SphereActor;
+  vtkSmartPointer<vtkProperty2D> SphereProperty;
+  
   vtkSmartPointer<vtkPlane> SliceViewPlane;
   vtkSmartPointer<vtkCutter> SliceViewCutter;
   vtkSmartPointer<vtkPolyDataMapper2D> SliceViewCutMapper;
@@ -110,8 +115,6 @@ protected:
 private:
   vtkSlicerSphereRepresentation2D(const vtkSlicerSphereRepresentation2D&) = delete;
   void operator=(const vtkSlicerSphereRepresentation2D&) = delete;
-  
-  void XyzToRas(double * inputXyz, double * outputRas);
 };
 
 #endif // __vtkslicerSphere_LOWERrepresentation3d_h_

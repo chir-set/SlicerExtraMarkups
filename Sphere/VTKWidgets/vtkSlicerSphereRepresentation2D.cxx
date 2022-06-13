@@ -23,7 +23,6 @@
 #include <vtkActor2D.h>
 #include <vtkGlyphSource2D.h>
 #include <vtkPolyDataMapper2D.h>
-#include <vtkProperty2D.h>
 #include <vtkPlane.h>
 #include <vtkMRMLMarkupsSphereNode.h>
 
@@ -51,6 +50,16 @@ vtkSlicerSphereRepresentation2D::vtkSlicerSphereRepresentation2D()
   this->MiddlePointActor->SetMapper(this->MiddlePointDataMapper);
   
   this->SphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  this->SphereSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
+  
+  this->SphereMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  this->SphereMapper->SetInputConnection(this->SphereSource->GetOutputPort());
+  this->SphereMapper->SetScalarVisibility(true);
+  
+  this->SphereActor = vtkSmartPointer<vtkActor2D>::New();
+  this->SphereActor->SetMapper(this->SphereMapper);
+  this->SphereActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
+  
   this->SliceViewPlane = vtkSmartPointer<vtkPlane>::New();
   this->SliceViewPlane->SetNormal(0.0, 0.0, 1.0);
   double * slicePlaneOrigin = this->SlicePlane->GetOrigin();
@@ -75,6 +84,9 @@ vtkSlicerSphereRepresentation2D::vtkSlicerSphereRepresentation2D()
   
   this->RadiusActor = vtkSmartPointer<vtkActor2D>::New();
   this->RadiusActor->SetMapper(this->RadiusDataMapper);
+  
+  this->SphereProperty = vtkSmartPointer<vtkProperty2D>::New();
+  this->SphereProperty->DeepCopy(this->GetControlPointsPipeline(Selected)->Property);
 }
 
 //------------------------------------------------------------------------------
@@ -103,93 +115,117 @@ void vtkSlicerSphereRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsign
   
   vtkMRMLMarkupsSphereNode * sphereNode = vtkMRMLMarkupsSphereNode::SafeDownCast(markupsNode);
 
-  this->MiddlePointActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->SliceViewCutActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->RadiusActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
+  bool visibility = (markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
+  this->SphereActor->SetVisibility(visibility);
+  this->MiddlePointActor->SetVisibility(visibility);
+  this->SliceViewCutActor->SetVisibility(visibility);
+  this->RadiusActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
 
-  // Hide the line actor if it doesn't intersect the current slice
-  this->SliceDistance->Update();
-  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
-  {
-    this->MiddlePointActor->SetVisibility(false);
-    this->SliceViewCutActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-  }
-
-  vtkMRMLMeasurement * radiusMeasurement = sphereNode->GetMeasurement("radius");
-  const double sphereRadius = radiusMeasurement->GetValue();
-  
   if (markupsNode->GetNumberOfDefinedControlPoints(true) == 2)
   {
-    // Display positions
+    // Display coordinates.
     double p1[3] = { 0.0 };
     double p2[3] = { 0.0 };
     this->GetNthControlPointDisplayPosition(0, p1);
     this->GetNthControlPointDisplayPosition(1, p2);
-    double centerDisplayPos[3] = { (p1[0] + p2[0]) / 2.0,
-                                (p1[1] + p2[1]) / 2.0,
-                                0.0 };
-    this->MiddlePointSource->SetCenter(centerDisplayPos);
-    this->MiddlePointSource->Update();
     
-    // Display distance between p1, p2
-    const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
-    // Centered mode : p1 is center.
-    if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
-    { 
-      // Cut sphere by slice plane as in 3D view.
-      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection)
-      {
-        double p1WorldPos[3] = { 0.0 };
-        sphereNode->GetNthControlPointPositionWorld(0, p1WorldPos);
-        double p1DisplayPosToWorldPos[3] = { 0.0 };
-        this->XyzToRas(p1, p1DisplayPosToWorldPos);
-        const double offsetWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldPos, p1DisplayPosToWorldPos));
-        double planeCutRadiusWorld = std::sqrt((sphereRadius * sphereRadius) - (offsetWorld * offsetWorld));
-        planeCutRadiusWorld /= this->ViewScaleFactorMmPerPixel;
-        
-        this->SphereSource->SetRadius(planeCutRadiusWorld);
-      }
-      else
-      {
-        // Cut a virtual sphre from control point positions projected in 2D.
-        this->SphereSource->SetRadius(lineLength);
-      }
-      this->SphereSource->SetCenter(p1);
-      this->MiddlePointActor->SetVisibility(false);
-      this->RadiusSource->SetPoint1(p1);
-    }
-    // Circumferential mode : center is half way between p1 and p2.
-    else
+    // World coordinates.
+    double p1World[3] = { 0.0 };
+    double p2World[3] = { 0.0 };
+    sphereNode->GetNthControlPointPositionWorld(0, p1World);
+    sphereNode->GetNthControlPointPositionWorld(1, p2World);
+    
+    // Display coordinates with Z.
+    double p1WorldToDisplay[3] = { 0.0 };
+    double p2WorldToDisplay[3] = { 0.0 };
+    this->GetWorldToDisplayCoordinates(p1World, p1WorldToDisplay);
+    this->GetWorldToDisplayCoordinates(p2World, p2WorldToDisplay);
+    
+    // Account for slice view zooming. Why doesn't GetWorldToDisplayCoordinates do that ?
+    double p1WorldToDisplayScaled[3] = { p1WorldToDisplay[0],
+                                        p1WorldToDisplay[1],
+                                        p1WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    double p2WorldToDisplayScaled[3] = { p2WorldToDisplay[0],
+                                        p2WorldToDisplay[1],
+                                        p2WorldToDisplay[2] / this->ViewScaleFactorMmPerPixel };
+    
+    // Scaled distance. This is not world radius.
+    double lineLengthScaled = std::sqrt(vtkMath::Distance2BetweenPoints(p1WorldToDisplayScaled, p2WorldToDisplayScaled));
+    // Draw mode : WorldProjection or WorldIntersection
+    if (sphereNode->GetDrawMode2D() != vtkMRMLMarkupsSphereNode::SliceProjection)
     {
-      if (sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection)
-      {
-        double p1WorldPos[3] = { 0.0 };
-        double p2WorldPos[3] = { 0.0 };
-        sphereNode->GetNthControlPointPositionWorld(0, p1WorldPos);
-        sphereNode->GetNthControlPointPositionWorld(1, p2WorldPos);
-        const double centerWorldPos[3] = { (p1WorldPos[0] + p2WorldPos[0]) / 2.0,
-                                          (p1WorldPos[1] + p2WorldPos[1]) / 2.0,
-                                          (p1WorldPos[2] + p2WorldPos[2]) / 2.0 };
+      // Centered mode.
+      if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
+      { 
+        this->SphereSource->SetCenter(p1WorldToDisplayScaled);
+        this->SphereSource->SetRadius(lineLengthScaled);
         
-        double centerDisplayPosToWorldPos[3] = { 0.0 };
-        this->XyzToRas(centerDisplayPos, centerDisplayPosToWorldPos);
-        const double offsetWorld = std::sqrt(vtkMath::Distance2BetweenPoints(centerWorldPos, centerDisplayPosToWorldPos));
-        double planeCutRadiusWorld = std::sqrt((sphereRadius * sphereRadius) - (offsetWorld * offsetWorld));
-        planeCutRadiusWorld /= this->ViewScaleFactorMmPerPixel;
+        this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
+        this->MiddlePointSource->Update();
+        // The middle point's properties are distinct.
+        this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
         
-        this->SphereSource->SetRadius(planeCutRadiusWorld);
+        this->RadiusSource->SetPoint1(p1);
       }
+      // Circumferential mode : center is half way between p1 and p2 WorldToDisplayScaled.
       else
       {
-        this->SphereSource->SetRadius(lineLength / 2.0);
+        double radiusScaled = lineLengthScaled / 2.0;
+        double center[3] = { (p1WorldToDisplayScaled[0] + p2WorldToDisplayScaled[0]) / 2.0,
+                            (p1WorldToDisplayScaled[1] + p2WorldToDisplayScaled[1]) / 2.0,
+                            (p1WorldToDisplayScaled[2] + p2WorldToDisplayScaled[2]) / 2.0 };
+          
+          this->SphereSource->SetCenter(center);
+          this->SphereSource->SetRadius(radiusScaled);
+          
+          double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
+          this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
+          this->MiddlePointSource->Update();
+          this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+          
+          this->RadiusSource->SetPoint1(center);
       }
-      this->SphereSource->SetCenter(centerDisplayPos);
-      this->MiddlePointActor->SetVisibility(true);
-      this->RadiusSource->SetPoint1(centerDisplayPos);
+      this->SphereActor->SetVisibility(sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldProjection);
+      this->RadiusActor->SetVisibility(sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection);
+      this->SliceViewCutActor->SetVisibility(sphereNode->GetDrawMode2D() == vtkMRMLMarkupsSphereNode::WorldIntersection);
     }
+    else
+      // Draw mode : SliceProjection.
+    {
+      double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));    
+      const double normal[3] = { 0.0, 0.0, 1.0 };
+      
+      // Centered mode : p1 is center, line length is radius.
+      if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsSphereNode::Centered)
+      { 
+        this->SphereSource->SetCenter(p1);
+        this->SphereSource->SetRadius(lineLength);
+        
+        this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
+        this->MiddlePointSource->Update();
+        
+        this->RadiusSource->SetPoint1(p1);
+      }
+      // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
+      else
+      {
+        double radius = lineLength / 2.0;
+        double center[3] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0, (p1[2] + p2[2]) / 2.0 };
+        
+        this->SphereSource->SetCenter(center);
+        this->SphereSource->SetRadius(radius);
+        
+        this->MiddlePointSource->SetCenter(center);
+        this->MiddlePointSource->Update();
+        
+        this->RadiusSource->SetPoint1(center);
+      }
+      this->SphereActor->SetVisibility(true);
+      this->RadiusActor->SetVisibility(true);
+      this->SliceViewCutActor->SetVisibility(false);
+    }
+    
     this->SphereSource->SetPhiResolution(sphereNode->GetResolution());
     this->SphereSource->SetThetaResolution(sphereNode->GetResolution());
     this->SphereSource->Update();
@@ -200,17 +236,36 @@ void vtkSlicerSphereRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsign
   }
   else
   {
+    this->SphereActor->SetVisibility(false);
     this->MiddlePointActor->SetVisibility(false);
     this->SliceViewCutActor->SetVisibility(false);
     this->RadiusActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
   }
 
+  // Hide the line actor if it doesn't intersect the current slice
+  this->SliceDistance->Update();
+  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
+  {
+    this->SphereActor->SetVisibility(false);
+    this->MiddlePointActor->SetVisibility(false);
+    this->SliceViewCutActor->SetVisibility(false);
+    this->RadiusActor->SetVisibility(false);
+    this->TextActor->SetVisibility(false);
+  }
+  
   this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->SphereActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->SliceViewCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->SphereProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->SphereProperty->SetOpacity(fillOpacity);
+  this->SphereActor->SetProperty(this->SphereProperty);
 }
 
 //----------------------------------------------------------------------
@@ -233,6 +288,7 @@ void vtkSlicerSphereRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode* markups
 //----------------------------------------------------------------------
 void vtkSlicerSphereRepresentation2D::GetActors(vtkPropCollection *pc)
 {
+  this->SphereActor->GetActors(pc);
   this->MiddlePointActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
   this->SliceViewCutActor->GetActors(pc);
@@ -243,6 +299,7 @@ void vtkSlicerSphereRepresentation2D::GetActors(vtkPropCollection *pc)
 //----------------------------------------------------------------------
 void vtkSlicerSphereRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 {
+  this->SphereActor->ReleaseGraphicsResources(win);
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
   this->SliceViewCutActor->ReleaseGraphicsResources(win);
@@ -254,6 +311,10 @@ void vtkSlicerSphereRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 int vtkSlicerSphereRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count=0;
+  if (this->SphereActor->GetVisibility())
+    {
+      count +=  this->SphereActor->RenderOverlay(viewport);
+    }
   if (this->MiddlePointActor->GetVisibility())
     {
     count +=  this->MiddlePointActor->RenderOverlay(viewport);
@@ -278,6 +339,10 @@ int vtkSlicerSphereRepresentation2D::RenderOverlay(vtkViewport *viewport)
 int vtkSlicerSphereRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 {
   int count=0;
+  if (this->SphereActor->GetVisibility())
+    {
+      count += this->SphereActor->RenderOpaqueGeometry(viewport);
+    }
   if (this->MiddlePointActor->GetVisibility())
     {
     count += this->MiddlePointActor->RenderOpaqueGeometry(viewport);
@@ -302,6 +367,10 @@ int vtkSlicerSphereRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 int vtkSlicerSphereRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewport *viewport)
 {
   int count=0;
+  if (this->SphereActor->GetVisibility())
+    {
+      count += this->SphereActor->RenderTranslucentPolygonalGeometry(viewport);
+    }
   if (this->MiddlePointActor->GetVisibility())
     {
     count += this->MiddlePointActor->RenderTranslucentPolygonalGeometry(viewport);
@@ -329,6 +398,10 @@ vtkTypeBool vtkSlicerSphereRepresentation2D::HasTranslucentPolygonalGeometry()
     {
     return true;
     }
+  if (this->SphereActor->GetVisibility() && this->SphereActor->HasTranslucentPolygonalGeometry())
+    {
+      return true;
+    }
   if (this->MiddlePointActor->GetVisibility() && this->MiddlePointActor->HasTranslucentPolygonalGeometry())
     {
     return true;
@@ -346,20 +419,4 @@ vtkTypeBool vtkSlicerSphereRepresentation2D::HasTranslucentPolygonalGeometry()
       return true;
     }
   return false;
-}
-
-//-----------------------------------------------------------------------------
-// Modules/Loadable/Segmentations/EditorEffects/qSlicerSegmentEditorAbstractEffect.cxx
-void vtkSlicerSphereRepresentation2D::XyzToRas(double * inputXyz, double * outputRas)
-{
-  outputRas[0] = outputRas[1] = outputRas[2] = 0.0;
-  
-  vtkMRMLSliceNode* sliceNode = this->GetSliceNode();
-  
-  double xyzw[4] = {inputXyz[0], inputXyz[1], inputXyz[2], 1.0};
-  double rast[4] = {0.0, 0.0, 0.0, 1.0};
-  sliceNode->GetXYToRAS()->MultiplyPoint(xyzw, rast);
-  outputRas[0] = rast[0];
-  outputRas[1] = rast[1];
-  outputRas[2] = rast[2];
 }

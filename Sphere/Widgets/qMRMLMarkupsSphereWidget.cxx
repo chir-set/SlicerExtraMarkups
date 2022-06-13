@@ -63,6 +63,7 @@ void qMRMLMarkupsSphereWidgetPrivate::setupUi(qMRMLMarkupsSphereWidget* widget)
   this->sphereCollapsibleButton->setCollapsed(true);
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
+  this->drawModeComboBox->addItem(("World projection"));
   this->drawModeComboBox->addItem(("World intersection"));
   this->drawModeComboBox->addItem(("Slice projection"));
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());

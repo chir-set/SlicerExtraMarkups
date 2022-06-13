@@ -103,9 +103,11 @@ mode:</string>
         <item row="1" column="1">
          <widget class="QComboBox" name="drawModeComboBox">
           <property name="toolTip">
-           <string>World intersection : the slice plane cuts the sphere in 3D view, and the outline is drawn in the slice view.
+           <string>World projection : draw the projection of the sphere from 3D space on a slice view.
 
-Slice projection : the slice plane cuts a virtual sphere, created from the projection of the control points in slice views, and the outline is drawn.</string>
+World intersection : draw the intersection of a slice view with the sphere in 3D space.
+
+Slice projection : draw a sphere from the projection of control points on a slice view.</string>
           </property>
          </widget>
         </item>

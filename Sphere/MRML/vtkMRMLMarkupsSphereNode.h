@@ -38,7 +38,8 @@ public:
   };
   enum
   {
-    WorldIntersection = 0,
+    WorldProjection = 0,
+    WorldIntersection,
     SliceProjection
   };
   static vtkMRMLMarkupsSphereNode* New();
@@ -96,7 +97,7 @@ protected:
 
 private:
   int RadiusMode { Centered };
-  int DrawMode2D { WorldIntersection };
+  int DrawMode2D { WorldProjection };
   double Resolution { 36.0 };
   vtkPolyData * SphereWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;
