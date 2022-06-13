@@ -177,7 +177,8 @@ void vtkSlicerDiskRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned
       this->DiskSource->SetNormal(normalWorldToDisplayScaled);
       this->DiskSource->SetOuterRadius(outerRadiusScaled);
       this->DiskSource->SetInnerRadius(innerRadiusScaled );
-      // Show projection on demand.
+      // Show projections on demand.
+      this->SliceViewCutActor->SetVisibility(diskNode->GetDrawMode2D() == vtkMRMLMarkupsDiskNode::WorldIntersection);
       this->DiskActor->SetVisibility(diskNode->GetDrawMode2D() == vtkMRMLMarkupsDiskNode::WorldProjection);
     }
     else
