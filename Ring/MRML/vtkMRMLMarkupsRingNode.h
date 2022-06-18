@@ -88,12 +88,16 @@ public:
   vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
   
   void ResliceToRingPlane();
+  void SetRadius(double radius);
 
 protected:
   vtkMRMLMarkupsRingNode();
   ~vtkMRMLMarkupsRingNode() override;
   vtkMRMLMarkupsRingNode(const vtkMRMLMarkupsRingNode&);
   void operator=(const vtkMRMLMarkupsRingNode&);
+  
+  void FindLinearCoordinateByDistance(const double * p1, const double * p2,
+                                      double * result, const double difference);
 
 private:
   int RadiusMode { Centered };
