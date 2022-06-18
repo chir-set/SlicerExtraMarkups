@@ -88,12 +88,16 @@ public:
   vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
   
   void ResliceToControlPoints();
+  void SetRadius(double radius);
 
 protected:
   vtkMRMLMarkupsSphereNode();
   ~vtkMRMLMarkupsSphereNode() override;
   vtkMRMLMarkupsSphereNode(const vtkMRMLMarkupsSphereNode&);
   void operator=(const vtkMRMLMarkupsSphereNode&);
+  
+  void FindLinearCoordinateByDistance(const double * p1, const double * p2,
+                                      double * result, const double difference);
 
 private:
   int RadiusMode { Centered };
