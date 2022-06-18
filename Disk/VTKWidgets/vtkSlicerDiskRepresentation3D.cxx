@@ -246,8 +246,6 @@ void vtkSlicerDiskRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[2] = farthestPoint[2];
   
   diskNode->SetDiskWorld(this->DiskSource->GetOutput());
-  diskNode->SetInnerRadius(innerRadius);
-  diskNode->SetOuterRadius(outerRadius);
 }
 
 //----------------------------------------------------------------------

@@ -116,3 +116,46 @@ void vtkMRMLMarkupsDiskNode::ResliceToDiskPlane()
     0);
   resliceNode->UpdateMatrices();
 }
+
+//----------------------------------------------------------------------
+bool vtkMRMLMarkupsDiskNode::DescribePointsProximity(double * closestPoint, double * farthestPoint,
+                                                     double& innerRadius, double& outerRadius)
+{
+  if (this->GetNumberOfDefinedControlPoints(true) != 3)
+  {
+    return false;
+  }
+  double p1[3] = { 0.0 }; // center
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, p1);
+  this->GetNthControlPointPositionWorld(1, p2);
+  this->GetNthControlPointPositionWorld(2, p3);
+  
+  double distance2 = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  double distance3 = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+  
+  if (distance2 <= distance3)
+  {
+    closestPoint[0] = p2[0];
+    closestPoint[1] = p2[1];
+    closestPoint[2] = p2[2];
+    farthestPoint[0] = p3[0];
+    farthestPoint[1] = p3[1];
+    farthestPoint[2] = p3[2];
+    innerRadius = distance2;
+    outerRadius = distance3;
+  }
+  else
+  {
+    closestPoint[0] = p3[0];
+    closestPoint[1] = p3[1];
+    closestPoint[2] = p3[2];
+    farthestPoint[0] = p2[0];
+    farthestPoint[1] = p2[1];
+    farthestPoint[2] = p2[2];
+    innerRadius = distance3;
+    outerRadius = distance2;
+  }
+  return true;
+}

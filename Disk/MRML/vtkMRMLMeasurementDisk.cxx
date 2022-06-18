@@ -30,21 +30,29 @@ void vtkMRMLMeasurementDisk::Compute()
       this->SetValue(measurement, "#ERR");
       return;
   }
+  
+  double closestPoint[3] = { 0.0 }; // Unused here
+  double farthestPoint[3] = { 0.0 };
+  double innerRadius = 0.0, outerRadius = 0.0;
+  if (!diskNode->DescribePointsProximity(closestPoint, farthestPoint, innerRadius, outerRadius))
+  {
+    vtkDebugMacro("Point proximity description failure.");
+    return;
+  }
+  
   if (this->GetName() == std::string("innerRadius"))
   {
-    measurement = diskNode->GetInnerRadius();
-    this->SetValue(measurement, this->GetName().c_str());
+    this->SetValue(innerRadius, this->GetName().c_str());
   }
   else
   if (this->GetName() == std::string("outerRadius"))
   {
-    measurement = diskNode->GetOuterRadius();
-    this->SetValue(measurement, this->GetName().c_str());
+    this->SetValue(outerRadius, this->GetName().c_str());
   }
   else
   if (this->GetName() == std::string("width"))
     {
-      measurement = diskNode->GetOuterRadius() - diskNode->GetInnerRadius();
+      measurement = outerRadius - innerRadius;
       this->SetValue(measurement, this->GetName().c_str());
     }
   else
@@ -56,8 +64,6 @@ void vtkMRMLMeasurementDisk::Compute()
         return;
     }
     // vtkMassProperties fails here : <Input data type must be VTK_TRIANGLE not 9>.
-    const double innerRadius = diskNode->GetInnerRadius();
-    const double outerRadius = diskNode->GetOuterRadius();
     const double innerArea = vtkMath::Pi() * innerRadius * innerRadius;
     const double outerArea = vtkMath::Pi() * outerRadius * outerRadius;
     measurement = outerArea - innerArea;
@@ -71,7 +77,6 @@ void vtkMRMLMeasurementDisk::Compute()
         this->SetValue(measurement, "#ERR");
         return;
       }
-      const double innerRadius = diskNode->GetInnerRadius();
       const double innerArea = vtkMath::Pi() * innerRadius * innerRadius;
       this->SetValue(innerArea, this->GetName().c_str());
     }
@@ -83,7 +88,6 @@ void vtkMRMLMeasurementDisk::Compute()
           this->SetValue(measurement, "#ERR");
           return;
         }
-        const double outerRadius = diskNode->GetOuterRadius();
         const double outerArea = vtkMath::Pi() * outerRadius * outerRadius;
         this->SetValue(outerArea, this->GetName().c_str());
       }

@@ -81,6 +81,8 @@ public:
   vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
   
   void ResliceToDiskPlane();
+  bool DescribePointsProximity(double * closestPoint, double * farthestPoint,
+                               double& innerRadius, double& outerRadius);
 
 protected:
   vtkMRMLMarkupsDiskNode();
