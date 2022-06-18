@@ -295,3 +295,15 @@ bool vtkSlicerDiskRepresentation3D::DescribePointsProximity(double * closestPoin
   }
   return true;
 }
+
+//----------------------------------------------------------------------
+double * vtkSlicerDiskRepresentation3D::GetBounds()
+{
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->DiskActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
+  /* Not the real bounds of the polydata, but those of the control points.
+   * Should we add all points of the source to boundingBox rather ? */
+}

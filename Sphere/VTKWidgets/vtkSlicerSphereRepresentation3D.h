@@ -59,6 +59,8 @@ public:
   int RenderOpaqueGeometry(vtkViewport* viewport) override;
   int RenderTranslucentPolygonalGeometry(vtkViewport* viewport) override;
   vtkTypeBool HasTranslucentPolygonalGeometry() override;
+  
+  double * GetBounds() override;
 
 protected:
   vtkSlicerSphereRepresentation3D();

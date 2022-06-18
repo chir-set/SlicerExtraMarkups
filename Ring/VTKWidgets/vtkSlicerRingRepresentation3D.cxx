@@ -348,3 +348,15 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
 }
+
+//----------------------------------------------------------------------
+double * vtkSlicerRingRepresentation3D::GetBounds()
+{
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->RingActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
+  /* Not the real bounds of the polydata, but those of the control points.
+   * Should we add all points of the source to boundingBox rather ? */
+}

@@ -272,6 +272,17 @@ void vtkSlicerLabelRepresentation3D::OnCameraModified(vtkObject *caller,
   client->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
 }
 
+//----------------------------------------------------------------------
+double * vtkSlicerLabelRepresentation3D::GetBounds()
+{
+  vtkBoundingBox boundingBox;
+  const std::vector<vtkProp*> actors({ this->ArrowActor });
+  this->AddActorsBounds(boundingBox, actors, Superclass::GetBounds());
+  boundingBox.GetBounds(this->Bounds);
+  return this->Bounds;
+}
+
+
 //---------------------------------------------------------------------------
 /*bool vtkSlicerLabelRepresentation3D::SetCameraObservationStatus(bool observe)
 {
