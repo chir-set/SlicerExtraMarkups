@@ -139,15 +139,13 @@ void vtkMRMLMarkupsDiskNode::SetInnerRadius(double radius)
     return;
   }
   double rasP1[3] = { 0.0 };
-  double rasP2[3] = { 0.0 };
   this->GetNthControlPointPositionWorld(0, rasP1);
-  this->GetNthControlPointPositionWorld(1, rasP2);
   
   const double difference = radius - innerRadius;
-  double rasP2Shifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, rasP2, rasP2Shifted, difference);
+  double closestPointShifted[3] = { 0.0 };
+  this->FindLinearCoordinateByDistance(rasP1, closestPoint, closestPointShifted, difference);
   
-  this->SetNthControlPointPositionWorld(1, rasP2Shifted);
+  this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(closestPoint), closestPointShifted);
 }
 
 //----------------------------API only----------------------------------------
@@ -172,15 +170,13 @@ void vtkMRMLMarkupsDiskNode::SetOuterRadius(double radius)
     return;
   }
   double rasP1[3] = { 0.0 };
-  double rasP3[3] = { 0.0 };
   this->GetNthControlPointPositionWorld(0, rasP1);
-  this->GetNthControlPointPositionWorld(2, rasP3);
   
   const double difference = radius - outerRadius;
-  double rasP3Shifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, rasP3, rasP3Shifted, difference);
+  double farthestPointShifted[3] = { 0.0 };
+  this->FindLinearCoordinateByDistance(rasP1, farthestPoint, farthestPointShifted, difference);
   
-  this->SetNthControlPointPositionWorld(2, rasP3Shifted);
+  this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(farthestPoint), farthestPointShifted);
 }
 
 //----------------------------------------------------------------------
