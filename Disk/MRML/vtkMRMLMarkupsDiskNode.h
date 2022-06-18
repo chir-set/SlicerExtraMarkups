@@ -68,10 +68,6 @@ public:
   vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
-  vtkSetMacro(InnerRadius, double);
-  vtkGetMacro(InnerRadius, double);
-  vtkSetMacro(OuterRadius, double);
-  vtkGetMacro(OuterRadius, double);
   
   vtkPolyData * GetDiskWorld() const {return this->DiskWorld;}
   // Used by 3D representation.
@@ -83,18 +79,21 @@ public:
   void ResliceToDiskPlane();
   bool DescribePointsProximity(double * closestPoint, double * farthestPoint,
                                double& innerRadius, double& outerRadius);
+  void SetInnerRadius(double radius);
+  void SetOuterRadius(double radius);
 
 protected:
   vtkMRMLMarkupsDiskNode();
   ~vtkMRMLMarkupsDiskNode() override;
   vtkMRMLMarkupsDiskNode(const vtkMRMLMarkupsDiskNode&);
   void operator=(const vtkMRMLMarkupsDiskNode&);
+  
+  void FindLinearCoordinateByDistance(const double * p1, const double * p2,
+                                      double * result, const double difference);
 
 private:
   int DrawMode2D { WorldProjection };
   double Resolution { 45.0 };
-  double InnerRadius { 0.0 };
-  double OuterRadius { 0.0 };
   
   vtkPolyData * DiskWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;

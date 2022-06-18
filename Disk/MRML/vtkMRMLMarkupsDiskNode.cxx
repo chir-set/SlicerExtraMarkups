@@ -117,6 +117,72 @@ void vtkMRMLMarkupsDiskNode::ResliceToDiskPlane()
   resliceNode->UpdateMatrices();
 }
 
+//----------------------------API only----------------------------------------
+void vtkMRMLMarkupsDiskNode::SetInnerRadius(double radius)
+{
+  if (radius <= 0)
+  {
+    vtkErrorMacro("Radius must be greater than zero.");
+    return;
+  }
+  double closestPoint[3] = { 0.0 };
+  double farthestPoint[3] = { 0.0 };
+  double innerRadius = 0.0, outerRadius = 0.0;
+  if (!this->DescribePointsProximity(closestPoint, farthestPoint, innerRadius, outerRadius))
+  {
+    vtkDebugMacro("Point proximity description failure.");
+    return;
+  }
+  if (radius >= outerRadius)
+  {
+    vtkErrorMacro("Inner radius must be less than outer radius.");
+    return;
+  }
+  double rasP1[3] = { 0.0 };
+  double rasP2[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, rasP1);
+  this->GetNthControlPointPositionWorld(1, rasP2);
+  
+  const double difference = radius - innerRadius;
+  double rasP2Shifted[3] = { 0.0 };
+  this->FindLinearCoordinateByDistance(rasP1, rasP2, rasP2Shifted, difference);
+  
+  this->SetNthControlPointPositionWorld(1, rasP2Shifted);
+}
+
+//----------------------------API only----------------------------------------
+void vtkMRMLMarkupsDiskNode::SetOuterRadius(double radius)
+{
+  if (radius <= 0)
+  {
+    vtkErrorMacro("Radius must be greater than zero.");
+    return;
+  }
+  double closestPoint[3] = { 0.0 };
+  double farthestPoint[3] = { 0.0 };
+  double innerRadius = 0.0, outerRadius = 0.0;
+  if (!this->DescribePointsProximity(closestPoint, farthestPoint, innerRadius, outerRadius))
+  {
+    vtkDebugMacro("Point proximity description failure.");
+    return;
+  }
+  if (radius <= innerRadius)
+  {
+    vtkErrorMacro("Outer radius must be greater than inner radius.");
+    return;
+  }
+  double rasP1[3] = { 0.0 };
+  double rasP3[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, rasP1);
+  this->GetNthControlPointPositionWorld(2, rasP3);
+  
+  const double difference = radius - outerRadius;
+  double rasP3Shifted[3] = { 0.0 };
+  this->FindLinearCoordinateByDistance(rasP1, rasP3, rasP3Shifted, difference);
+  
+  this->SetNthControlPointPositionWorld(2, rasP3Shifted);
+}
+
 //----------------------------------------------------------------------
 bool vtkMRMLMarkupsDiskNode::DescribePointsProximity(double * closestPoint, double * farthestPoint,
                                                      double& innerRadius, double& outerRadius)
@@ -158,4 +224,17 @@ bool vtkMRMLMarkupsDiskNode::DescribePointsProximity(double * closestPoint, doub
     outerRadius = distance2;
   }
   return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsDiskNode::FindLinearCoordinateByDistance(const double * p1, const double * p2,
+                                                            double * result, const double difference)
+{
+  // Relative to p1, itself placed at origin. Simplifies reasoning.
+  const double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
+  const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  const double factor = (1.0 + (difference / lineLength));
+  result[0] = p1[0] + (rp2[0] * factor);
+  result[1] = p1[1] + (rp2[1] * factor);
+  result[2] = p1[2] + (rp2[2] * factor);
 }
