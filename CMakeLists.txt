@@ -23,6 +23,7 @@ add_subdirectory(Ring)
 add_subdirectory(Label)
 add_subdirectory(Disk)
 add_subdirectory(Sphere)
+add_subdirectory(Shape)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
