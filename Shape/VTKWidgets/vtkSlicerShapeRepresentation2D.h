@@ -48,6 +48,7 @@
 // VTK includes
 #include <vtkSmartPointer.h>
 #include <vtkDiskSource.h>
+#include <vtkLineSource.h>
 #include <vtkSampleImplicitFunctionFilter.h>
 #include <vtkCutter.h>
 
@@ -91,6 +92,7 @@ protected:
   void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
   void UpdateInteractionPipeline() override;
   void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
@@ -103,7 +105,12 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper2D> SliceViewCutMapper;
   vtkSmartPointer<vtkActor2D> SliceViewCutActor;
   
+  vtkSmartPointer<vtkLineSource> RadiusSource;
+  vtkSmartPointer<vtkPolyDataMapper2D> RadiusMapper;
+  vtkSmartPointer<vtkActor2D> RadiusActor;
+  
   vtkSmartPointer<vtkDiskSource> DiskSource;
+  vtkSmartPointer<vtkDiskSource> RingSource;
   
   vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
   vtkSmartPointer<vtkActor2D> ShapeActor;

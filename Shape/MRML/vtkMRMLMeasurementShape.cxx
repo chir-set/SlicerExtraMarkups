@@ -36,7 +36,7 @@ void vtkMRMLMeasurementShape::Compute()
       
       break;
     case vtkMRMLMarkupsShapeNode::Ring:
-      
+      this->ComputeRing();
       break;
     case vtkMRMLMarkupsShapeNode::Disk:
       this->ComputeDisk();
@@ -124,4 +124,52 @@ void vtkMRMLMeasurementShape::ComputeDisk()
     this->SetValue(measurement, "#ERR");
   }
   
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeRing()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * ringNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!ringNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  ringNode->GetNthControlPointPositionWorld(0, p1);
+  ringNode->GetNthControlPointPositionWorld(1, p2);
+  const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  
+  if (this->GetName() == std::string("radius"))
+  {
+    if (ringNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+    {
+      measurement = lineLength;
+    }
+    else
+    {
+      measurement = lineLength / 2.0;
+    }
+  }
+  else if (this->GetName() == std::string("area"))
+  {
+    if (ringNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+    {
+      measurement = vtkMath::Pi() * (lineLength * lineLength);
+    }
+    else
+    {
+      double radius = lineLength / 2.0;
+      measurement = vtkMath::Pi() * (radius * radius);
+    }
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
 }

@@ -56,8 +56,10 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->MaximumNumberOfControlPoints = 2;
       break;
     case Ring:
+      // Third point is used to calculate normal relative to the center in 3D view.
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
+      this->ForceRingMeasurements();
       break;
     case Disk:
       // Point 0 : always the center.
@@ -365,5 +367,34 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
   addAreaMeasurement("area");
   addAreaMeasurement("innerArea");
   addAreaMeasurement("outerArea");
+  /*
+   * If we switch from Ring to Disk, inner and outer radii may be identical.
+   * The Disk is not drawn, that's OK.
+   * But the measurements are surprisingly not updated until an MRML event.
+   * Force an update.
+   */
+  this->UpdateAllMeasurements();
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  vtkNew<vtkMRMLMeasurementShape> radiusMeasurement;
+  radiusMeasurement->SetName("radius");
+  radiusMeasurement->SetUnits("mm");
+  radiusMeasurement->SetPrintFormat("%-#4.4g%s");
+  radiusMeasurement->SetInputMRMLNode(this);
+  radiusMeasurement->SetEnabled(true);
+  this->Measurements->AddItem(radiusMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> areaMeasurement;
+  areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetInputMRMLNode(this);
+  areaMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(areaMeasurement);
+}

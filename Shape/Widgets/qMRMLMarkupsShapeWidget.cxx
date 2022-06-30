@@ -71,7 +71,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
-                   q, SLOT(onFormChanged(int)));
+                   q, SLOT(onShapeChanged(int)));
   QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onRadiusModeChanged()));
   QObject::connect(this->drawModeComboBox, SIGNAL(currentIndexChanged(int)),

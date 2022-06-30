@@ -27,7 +27,7 @@ protected:
     void operator=(const vtkMRMLMeasurementShape&);
     
     void ComputeDisk();
-    
+    void ComputeRing();
 };
 
 #endif // VTKMRMLMEASUREMENTSHAPE_H
