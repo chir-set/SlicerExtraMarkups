@@ -30,6 +30,22 @@ class VTK_SLICER_SHAPE_MODULE_MRML_EXPORT vtkMRMLMarkupsShapeNode
 : public vtkMRMLMarkupsNode
 {
 public:
+  enum
+  {
+    Sphere = 0,
+    Ring,
+    Disk
+  };
+  enum
+  {
+    Centered = 0,
+    Circumferential
+  };
+  enum
+  {
+    Projection = 0,
+    Intersection
+  };
   static vtkMRMLMarkupsShapeNode* New();
   vtkTypeMacro(vtkMRMLMarkupsShapeNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -57,15 +73,52 @@ public:
 
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsShapeNode);
+  
+  vtkGetMacro(ShapeName, int);
+  void SetShapeName(int shapeName);
+  
+  vtkSetMacro(RadiusMode, int);
+  vtkGetMacro(RadiusMode, int);
+  vtkSetMacro(DrawMode2D, int);
+  vtkGetMacro(DrawMode2D, int);
+  vtkSetMacro(Resolution, double);
+  vtkGetMacro(Resolution, double);
+  
+  vtkPolyData * GetShapeWorld() const {return this->ShapeWorld;}
+  // Used by 3D representation.
+  void SetShapeWorld(vtkPolyData * polydata) {this->ShapeWorld = polydata;}
+  
+  vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
+  vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
+  
+  void ResliceToControlPoints();
+  void SetRadius(double radius);
+  // For disk shape.
+  void SetInnerRadius(double radius);
+  void SetOuterRadius(double radius);
+  bool DescribeDiskPointSpacing(double * closestPoint, double * farthestPoint,
+                               double& innerRadius, double& outerRadius);
 
 protected:
   vtkMRMLMarkupsShapeNode();
   ~vtkMRMLMarkupsShapeNode() override;
   vtkMRMLMarkupsShapeNode(const vtkMRMLMarkupsShapeNode&);
   void operator=(const vtkMRMLMarkupsShapeNode&);
+  
+  void FindLinearCoordinateByDistance(const double * p1, const double * p2,
+                                      double * result, const double difference);
+  void ResliceToPlane();
+  void ResliceToLine();
+  void ForceDiskMeasurements();
 
-private:
-  vtkPolyData *TargetOrgan = nullptr;
+  int ShapeName { Sphere };
+  int RadiusMode { Centered };
+  int DrawMode2D { Projection };
+  double Resolution { 45.0 };
+  
+  vtkPolyData * ShapeWorld = nullptr;
+  vtkMRMLNode * ResliceNode = nullptr;
+  
 };
 
 #endif //vtkmrmlmarkupsShape_LOWERnode_h_

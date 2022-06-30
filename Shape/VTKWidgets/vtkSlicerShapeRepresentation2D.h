@@ -47,7 +47,9 @@
 
 // VTK includes
 #include <vtkSmartPointer.h>
+#include <vtkDiskSource.h>
 #include <vtkSampleImplicitFunctionFilter.h>
+#include <vtkCutter.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -85,18 +87,35 @@ public:
 protected:
   vtkSlicerShapeRepresentation2D();
   ~vtkSlicerShapeRepresentation2D() override;
+  
+  void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
+  void UpdateInteractionPipeline() override;
+  void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
   vtkSmartPointer<vtkActor2D> MiddlePointActor;
   
-  void SetMarkupsNode(vtkMRMLMarkupsNode * markupsNode) override;
   vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
   vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
-
+  vtkSmartPointer<vtkPlane> SliceViewPlane;
+  vtkSmartPointer<vtkCutter> SliceViewCutter;
+  vtkSmartPointer<vtkPolyDataMapper2D> SliceViewCutMapper;
+  vtkSmartPointer<vtkActor2D> SliceViewCutActor;
+  
+  vtkSmartPointer<vtkDiskSource> DiskSource;
+  
+  vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
+  vtkSmartPointer<vtkActor2D> ShapeActor;
+  vtkSmartPointer<vtkProperty2D> ShapeProperty;
+  
 private:
   vtkSlicerShapeRepresentation2D(const vtkSlicerShapeRepresentation2D&) = delete;
   void operator=(const vtkSlicerShapeRepresentation2D&) = delete;
+  
+  // For disk.
+  bool DescribeDisplayPointSpacing(double * closestPoint, double * farthestPoint,
+                              double& innerRadius, double& outerRadius);
 };
 
 #endif // __vtkslicerShape_LOWERrepresentation3d_h_

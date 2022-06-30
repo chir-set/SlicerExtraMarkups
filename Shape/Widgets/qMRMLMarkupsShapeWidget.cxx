@@ -27,6 +27,8 @@
 // VTK includes
 #include <vtkWeakPointer.h>
 
+#include <qSlicerCoreApplication.h>
+
 // --------------------------------------------------------------------------
 class qMRMLMarkupsShapeWidgetPrivate:
   public Ui_qMRMLMarkupsShapeWidget
@@ -58,6 +60,28 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
 
   this->Ui_qMRMLMarkupsShapeWidget::setupUi(widget);
   this->shapeCollapsibleButton->setVisible(false);
+  this->shapeCollapsibleButton->setCollapsed(true);
+  this->shapeNameComboBox->addItem("Sphere");
+  this->shapeNameComboBox->addItem("Ring");
+  this->shapeNameComboBox->addItem("Disk");
+  this->radiusModeComboBox->addItem("Centered");
+  this->radiusModeComboBox->addItem("Circumferential");
+  this->drawModeComboBox->addItem("Projection");
+  this->drawModeComboBox->addItem("Intersection");
+  this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
+  
+  QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onFormChanged(int)));
+  QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onRadiusModeChanged()));
+  QObject::connect(this->drawModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onDrawModeChanged()));
+  QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onResolutionChanged(double)));
+  QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
+                   q, SLOT(onResliceNodeChanged(vtkMRMLNode*)));
+  QObject::connect(this->reslicePushButton, SIGNAL(clicked()),
+                   q, SLOT(onResliceButtonClicked()));
 }
 
 // --------------------------------------------------------------------------
@@ -66,6 +90,7 @@ qMRMLMarkupsShapeWidget(QWidget *parent)
   : Superclass(parent),
     d_ptr(new qMRMLMarkupsShapeWidgetPrivate(this))
 {
+  this->setMRMLScene(qSlicerCoreApplication::application()->mrmlScene());
   this->setup();
 }
 
@@ -98,8 +123,8 @@ bool qMRMLMarkupsShapeWidget::canManageMRMLMarkupsNode(vtkMRMLMarkupsNode *marku
 {
   Q_D(const qMRMLMarkupsShapeWidget);
 
-  vtkMRMLMarkupsShapeNode* Shape_FIRST_LOWERNode= vtkMRMLMarkupsShapeNode::SafeDownCast(markupsNode);
-  if (!Shape_FIRST_LOWERNode)
+  vtkMRMLMarkupsShapeNode* shapeNode= vtkMRMLMarkupsShapeNode::SafeDownCast(markupsNode);
+  if (!shapeNode)
     {
     return false;
     }
@@ -114,4 +139,88 @@ void qMRMLMarkupsShapeWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
 
   d->MarkupsShapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(markupsNode);
   this->setEnabled(markupsNode != nullptr);
+  if (d->MarkupsShapeNode)
+  {
+    d->shapeNameComboBox->setCurrentIndex( d->MarkupsShapeNode->GetShapeName());
+  }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (d->MarkupsShapeNode == nullptr)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetShapeName(shapeName);
+  
+  d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk);
+  d->radiusModeComboBox->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onRadiusModeChanged()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
+  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onDrawModeChanged()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetDrawMode2D(d->drawModeComboBox->currentIndex());
+  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onResolutionChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetResolution(value);
+  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onResliceNodeChanged(vtkMRMLNode * node)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetResliceNode(node);
+  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onResliceButtonClicked()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->ResliceToControlPoints();
+  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }

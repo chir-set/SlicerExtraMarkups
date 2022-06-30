@@ -25,6 +25,8 @@
 #include "qMRMLMarkupsAbstractOptionsWidget.h"
 #include "qSlicerShapeModuleWidgetsExport.h"
 
+#include <vtkMRMLNode.h>
+
 class qMRMLMarkupsShapeWidgetPrivate;
 class vtkMRMLMarkupsNode;
 
@@ -57,6 +59,13 @@ public:
 public slots:
 /// Set the MRML node of interest
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
+  
+  void onShapeChanged(int shapeName);
+  void onRadiusModeChanged();
+  void onDrawModeChanged();
+  void onResolutionChanged(double value);
+  void onResliceNodeChanged(vtkMRMLNode * node);
+  void onResliceButtonClicked();
 
 protected:
   void setup();

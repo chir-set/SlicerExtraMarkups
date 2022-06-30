@@ -10,6 +10,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLMarkupsShapeNode.h
   vtkMRMLMarkupsShapeNode.cxx
+  vtkMRMLMeasurementShape.h
+  vtkMRMLMeasurementShape.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES

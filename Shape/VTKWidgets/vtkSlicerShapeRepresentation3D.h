@@ -28,6 +28,7 @@
 
 // VTK includes
 #include <vtkWeakPointer.h>
+#include <vtkDiskSource.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -72,10 +73,19 @@ protected:
   vtkSmartPointer<vtkSphereSource> MiddlePointSource;
 
   void BuildMiddlePoint();
+  
+  vtkSmartPointer<vtkDiskSource> DiskSource;
+  
+  vtkSmartPointer<vtkPolyDataMapper> ShapeMapper;
+  vtkSmartPointer<vtkActor> ShapeActor;
+  vtkSmartPointer<vtkProperty> ShapeProperty;
+  
+  void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
 
 private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;
   void operator=(const vtkSlicerShapeRepresentation3D&) = delete;
+  
 };
 
 #endif // __vtkslicerShape_LOWERrepresentation3d_h_

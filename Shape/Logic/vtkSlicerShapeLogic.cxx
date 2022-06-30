@@ -73,6 +73,6 @@ void vtkSlicerShapeLogic::RegisterNodes()
     }
 
   vtkNew<vtkMRMLMarkupsShapeNode> markupsShapeNode;
-  vtkNew<vtkSlicerShapeWidget> Shape_FIRST_LOWERWidget;
-  markupsLogic->RegisterMarkupsNode(markupsShapeNode, Shape_FIRST_LOWERWidget);
+  vtkNew<vtkSlicerShapeWidget> ShapeWidget;
+  markupsLogic->RegisterMarkupsNode(markupsShapeNode, ShapeWidget);
 }

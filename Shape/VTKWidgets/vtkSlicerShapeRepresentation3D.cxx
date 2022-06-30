@@ -28,7 +28,7 @@
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSphereSource.h>
-
+#include <vtkProperty.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerShapeRepresentation3D);
@@ -36,11 +36,20 @@ vtkStandardNewMacro(vtkSlicerShapeRepresentation3D);
 //------------------------------------------------------------------------------
 vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
 {
+  this->DiskSource = vtkSmartPointer<vtkDiskSource>::New();
+  
+  this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
+  this->ShapeMapper->SetScalarVisibility(true);
+  this->ShapeProperty = vtkSmartPointer<vtkProperty>::New();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Selected)->Property);
+  this->ShapeActor = vtkSmartPointer<vtkActor>::New();
+  this->ShapeActor->SetMapper(this->ShapeMapper);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
   this->MiddlePointSource = vtkSmartPointer<vtkSphereSource>::New();
-
   this->MiddlePointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->MiddlePointMapper->SetInputConnection(this->MiddlePointSource->GetOutputPort());
-
   this->MiddlePointActor = vtkSmartPointer<vtkActor>::New();
   this->MiddlePointActor->SetMapper(this->MiddlePointMapper);
 }
@@ -58,12 +67,7 @@ void vtkSlicerShapeRepresentation3D::PrintSelf(ostream& os, vtkIndent indent)
 void vtkSlicerShapeRepresentation3D::GetActors(vtkPropCollection* pc)
 {
   this->Superclass::GetActors(pc);
-
-  /*if (this->TargetOrgan)
-  {
-    this->ContourActor->GetActors(pc);
-  }*/
-
+  this->ShapeActor->GetActors(pc);
   this->MiddlePointActor->GetActors(pc);
 }
 
@@ -71,12 +75,7 @@ void vtkSlicerShapeRepresentation3D::GetActors(vtkPropCollection* pc)
 void vtkSlicerShapeRepresentation3D::ReleaseGraphicsResources(vtkWindow* win)
 {
   this->Superclass::ReleaseGraphicsResources(win);
-
-  /*if (this->TargetOrgan)
-  {
-    this->ContourActor->ReleaseGraphicsResources(win);
-   }*/
-
+  this->ShapeActor->ReleaseGraphicsResources(win);
   this->MiddlePointActor->ReleaseGraphicsResources(win);
 }
 
@@ -84,15 +83,14 @@ void vtkSlicerShapeRepresentation3D::ReleaseGraphicsResources(vtkWindow* win)
 int vtkSlicerShapeRepresentation3D::RenderOverlay(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderOverlay(viewport);
-  /*if (this->TargetOrgan && this->ContourActor->GetVisibility())
+  if (this->ShapeActor->GetVisibility())
   {
-    count += this->ContourActor->RenderOverlay(viewport);
-   }*/
-
+    count += this->ShapeActor->RenderOverlay(viewport);
+  }
   if (this->MiddlePointActor->GetVisibility())
-    {
+  {
     count += this->MiddlePointActor->RenderOverlay(viewport);
-    }
+  }
   return count;
 }
 
@@ -100,15 +98,14 @@ int vtkSlicerShapeRepresentation3D::RenderOverlay(vtkViewport* viewport)
 int vtkSlicerShapeRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderOpaqueGeometry(viewport);
-  /*if (this->TargetOrgan && this->ContourActor->GetVisibility())
+  if (this->ShapeActor->GetVisibility())
   {
-    count += this->ContourActor->RenderOpaqueGeometry(viewport);
-  }*/
-
+    count += this->ShapeActor->RenderOpaqueGeometry(viewport);
+  }
   if (this->MiddlePointActor->GetVisibility())
-    {
+  {
     count += this->MiddlePointActor->RenderOpaqueGeometry(viewport);
-    }
+  }
 
   return count;
 }
@@ -117,17 +114,16 @@ int vtkSlicerShapeRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
 int vtkSlicerShapeRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewport* viewport)
 {
   int count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
-  /*if (this->TargetOrgan && this->ContourActor->GetVisibility())
+  if (this->ShapeActor->GetVisibility())
   {
-    this->ContourActor->SetPropertyKeys(this->GetPropertyKeys());
-    count += this->ContourActor->RenderTranslucentPolygonalGeometry(viewport);
-  }*/
-
+    this->ShapeActor->SetPropertyKeys(this->GetPropertyKeys());
+    count += this->ShapeActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
   if (this->MiddlePointActor->GetVisibility())
-    {
+  {
     this->MiddlePointActor->SetPropertyKeys(this->GetPropertyKeys());
     count += this->MiddlePointActor->RenderTranslucentPolygonalGeometry(viewport);
-    }
+  }
 
   return count;
 }
@@ -139,18 +135,16 @@ vtkTypeBool vtkSlicerShapeRepresentation3D::HasTranslucentPolygonalGeometry()
     {
     return true;
     }
-
-  /*if (this->TargetOrgan && this->ContourActor->GetVisibility() &&
-      this->ContourActor->HasTranslucentPolygonalGeometry())
-  {
-    return true;
-  }*/
-
+  if (this->ShapeActor->GetVisibility() &&
+      this->ShapeActor->HasTranslucentPolygonalGeometry())
+    {
+      return true;
+    }
   if (this->MiddlePointActor->GetVisibility() &&
       this->MiddlePointActor->HasTranslucentPolygonalGeometry())
-    {
+  {
     return true;
-    }
+  }
 
   return false;
 }
@@ -160,19 +154,32 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
                                                            unsigned long event,
                                                            void *callData /*=nullptr*/)
 {
- this->Superclass::UpdateFromMRML(caller, event, callData);
+  this->Superclass::UpdateFromMRML(caller, event, callData);
 
- this->NeedToRenderOn();
+  this->NeedToRenderOn();
 
- this->BuildMiddlePoint();
+  this->BuildMiddlePoint();
 
- vtkMRMLMarkupsShapeNode* shapeNode=
-   vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
-
- if (!shapeNode)
-   {
-   return;
-   }
+  vtkMRMLMarkupsShapeNode* shapeNode=
+    vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode)
+  {
+    return;
+  }
+  
+  switch (shapeNode->GetShapeName())
+  {
+    case vtkMRMLMarkupsShapeNode::Sphere :
+      break;
+    case vtkMRMLMarkupsShapeNode::Ring :
+      break;
+    case vtkMRMLMarkupsShapeNode::Disk :
+      this->UpdateDiskFromMRML(caller, event, callData);
+      break;
+    default:
+      vtkErrorMacro("Unknown shape.");
+      return;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -180,14 +187,14 @@ void vtkSlicerShapeRepresentation3D::BuildMiddlePoint()
 {
   vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
   if (!markupsNode)
-    {
+  {
     return;
-    }
+  }
 
-  if (markupsNode->GetNumberOfControlPoints() != 2)
-    {
+  if (markupsNode->GetNumberOfControlPoints() < 2)
+  {
     return;
-    }
+  }
 
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
@@ -200,4 +207,80 @@ void vtkSlicerShapeRepresentation3D::BuildMiddlePoint()
 
   this->MiddlePointSource->SetCenter(center);
   this->MiddlePointSource->SetRadius(this->ControlPointSize);
+}
+
+//---------------------------- Disk ------------------------------------------
+void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
+                                                   unsigned long event,
+                                                   void *callData /*=nullptr*/)
+{
+  vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  
+  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->MiddlePointActor->SetVisibility(false);
+  
+  double closestPoint[3] = { 0.0 }; // Unused here
+  double farthestPoint[3] = { 0.0 };
+  double innerRadius = 0.0, outerRadius = 0.0;
+  if (!shapeNode->DescribeDiskPointSpacing(closestPoint, farthestPoint, innerRadius, outerRadius))
+  {
+    vtkDebugMacro("Point proximity description failure.");
+    return;
+  }
+  this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
+  
+  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
+  {
+    double p1[3] = { 0.0 }; // center
+    double p2[3] = { 0.0 };
+    double p3[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(0, p1);
+    shapeNode->GetNthControlPointPositionWorld(1, p2);
+    shapeNode->GetNthControlPointPositionWorld(2, p3);
+    
+    // Relative to center
+    double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
+    double rp3[3] = { p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2] };
+    
+    double normal[3] = { 0.0 };
+    vtkMath::Cross(rp2, rp3, normal);
+    if (normal[0] == 0.0 && normal[1] == 0.0 && normal[2] == 0.0)
+    {
+      vtkDebugMacro("Got zero normal.");
+      return;
+    }
+    
+    this->DiskSource->SetCenter(p1);
+    this->DiskSource->SetNormal(normal);
+    this->DiskSource->SetOuterRadius(innerRadius);
+    this->DiskSource->SetInnerRadius(outerRadius);
+  }
+  else
+  {
+    this->ShapeActor->SetVisibility(false);
+    this->TextActor->SetVisibility(false);
+  }
+  
+  this->DiskSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
+  this->DiskSource->Update();
+  
+  this->ShapeActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  this->TextActorPositionWorld[0] = farthestPoint[0];
+  this->TextActorPositionWorld[1] = farthestPoint[1];
+  this->TextActorPositionWorld[2] = farthestPoint[2];
+  
+  shapeNode->SetShapeWorld(this->DiskSource->GetOutput());
 }
