@@ -331,6 +331,7 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   this->SliceViewCutActor->SetVisibility(visibility);
+  this->RadiusActor->SetVisibility(false);
   
   double closestPoint[3] = { 0.0 }; // Unused here
   double farthestPoint[3] = { 0.0 };
