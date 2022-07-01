@@ -111,6 +111,7 @@ protected:
   void ResliceToLine();
   void ForceDiskMeasurements();
   void ForceRingMeasurements();
+  void ForceSphereMeasurements();
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };

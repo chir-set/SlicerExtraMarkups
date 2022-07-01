@@ -28,6 +28,7 @@ protected:
     
     void ComputeDisk();
     void ComputeRing();
+    void ComputeSphere();
 };
 
 #endif // VTKMRMLMEASUREMENTSHAPE_H

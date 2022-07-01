@@ -49,6 +49,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkDiskSource.h>
 #include <vtkLineSource.h>
+#include <vtkSphereSource.h>
 #include <vtkSampleImplicitFunctionFilter.h>
 #include <vtkCutter.h>
 
@@ -93,6 +94,7 @@ protected:
   void UpdateInteractionPipeline() override;
   void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
@@ -111,6 +113,7 @@ protected:
   
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkDiskSource> RingSource;
+  vtkSmartPointer<vtkSphereSource> SphereSource;
   
   vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
   vtkSmartPointer<vtkActor2D> ShapeActor;

@@ -27,7 +27,6 @@
 #include <vtkCutter.h>
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkSphereSource.h>
 #include <vtkProperty.h>
 
 //------------------------------------------------------------------------------
@@ -39,6 +38,7 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->DiskSource = vtkSmartPointer<vtkDiskSource>::New();
   this->RingSource = vtkSmartPointer<vtkDiskSource>::New();
   this->RadiusSource = vtkSmartPointer<vtkLineSource>::New();
+  this->SphereSource = vtkSmartPointer<vtkSphereSource>::New();
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
@@ -200,6 +200,7 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   switch (shapeNode->GetShapeName())
   {
     case vtkMRMLMarkupsShapeNode::Sphere :
+      this->UpdateSphereFromMRML(caller, event, callData);
       break;
     case vtkMRMLMarkupsShapeNode::Ring :
       this->UpdateRingFromMRML(caller, event, callData);
@@ -425,4 +426,67 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
+}
+
+//---------------------------- Sphere ------------------------------------------
+void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double center[3] = {0.0};
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  shapeNode->GetNthControlPointPositionWorld(1, p2);
+  center[0] = (p1[0] + p2[0]) / 2.0;
+  center[1] = (p1[1] + p2[1]) / 2.0;
+  center[2] = (p1[2] + p2[2]) / 2.0;
+  
+  this->ShapeMapper->SetInputConnection(this->SphereSource->GetOutputPort());
+  double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  
+  // Centered mode : p1 is center, line length is radius.
+  if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+  {
+    this->SphereSource->SetCenter(p1);
+    this->SphereSource->SetRadius(lineLength);
+    this->RadiusSource->SetPoint1(p1);
+    this->MiddlePointActor->SetVisibility(false);
+  }
+  // Circumferential mode : center is half way between p1 and p2, radius is half of line length.
+  else
+  {
+    double radius = lineLength / 2.0;
+    
+    this->SphereSource->SetCenter(center);
+    this->SphereSource->SetRadius(radius);
+    this->RadiusSource->SetPoint1(center);
+    this->MiddlePointActor->SetVisibility(true);
+  }
+  this->SphereSource->SetPhiResolution(shapeNode->GetResolution());
+  this->SphereSource->SetThetaResolution(shapeNode->GetResolution());
+  this->SphereSource->Update();
+  shapeNode->SetShapeWorld(this->SphereSource->GetOutput());
+  
+  this->RadiusSource->SetPoint2(p2);
+  this->RadiusSource->Update();
+  
+  this->ShapeActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
+  this->RadiusActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
+  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  this->TextActorPositionWorld[0] = p2[0];
+  this->TextActorPositionWorld[1] = p2[1];
+  this->TextActorPositionWorld[2] = p2[2];
 }

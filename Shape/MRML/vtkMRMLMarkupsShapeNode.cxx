@@ -54,6 +54,7 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
     case Sphere :
       this->RequiredNumberOfControlPoints = 2;
       this->MaximumNumberOfControlPoints = 2;
+      this->ForceSphereMeasurements();
       break;
     case Ring:
       // Third point is used to calculate normal relative to the center in 3D view.
@@ -397,4 +398,36 @@ void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
   areaMeasurement->SetInputMRMLNode(this);
   areaMeasurement->SetEnabled(false);
   this->Measurements->AddItem(areaMeasurement);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  vtkNew<vtkMRMLMeasurementShape> radiusMeasurement;
+  radiusMeasurement->SetName("radius");
+  radiusMeasurement->SetUnits("mm");
+  radiusMeasurement->SetPrintFormat("%-#4.4g%s");
+  radiusMeasurement->SetInputMRMLNode(this);
+  radiusMeasurement->SetEnabled(true);
+  this->Measurements->AddItem(radiusMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> areaMeasurement;
+  areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetInputMRMLNode(this);
+  areaMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(areaMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
+  volumeMeasurement->SetName("volume");
+  volumeMeasurement->SetUnits("cm3");
+  volumeMeasurement->SetDisplayCoefficient(0.01);
+  volumeMeasurement->SetPrintFormat("%-#4.4g%s");
+  volumeMeasurement->SetInputMRMLNode(this);
+  volumeMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(volumeMeasurement);
 }

@@ -30,6 +30,7 @@
 #include <vtkWeakPointer.h>
 #include <vtkDiskSource.h>
 #include <vtkLineSource.h>
+#include <vtkSphereSource.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -77,6 +78,7 @@ protected:
   
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkDiskSource> RingSource;
+  vtkSmartPointer<vtkSphereSource> SphereSource;
   
   vtkSmartPointer<vtkLineSource> RadiusSource;
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
@@ -88,6 +90,7 @@ protected:
   
   void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
 
 private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;

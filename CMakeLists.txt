@@ -20,7 +20,6 @@ include(${Slicer_USE_FILE})
 #-----------------------------------------------------------------------------
 # Extension modules
 add_subdirectory(Label)
-add_subdirectory(Sphere)
 add_subdirectory(Shape)
 ## NEXT_MODULE
 
