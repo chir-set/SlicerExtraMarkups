@@ -337,10 +337,13 @@ void vtkSlicerRingRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   // Stick p3 on ring.
   this->DoUpdateFromMRML = false;
   vtkIdType closestIdOnRing = this->RingSource->GetOutput()->FindPoint(p3);
-  double * closestPointOnRing = this->RingSource->GetOutput()->GetPoint(closestIdOnRing);
-  if (p3[0] != closestPointOnRing[0] || p3[1] != closestPointOnRing[1] || p3[2] != closestPointOnRing[2])
+  if (closestIdOnRing >= 0)
   {
-    ringNode->SetNthControlPointPositionWorld(2, closestPointOnRing);
+    double * closestPointOnRing = this->RingSource->GetOutput()->GetPoint(closestIdOnRing);
+    if (p3[0] != closestPointOnRing[0] || p3[1] != closestPointOnRing[1] || p3[2] != closestPointOnRing[2])
+    {
+      ringNode->SetNthControlPointPositionWorld(2, closestPointOnRing);
+    }
   }
   this->DoUpdateFromMRML = true;
   
