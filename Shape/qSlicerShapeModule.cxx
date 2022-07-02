@@ -92,6 +92,7 @@ QStringList qSlicerShapeModule::contributors() const
 {
   QStringList moduleContributors;
   moduleContributors << QString("Rafael Palomar (Oslo University Hospital / NTNU)");
+  moduleContributors << QString("SET [Surgeon] [Hobbyist developer]");
   return moduleContributors;
 }
 
