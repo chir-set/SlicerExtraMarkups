@@ -64,6 +64,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Sphere");
   this->shapeNameComboBox->addItem("Ring");
   this->shapeNameComboBox->addItem("Disk");
+  this->shapeNameComboBox->addItem("Tube");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
@@ -152,8 +153,12 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
   }
   d->MarkupsShapeNode->SetShapeName(shapeName);
   
-  d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk);
-  d->radiusModeComboBox->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk);
+  d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
+                                && shapeName != vtkMRMLMarkupsShapeNode::Tube);
+  d->radiusModeComboBox->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
+                                && shapeName != vtkMRMLMarkupsShapeNode::Tube);
+  d->reslicePushButton->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube);
+  d->resliceInputSelector->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube);
 }
 
 // --------------------------------------------------------------------------

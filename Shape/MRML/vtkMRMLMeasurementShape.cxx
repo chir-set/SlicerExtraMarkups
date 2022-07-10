@@ -6,6 +6,8 @@
 #include "vtkMRMLMarkupsShapeNode.h"
 
 #include <vtkMath.h>
+#include <vtkTriangleFilter.h>
+#include <vtkMassProperties.h>
 
 vtkStandardNewMacro(vtkMRMLMeasurementShape);
 
@@ -40,6 +42,9 @@ void vtkMRMLMeasurementShape::Compute()
       break;
     case vtkMRMLMarkupsShapeNode::Disk:
       this->ComputeDisk();
+      break;
+    case vtkMRMLMarkupsShapeNode::Tube:
+      this->ComputeTube();
       break;
     default :
       vtkErrorMacro("Unknown shape.");
@@ -227,6 +232,40 @@ void vtkMRMLMeasurementShape::ComputeSphere()
       double radius = lineLength / 2.0;
       measurement = (4.0 / 3.0) * vtkMath::Pi() * (radius * radius * radius);
     }
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeTube()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * tubeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!tubeNode || tubeNode->GetShapeWorld() == nullptr)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(tubeNode->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = massProperties->GetSurfaceArea();
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = massProperties->GetVolume();
   }
   else
   {

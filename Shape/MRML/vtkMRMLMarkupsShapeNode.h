@@ -34,7 +34,8 @@ public:
   {
     Sphere = 0,
     Ring,
-    Disk
+    Disk,
+    Tube
   };
   enum
   {
@@ -91,6 +92,9 @@ public:
   void SetOuterRadius(double radius);
   bool DescribeDiskPointSpacing(double * closestPoint, double * farthestPoint,
                                double& innerRadius, double& outerRadius);
+  // For Tube shape;
+  double GetRadiusAtNthControlPoint(int n);
+  void SetRadiusAtNthControlPoint(int n, double radius);
 
 protected:
   vtkMRMLMarkupsShapeNode();
@@ -105,6 +109,12 @@ protected:
   void ForceDiskMeasurements();
   void ForceRingMeasurements();
   void ForceSphereMeasurements();
+  void ForceTubeMeasurements();
+  
+  // Tube
+  vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;
+  static void OnPointPositionUndefined(vtkObject *caller,
+                                       unsigned long event, void *clientData, void *callData);
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };
@@ -112,6 +122,9 @@ protected:
   
   vtkPolyData * ShapeWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;
+
+private:
+  bool RemovingPairControlPoint = false; // Tube
   
 };
 

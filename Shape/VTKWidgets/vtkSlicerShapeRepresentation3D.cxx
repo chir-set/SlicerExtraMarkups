@@ -28,6 +28,8 @@
 #include <vtkPlane.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkTupleInterpolator.h>
+#include <vtkPointData.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerShapeRepresentation3D);
@@ -62,6 +64,18 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->RadiusActor = vtkSmartPointer<vtkActor>::New();
   this->RadiusActor->SetMapper(this->RadiusMapper);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
+  
+  this->Spline = vtkSmartPointer<vtkParametricSpline>::New();
+  vtkNew<vtkPoints> points;
+  const double point[3] = { 0.0 };
+  points->InsertNextPoint(point);
+  this->Spline->SetPoints(points);
+  this->SplineFunctionSource = vtkSmartPointer<vtkParametricFunctionSource>::New();
+  this->SplineFunctionSource->SetParametricFunction(this->Spline);
+  this->Tube = vtkSmartPointer<vtkTubeFilter>::New();
+  this->Tube->SetNumberOfSides(20);
+  this->Tube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+  this->Tube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
 }
 
 //------------------------------------------------------------------------------
@@ -207,6 +221,9 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
       break;
     case vtkMRMLMarkupsShapeNode::Disk :
       this->UpdateDiskFromMRML(caller, event, callData);
+      break;
+    case vtkMRMLMarkupsShapeNode::Tube :
+      this->UpdateTubeFromMRML(caller, event, callData);
       break;
     default:
       vtkErrorMacro("Unknown shape.");
@@ -492,4 +509,98 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   this->TextActorPositionWorld[0] = p2[0];
   this->TextActorPositionWorld[1] = p2[1];
   this->TextActorPositionWorld[2] = p2[2];
+}
+
+//---------------------------- Sphere ------------------------------------------
+void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  this->Superclass::UpdateFromMRML(caller, event, callData);
+  this->NeedToRenderOn();
+  
+  this->MiddlePointActor->SetVisibility(false);
+  this->RadiusActor->SetVisibility(false);
+  
+  vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  
+  if (!shapeNode || shapeNode->GetNumberOfControlPoints() < 4
+    || shapeNode->GetNumberOfUndefinedControlPoints() > 0
+    || (shapeNode->GetNumberOfControlPoints() % 2) != 0) // Complete point pairs required.
+  {
+    return;
+  }
+  
+  this->TextActor->SetVisibility(true);
+  this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
+  
+  vtkNew<vtkPoints> splinePoints;
+  vtkNew<vtkTupleInterpolator> interpolatedRadius;
+  interpolatedRadius->SetInterpolationTypeToLinear();
+  interpolatedRadius->SetNumberOfComponents(1);
+  int interpolatorIndex = 0;
+  for (int i = 0; i < shapeNode->GetNumberOfControlPoints(); i = i + 2)
+  {
+    double middlePoint[3] = { 0.0 };
+    double p1[3] = { 0.0 };
+    double p2[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(i, p1);
+    shapeNode->GetNthControlPointPositionWorld(i + 1, p2);
+    middlePoint[0] = (p1[0] + p2[0]) / 2.0;
+    middlePoint[1] = (p1[1] + p2[1]) / 2.0;
+    middlePoint[2] = (p1[2] + p2[2]) / 2.0;
+    splinePoints->InsertNextPoint(middlePoint);
+    
+    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2)) / 2.0;
+    interpolatedRadius->AddTuple(interpolatorIndex, &radius);
+    //interpolatedRadius->AddTuple(i + 1, &radius);
+    interpolatorIndex++;
+  }
+  int numberOfPoints = splinePoints->GetNumberOfPoints();
+  
+  this->Spline->SetPoints(splinePoints);
+  this->SplineFunctionSource->SetUResolution(100 * numberOfPoints);
+  this->SplineFunctionSource->SetVResolution(100 * numberOfPoints);
+  this->SplineFunctionSource->SetWResolution(100 * numberOfPoints);
+  this->SplineFunctionSource->Update();
+  vtkPolyData * splinePolyData = this->SplineFunctionSource->GetOutput();
+  numberOfPoints = splinePolyData->GetNumberOfPoints();
+  
+  // https://kitware.github.io/vtk-examples/site/Cxx/VisualizationAlgorithms/TubesFromSplines/
+  vtkSmartPointer<vtkDoubleArray> tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
+  tubeRadius->SetNumberOfTuples(numberOfPoints);
+  tubeRadius->SetName("TubeRadius");
+  double tMin = interpolatedRadius->GetMinimumT();
+  double tMax = interpolatedRadius->GetMaximumT();
+  double r;
+  for (unsigned int i = 0; i < numberOfPoints; ++i)
+  {
+    double t = (tMax - tMin) / (numberOfPoints - 1) * i + tMin;
+    interpolatedRadius->InterpolateTuple(t, &r);
+    tubeRadius->SetTuple1(i, r);
+  }
+  
+  splinePolyData->GetPointData()->AddArray(tubeRadius);
+  splinePolyData->GetPointData()->SetActiveScalars("TubeRadius");
+  
+  this->Tube->SetNumberOfSides(shapeNode->GetResolution());
+  this->Tube->Update();
+  this->ShapeActor->SetVisibility(true);
+  shapeNode->SetShapeWorld(Tube->GetOutput());
+  
+  // Doesn't work (color).
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  double p1[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  this->TextActorPositionWorld[0] = p1[0];
+  this->TextActorPositionWorld[1] = p1[1];
+  this->TextActorPositionWorld[2] = p1[2];
+  this->TextActor->SetVisibility(true);
 }

@@ -31,6 +31,9 @@
 #include <vtkDiskSource.h>
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
+#include <vtkTubeFilter.h>
+#include <vtkParametricSpline.h>
+#include <vtkParametricFunctionSource.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -84,6 +87,10 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
   vtkSmartPointer<vtkActor> RadiusActor;
   
+  vtkSmartPointer<vtkParametricSpline> Spline;
+  vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
+  vtkSmartPointer<vtkTubeFilter> Tube;
+  
   vtkSmartPointer<vtkPolyDataMapper> ShapeMapper;
   vtkSmartPointer<vtkActor> ShapeActor;
   vtkSmartPointer<vtkProperty> ShapeProperty;
@@ -91,6 +98,7 @@ protected:
   void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
 
 private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;

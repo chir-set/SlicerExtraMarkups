@@ -26,6 +26,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkMRMLSliceNode.h>
 #include <vtkCollection.h>
+#include <vtkCallbackCommand.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
@@ -34,10 +35,18 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
 vtkMRMLMarkupsShapeNode::vtkMRMLMarkupsShapeNode()
 {
   this->SetShapeName(Sphere);
+  
+  this->OnPointPositionUndefinedCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+  this->OnPointPositionUndefinedCallback->SetClientData( reinterpret_cast<void *>(this) );
+  this->OnPointPositionUndefinedCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnPointPositionUndefined );
+  this->AddObserver(vtkMRMLMarkupsNode::PointPositionUndefinedEvent, this->OnPointPositionUndefinedCallback);
 }
 
 //--------------------------------------------------------------------------------
-vtkMRMLMarkupsShapeNode::~vtkMRMLMarkupsShapeNode()=default;
+vtkMRMLMarkupsShapeNode::~vtkMRMLMarkupsShapeNode()
+{
+  this->RemoveObserver(this->OnPointPositionUndefinedCallback);
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
@@ -68,13 +77,34 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->MaximumNumberOfControlPoints = 3;
       this->ForceDiskMeasurements();
       break;
+    case Tube:
+      /*
+       * RequiredNumberOfControlPoints should be 4, but toolbar new control point button remains grayed for ever.
+       * With -1, it still remains grayed, but hovering on a control point activates the new control point button.
+       * 
+       * N.B. - control points need not and are not required to be on the surface.
+       * A control point pair merely defines a radius value and a middle point for the spline (centerline).
+       * In practice, we would place points on the walls of a diseased artery, a short part of it.
+       * All this is useless for healthy arteries : we have real structures using segmentation,
+       * that do not have perfectly circular cross-sections.
+       */
+      this->RequiredNumberOfControlPoints = -1;
+      this->MaximumNumberOfControlPoints = -1;
+      this->ForceTubeMeasurements();
     default :
       vtkErrorMacro("Unknown shape.");
       return;
   };
-  while (this->GetNumberOfControlPoints() > this->MaximumNumberOfControlPoints)
+  if (this->MaximumNumberOfControlPoints > 0)
   {
-    this->RemoveNthControlPoint(this->MaximumNumberOfControlPoints);
+    while (this->GetNumberOfControlPoints() > this->MaximumNumberOfControlPoints)
+    {
+      this->RemoveNthControlPoint(this->MaximumNumberOfControlPoints);
+    }
+  }
+  else
+  {
+    this->RemoveAllControlPoints();
   }
   this->Modified();
 }
@@ -262,6 +292,8 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
     case Disk:
       this->ResliceToPlane();
       break;
+    case Tube:
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -430,4 +462,151 @@ void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
   volumeMeasurement->SetInputMRMLNode(this);
   volumeMeasurement->SetEnabled(false);
   this->Measurements->AddItem(volumeMeasurement);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  vtkNew<vtkMRMLMeasurementShape> areaMeasurement;
+  areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetInputMRMLNode(this);
+  areaMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(areaMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
+  volumeMeasurement->SetName("volume");
+  volumeMeasurement->SetUnits("cm3");
+  volumeMeasurement->SetDisplayCoefficient(0.01);
+  volumeMeasurement->SetPrintFormat("%-#4.4g%s");
+  volumeMeasurement->SetInputMRMLNode(this);
+  volumeMeasurement->SetEnabled(true);
+  this->Measurements->AddItem(volumeMeasurement);
+}
+
+//----------------------------------------------------------------------------
+/*
+ * Tube : remove an adjacent point.
+ * Toggling a point status in the markups module complicates things, don't react here.
+ */
+void vtkMRMLMarkupsShapeNode::OnPointPositionUndefined(vtkObject* caller, unsigned long event, void* clientData, void* callData)
+{
+  vtkMRMLMarkupsShapeNode * client = reinterpret_cast<vtkMRMLMarkupsShapeNode*>(clientData);
+  if (!client || client->GetShapeName() != Tube
+      || client->GetNumberOfUndefinedControlPoints() > 0)
+  {
+    return;
+  }
+  
+  if (client->RemovingPairControlPoint || client->GetNumberOfControlPoints() == 0)
+  {
+    // Point removal was triggered by this function, not in UI.
+    client->RemovingPairControlPoint = false;
+    return;
+  }
+  
+  const int removedIndex = *(static_cast<int*> (callData));
+  if ((removedIndex % 2) == 0 )
+  {
+    // Already removed point in UI is not last point of an uneven number of points.
+    if (client->GetNumberOfControlPoints() > removedIndex)
+    {
+      client->RemovingPairControlPoint = true;
+      client->RemoveNthControlPoint(removedIndex);
+    }
+    else
+    {
+      // If the last point of an uneven number of points is removed in UI, there is no next point to remove.
+      client->RemovingPairControlPoint = false;
+    }
+  }
+  else 
+  {
+    client->RemovingPairControlPoint = true;
+    client->RemoveNthControlPoint(removedIndex - 1);
+  }
+}
+
+//----------------------------------------------------------------------------
+double vtkMRMLMarkupsShapeNode::GetRadiusAtNthControlPoint(int n)
+{
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return -1.0;
+  }
+  if (n < 0
+    || this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0
+    || n >= this->GetNumberOfDefinedControlPoints())
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+                  " or less than 4 control points, or fewer control points than requested.");
+    return -1.0;
+  }
+  double radius = 0.0;
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  if ((n % 2) == 0)
+  {
+    this->GetNthControlPointPositionWorld(n, p1);
+    this->GetNthControlPointPositionWorld(n + 1, p2);
+  }
+  else {
+    this->GetNthControlPointPositionWorld(n, p2);
+    this->GetNthControlPointPositionWorld(n - 1, p1);
+  }
+  radius = (std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2))) / 2.0;
+  return radius;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::SetRadiusAtNthControlPoint(int n, double radius)
+{
+  if (radius <= 0.0)
+  {
+    vtkErrorMacro("Requested radius must be greater than 0.0.");
+    return;
+  }
+  double currentRadius = this->GetRadiusAtNthControlPoint(n);
+  if (currentRadius <= 0)
+  {
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  if ((n % 2) == 0)
+  {
+    this->GetNthControlPointPositionWorld(n, p1);
+    this->GetNthControlPointPositionWorld(n + 1, p2);
+  }
+  else {
+    this->GetNthControlPointPositionWorld(n, p2);
+    this->GetNthControlPointPositionWorld(n - 1, p1);
+  }
+  const double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
+                            (p1[1] + p2[1]) / 2.0,
+                            (p1[2] + p2[2]) / 2.0};
+  double p1New[3] = { 0.0 };
+  double p2New[3] = { 0.0 };
+  const double radiusDifference = radius - currentRadius;
+  this->FindLinearCoordinateByDistance(middlePoint, p1, p1New, radiusDifference);
+  this->FindLinearCoordinateByDistance(middlePoint, p2, p2New, radiusDifference);
+  
+  if ((n % 2) == 0)
+  {
+    this->SetNthControlPointPositionWorld(n, p1New);
+    this->SetNthControlPointPositionWorld(n + 1, p2New);
+  }
+  else
+  {
+    this->SetNthControlPointPositionWorld(n, p2New);
+    this->SetNthControlPointPositionWorld(n - 1, p1New);
+  }
 }
