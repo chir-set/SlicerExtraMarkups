@@ -66,16 +66,12 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Disk");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
-  this->drawModeComboBox->addItem("Projection");
-  this->drawModeComboBox->addItem("Intersection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onShapeChanged(int)));
   QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onRadiusModeChanged()));
-  QObject::connect(this->drawModeComboBox, SIGNAL(currentIndexChanged(int)),
-                   q, SLOT(onDrawModeChanged()));
   QObject::connect(this->resolutionSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onResolutionChanged(double)));
   QObject::connect(this->resliceInputSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
@@ -170,19 +166,6 @@ void qMRMLMarkupsShapeWidget::onRadiusModeChanged()
     return;
   }
   d->MarkupsShapeNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
-}
-
-// --------------------------------------------------------------------------
-void qMRMLMarkupsShapeWidget::onDrawModeChanged()
-{
-  Q_D(qMRMLMarkupsShapeWidget);
-  
-  if (!d->MarkupsShapeNode)
-  {
-    return;
-  }
-  d->MarkupsShapeNode->SetDrawMode2D(d->drawModeComboBox->currentIndex());
   d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
 

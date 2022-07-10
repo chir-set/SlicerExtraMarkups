@@ -47,11 +47,6 @@
 
 // VTK includes
 #include <vtkSmartPointer.h>
-#include <vtkDiskSource.h>
-#include <vtkLineSource.h>
-#include <vtkSphereSource.h>
-#include <vtkSampleImplicitFunctionFilter.h>
-#include <vtkCutter.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -92,40 +87,10 @@ protected:
   
   void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
   void UpdateInteractionPipeline() override;
-  void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
-  void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
-  void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
-
-  vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
-  vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
-  vtkSmartPointer<vtkActor2D> MiddlePointActor;
-  
-  vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
-  vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
-  vtkSmartPointer<vtkPlane> SliceViewPlane;
-  vtkSmartPointer<vtkCutter> SliceViewCutter;
-  vtkSmartPointer<vtkPolyDataMapper2D> SliceViewCutMapper;
-  vtkSmartPointer<vtkActor2D> SliceViewCutActor;
-  
-  vtkSmartPointer<vtkLineSource> RadiusSource;
-  vtkSmartPointer<vtkPolyDataMapper2D> RadiusMapper;
-  vtkSmartPointer<vtkActor2D> RadiusActor;
-  
-  vtkSmartPointer<vtkDiskSource> DiskSource;
-  vtkSmartPointer<vtkDiskSource> RingSource;
-  vtkSmartPointer<vtkSphereSource> SphereSource;
-  
-  vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
-  vtkSmartPointer<vtkActor2D> ShapeActor;
-  vtkSmartPointer<vtkProperty2D> ShapeProperty;
   
 private:
   vtkSlicerShapeRepresentation2D(const vtkSlicerShapeRepresentation2D&) = delete;
   void operator=(const vtkSlicerShapeRepresentation2D&) = delete;
-  
-  // For disk.
-  bool DescribeDisplayPointSpacing(double * closestPoint, double * farthestPoint,
-                              double& innerRadius, double& outerRadius);
 };
 
 #endif // __vtkslicerShape_LOWERrepresentation3d_h_
