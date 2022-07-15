@@ -44,8 +44,8 @@ public:
   };
   enum
   {
-    Projection = 0,
-    Intersection
+    Intersection = 0,
+    Projection
   };
   static vtkMRMLMarkupsShapeNode* New();
   vtkTypeMacro(vtkMRMLMarkupsShapeNode, vtkMRMLMarkupsNode);
@@ -125,7 +125,7 @@ protected:
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };
-  int DrawMode2D { Projection };
+  int DrawMode2D { Intersection };
   double Resolution { 45.0 };
   
   vtkPolyData * ShapeWorld = nullptr;

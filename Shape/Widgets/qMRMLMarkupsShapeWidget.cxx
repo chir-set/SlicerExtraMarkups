@@ -67,8 +67,8 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Tube");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
-  this->drawModeComboBox->addItem("Projection");
   this->drawModeComboBox->addItem("Intersection");
+  this->drawModeComboBox->addItem("Projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
