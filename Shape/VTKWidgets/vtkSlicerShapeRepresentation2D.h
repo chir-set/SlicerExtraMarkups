@@ -47,6 +47,14 @@
 
 // VTK includes
 #include <vtkSmartPointer.h>
+#include <vtkDiskSource.h>
+#include <vtkLineSource.h>
+#include <vtkSphereSource.h>
+#include <vtkSampleImplicitFunctionFilter.h>
+#include <vtkCutter.h>
+#include <vtkTubeFilter.h>
+#include <vtkParametricSpline.h>
+#include <vtkParametricFunctionSource.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -87,6 +95,39 @@ protected:
   
   void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
   void UpdateInteractionPipeline() override;
+  void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+
+  vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
+  vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
+  vtkSmartPointer<vtkActor2D> MiddlePointActor;
+  
+  vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
+  vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
+  vtkSmartPointer<vtkPlane> WorldPlane;
+  vtkSmartPointer<vtkCutter> WorldCutter;
+  vtkSmartPointer<vtkPolyDataMapper2D> WorldCutMapper;
+  vtkSmartPointer<vtkActor2D> WorldCutActor;
+  
+  vtkSmartPointer<vtkLineSource> RadiusSource;
+  vtkSmartPointer<vtkPolyDataMapper2D> RadiusMapper;
+  vtkSmartPointer<vtkActor2D> RadiusActor;
+  
+  vtkSmartPointer<vtkDiskSource> DiskSource;
+  vtkSmartPointer<vtkDiskSource> RingSource;
+  vtkSmartPointer<vtkSphereSource> SphereSource;
+  
+  vtkSmartPointer<vtkParametricSpline> Spline;
+  vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
+  vtkSmartPointer<vtkTubeFilter> Tube;
+  
+  vtkSmartPointer<vtkTransformPolyDataFilter> ShapeWorldToSliceTransformer;
+  vtkSmartPointer<vtkTransformPolyDataFilter> ShapeCutWorldToSliceTransformer;
+  vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
+  vtkSmartPointer<vtkActor2D> ShapeActor;
+  vtkSmartPointer<vtkProperty2D> ShapeProperty;
   
 private:
   vtkSlicerShapeRepresentation2D(const vtkSlicerShapeRepresentation2D&) = delete;

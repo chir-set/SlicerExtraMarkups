@@ -42,6 +42,11 @@ public:
     Centered = 0,
     Circumferential
   };
+  enum
+  {
+    Projection = 0,
+    Intersection
+  };
   static vtkMRMLMarkupsShapeNode* New();
   vtkTypeMacro(vtkMRMLMarkupsShapeNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -75,6 +80,8 @@ public:
   
   vtkSetMacro(RadiusMode, int);
   vtkGetMacro(RadiusMode, int);
+  vtkSetMacro(DrawMode2D, int);
+  vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
   
@@ -118,6 +125,7 @@ protected:
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };
+  int DrawMode2D { Projection };
   double Resolution { 45.0 };
   
   vtkPolyData * ShapeWorld = nullptr;
