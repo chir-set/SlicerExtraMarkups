@@ -385,7 +385,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
     this->RingSource->SetCenter(p1);
     this->RingSource->SetNormal(normal);
     this->RingSource->SetOuterRadius(lineLength);
-    this->RingSource->SetInnerRadius(lineLength - 1.0);
+    this->RingSource->SetInnerRadius(lineLength - this->ViewScaleFactorMmPerPixel);
     this->RadiusSource->SetPoint1(p1);
     
     this->MiddlePointActor->SetVisibility(false);
@@ -403,7 +403,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
     this->RingSource->SetCenter(center);
     this->RingSource->SetNormal(normal);
     this->RingSource->SetOuterRadius(radius);
-    this->RingSource->SetInnerRadius(radius - 1.0);
+    this->RingSource->SetInnerRadius(radius - this->ViewScaleFactorMmPerPixel);
     this->RadiusSource->SetPoint1(center);
     
     this->MiddlePointActor->SetVisibility(true);

@@ -525,7 +525,7 @@ void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
       this->RingSource->SetCenter(p1World);
       this->RingSource->SetNormal(normalWorld);
       this->RingSource->SetOuterRadius(lineLengthWorld);
-      this->RingSource->SetInnerRadius((lineLengthWorld - 1.0) );
+      this->RingSource->SetInnerRadius((lineLengthWorld - this->ViewScaleFactorMmPerPixel) );
       
       this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
       this->MiddlePointSource->Update();
@@ -545,7 +545,7 @@ void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
       this->RingSource->SetCenter(centerWorld);
       this->RingSource->SetNormal(normalWorld);
       this->RingSource->SetOuterRadius(radiusWorld);
-      this->RingSource->SetInnerRadius(radiusWorld - 1.0);
+      this->RingSource->SetInnerRadius(radiusWorld - this->ViewScaleFactorMmPerPixel);
       
       double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
       this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
