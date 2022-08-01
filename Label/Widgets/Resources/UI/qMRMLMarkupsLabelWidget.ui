@@ -70,8 +70,8 @@
         <property name="toolTip">
          <string>Adapt the arrow tip dimensions in 3D view, for contextual nicer representations.
 
-Line length : the tip height is 3% of the line length,
 View scale factor : the tip height is 6 times the millimeter per pixel view scale factor,
+Line length : the tip height is 3% of the line length,
 Fixed : the tip height is 1.0 mm.
 
 The tip radius is always 3 times the tip height.</string>

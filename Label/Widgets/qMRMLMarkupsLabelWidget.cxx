@@ -58,8 +58,8 @@ void qMRMLMarkupsLabelWidgetPrivate::setupUi(qMRMLMarkupsLabelWidget* widget)
 
   this->Ui_qMRMLMarkupsLabelWidget::setupUi(widget);
   this->labelCollapsibleButton->setVisible(true);
-  this->ThreeDTipDimensionModeComboBox->addItem("Line length");
   this->ThreeDTipDimensionModeComboBox->addItem("View scale factor");
+  this->ThreeDTipDimensionModeComboBox->addItem("Line length");  
   this->ThreeDTipDimensionModeComboBox->addItem("Fixed");
   
   QObject::connect(this->labelTextEdit, SIGNAL(textChanged()),

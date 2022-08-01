@@ -211,14 +211,14 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   vtkMath::Subtract(p2, p1, direction);
   
   const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
-  double radius = 0.03 * lineLength;
+  double radius = 6.0 * this->ViewScaleFactorMmPerPixel;
 
   switch (labelNode->GetThreeDTipDimensionMode())
   {
     case vtkMRMLMarkupsLabelNode::LineLength:
+      radius = 0.03 * lineLength;
       break;
     case vtkMRMLMarkupsLabelNode::ViewScaleFactor:
-      radius = 6.0 * this->ViewScaleFactorMmPerPixel;
       break;
     case vtkMRMLMarkupsLabelNode::Fixed:
       radius = 1.0;

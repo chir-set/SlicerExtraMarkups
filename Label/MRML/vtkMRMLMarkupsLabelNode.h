@@ -34,8 +34,8 @@ class VTK_SLICER_LABEL_MODULE_MRML_EXPORT vtkMRMLMarkupsLabelNode
 public:
   enum
   {
-    LineLength = 0,
-    ViewScaleFactor,
+    ViewScaleFactor = 0,
+    LineLength,
     Fixed
   };
   static vtkMRMLMarkupsLabelNode* New();
@@ -78,7 +78,7 @@ protected:
   void operator=(const vtkMRMLMarkupsLabelNode&);
   
   QString Label = "Label";
-  int ThreeDTipDimensionMode { LineLength };
+  int ThreeDTipDimensionMode { ViewScaleFactor };
 
 private:
   
