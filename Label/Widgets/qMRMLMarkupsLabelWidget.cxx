@@ -101,8 +101,8 @@ bool qMRMLMarkupsLabelWidget::canManageMRMLMarkupsNode(vtkMRMLMarkupsNode *marku
 {
   Q_D(const qMRMLMarkupsLabelWidget);
 
-  vtkMRMLMarkupsLabelNode* Label_FIRST_LOWERNode= vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
-  if (!Label_FIRST_LOWERNode)
+  vtkMRMLMarkupsLabelNode* LabelNode= vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
+  if (!LabelNode)
     {
     return false;
     }
