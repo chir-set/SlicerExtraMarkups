@@ -210,12 +210,31 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   double direction[3] = { 0.0 };
   vtkMath::Subtract(p2, p1, direction);
   
+  const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  double radius = 0.03 * lineLength;
+
+  switch (labelNode->GetThreeDTipDimensionMode())
+  {
+    case vtkMRMLMarkupsLabelNode::LineLength:
+      break;
+    case vtkMRMLMarkupsLabelNode::ViewScaleFactor:
+      radius = 6.0 * this->ViewScaleFactorMmPerPixel;
+      break;
+    case vtkMRMLMarkupsLabelNode::Fixed:
+      radius = 1.0;
+      break;
+    default:
+      vtkErrorMacro("Unknown 3D tip dimension mode, using default.");
+      break;
+  }
+  const double height = 3.0 * radius;
+  
   this->LineSource->SetPoint1(p1);
   this->LineSource->SetPoint2(p2);
   this->LineSource->Update();
   this->ConeSource->SetCenter(p2);
-  this->ConeSource->SetRadius(1.0);
-  this->ConeSource->SetHeight(2.5);
+  this->ConeSource->SetRadius(radius);
+  this->ConeSource->SetHeight(height);
   this->ConeSource->SetResolution(45);
   this->ConeSource->SetDirection(direction);
   this->ConeSource->Update();

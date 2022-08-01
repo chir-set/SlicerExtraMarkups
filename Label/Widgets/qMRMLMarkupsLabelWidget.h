@@ -59,6 +59,7 @@ public slots:
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
   
   void onTextChanged();
+  void onThreeDTipDimensionModeChanged(int mode);
 
 protected:
   void setup();

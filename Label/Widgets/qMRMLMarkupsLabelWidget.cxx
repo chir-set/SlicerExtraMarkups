@@ -58,9 +58,14 @@ void qMRMLMarkupsLabelWidgetPrivate::setupUi(qMRMLMarkupsLabelWidget* widget)
 
   this->Ui_qMRMLMarkupsLabelWidget::setupUi(widget);
   this->labelCollapsibleButton->setVisible(true);
+  this->ThreeDTipDimensionModeComboBox->addItem("Line length");
+  this->ThreeDTipDimensionModeComboBox->addItem("View scale factor");
+  this->ThreeDTipDimensionModeComboBox->addItem("Fixed");
   
   QObject::connect(this->labelTextEdit, SIGNAL(textChanged()),
                    q, SLOT(onTextChanged()));
+  QObject::connect(this->ThreeDTipDimensionModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onThreeDTipDimensionModeChanged(int)));
 }
 
 // --------------------------------------------------------------------------
@@ -120,6 +125,8 @@ void qMRMLMarkupsLabelWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
   if (d->MarkupsLabelNode)
   {
     d->labelTextEdit->setPlainText(d->MarkupsLabelNode->GetLabel());
+    d->ThreeDTipDimensionModeComboBox->setCurrentIndex( d->MarkupsLabelNode->GetThreeDTipDimensionMode());
+    d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
   }
 }
 
@@ -133,5 +140,18 @@ void qMRMLMarkupsLabelWidget::onTextChanged()
     return;
   }
   d->MarkupsLabelNode->SetLabel(d->labelTextEdit->toPlainText());
+  d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsLabelWidget::onThreeDTipDimensionModeChanged(int mode)
+{
+  Q_D(qMRMLMarkupsLabelWidget);
+  
+  if (d->MarkupsLabelNode == nullptr)
+  {
+    return;
+  }
+  d->MarkupsLabelNode->SetThreeDTipDimensionMode(mode);
   d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
 }

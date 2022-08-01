@@ -32,6 +32,12 @@ class VTK_SLICER_LABEL_MODULE_MRML_EXPORT vtkMRMLMarkupsLabelNode
 : public vtkMRMLMarkupsNode
 {
 public:
+  enum
+  {
+    LineLength = 0,
+    ViewScaleFactor,
+    Fixed
+  };
   static vtkMRMLMarkupsLabelNode* New();
   vtkTypeMacro(vtkMRMLMarkupsLabelNode, vtkMRMLMarkupsNode);
   void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -62,6 +68,8 @@ public:
   
   vtkGetMacro(Label, QString);
   vtkSetMacro(Label, QString);
+  vtkSetMacro(ThreeDTipDimensionMode, int);
+  vtkGetMacro(ThreeDTipDimensionMode, int);
 
 protected:
   vtkMRMLMarkupsLabelNode();
@@ -70,6 +78,7 @@ protected:
   void operator=(const vtkMRMLMarkupsLabelNode&);
   
   QString Label = "Label";
+  int ThreeDTipDimensionMode { LineLength };
 
 private:
   
