@@ -270,15 +270,6 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
 }
 
 //---------------------------------------------------------------------------
-/*
- * Try to hide a control point :
- *  - success : on rotation, translation
- *  - failure : on zooming
- * Same results with :
- * - vtkCamera observed via vtkCommand::ModifiedEvent
- * - vtkMRMLCameraNode observed via vtkMRMLCameraNode::CameraInteractionEvent
- * Got better, but insufficient.
- */
 void vtkSlicerLabelRepresentation3D::OnCameraModified(vtkObject *caller,
                  unsigned long event, void *clientData, void *callData)
 {
@@ -287,8 +278,7 @@ void vtkSlicerLabelRepresentation3D::OnCameraModified(vtkObject *caller,
   {
     return;
   }
-  int controlPointType = client->GetAllControlPointsSelected() ? Selected : Unselected;
-  client->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
+  client->UpdateFromMRML(NULL, 0);
 }
 
 //----------------------------------------------------------------------
