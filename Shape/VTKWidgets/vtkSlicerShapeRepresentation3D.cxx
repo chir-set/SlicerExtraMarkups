@@ -585,6 +585,7 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->Tube->Update();
   this->ShapeActor->SetVisibility(true);
   shapeNode->SetShapeWorld(Tube->GetOutput());
+  shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
   
   // Doesn't work (color).
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
