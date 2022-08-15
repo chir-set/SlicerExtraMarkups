@@ -376,7 +376,7 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
   {
     vtkNew<vtkMRMLMeasurementShape> measurement;
     measurement->SetUnits("mm");
-    measurement->SetPrintFormat("%-#4.4g%s");
+    measurement->SetPrintFormat("%-#4.4g %s");
     measurement->SetName(name);
     measurement->SetInputMRMLNode(this);
     measurement->SetEnabled(enabled);
@@ -387,7 +387,7 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
     vtkNew<vtkMRMLMeasurementShape> measurement;
     measurement->SetUnits("cm2");
     measurement->SetDisplayCoefficient(0.01);
-    measurement->SetPrintFormat("%-#4.4g%s");
+    measurement->SetPrintFormat("%-#4.4g %s");
     measurement->SetName(name);
     measurement->SetInputMRMLNode(this);
     measurement->SetEnabled(false);
@@ -418,7 +418,7 @@ void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
   vtkNew<vtkMRMLMeasurementShape> radiusMeasurement;
   radiusMeasurement->SetName("radius");
   radiusMeasurement->SetUnits("mm");
-  radiusMeasurement->SetPrintFormat("%-#4.4g%s");
+  radiusMeasurement->SetPrintFormat("%-#4.4g %s");
   radiusMeasurement->SetInputMRMLNode(this);
   radiusMeasurement->SetEnabled(true);
   this->Measurements->AddItem(radiusMeasurement);
@@ -427,7 +427,7 @@ void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
   areaMeasurement->SetName("area");
   areaMeasurement->SetUnits("cm2");
   areaMeasurement->SetDisplayCoefficient(0.01);
-  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetPrintFormat("%-#4.4g %s");
   areaMeasurement->SetInputMRMLNode(this);
   areaMeasurement->SetEnabled(false);
   this->Measurements->AddItem(areaMeasurement);
@@ -450,7 +450,7 @@ void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
   areaMeasurement->SetName("area");
   areaMeasurement->SetUnits("cm2");
   areaMeasurement->SetDisplayCoefficient(0.01);
-  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetPrintFormat("%-#4.4g %s");
   areaMeasurement->SetInputMRMLNode(this);
   areaMeasurement->SetEnabled(false);
   this->Measurements->AddItem(areaMeasurement);
@@ -458,8 +458,8 @@ void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
   vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
   volumeMeasurement->SetName("volume");
   volumeMeasurement->SetUnits("cm3");
-  volumeMeasurement->SetDisplayCoefficient(0.01);
-  volumeMeasurement->SetPrintFormat("%-#4.4g%s");
+  volumeMeasurement->SetDisplayCoefficient(0.001);
+  volumeMeasurement->SetPrintFormat("%-#4.4g %s");
   volumeMeasurement->SetInputMRMLNode(this);
   volumeMeasurement->SetEnabled(false);
   this->Measurements->AddItem(volumeMeasurement);
@@ -474,7 +474,7 @@ void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
   areaMeasurement->SetName("area");
   areaMeasurement->SetUnits("cm2");
   areaMeasurement->SetDisplayCoefficient(0.01);
-  areaMeasurement->SetPrintFormat("%-#4.4g%s");
+  areaMeasurement->SetPrintFormat("%-#4.4g %s");
   areaMeasurement->SetInputMRMLNode(this);
   areaMeasurement->SetEnabled(false);
   this->Measurements->AddItem(areaMeasurement);
@@ -482,8 +482,8 @@ void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
   vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
   volumeMeasurement->SetName("volume");
   volumeMeasurement->SetUnits("cm3");
-  volumeMeasurement->SetDisplayCoefficient(0.01);
-  volumeMeasurement->SetPrintFormat("%-#4.4g%s");
+  volumeMeasurement->SetDisplayCoefficient(0.001);
+  volumeMeasurement->SetPrintFormat("%-#4.4g %s");
   volumeMeasurement->SetInputMRMLNode(this);
   volumeMeasurement->SetEnabled(true);
   this->Measurements->AddItem(volumeMeasurement);
