@@ -212,12 +212,12 @@ void vtkMRMLMeasurementShape::ComputeSphere()
   {
     if (sphereNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
     {
-      measurement = 4.0 * vtkMath::Pi() * (lineLength * lineLength);
+      measurement = vtkMath::Pi() * (lineLength * lineLength);
     }
     else
     {
       double radius = lineLength / 2.0;
-      measurement = 4.0 * vtkMath::Pi() * (radius * radius);
+      measurement = vtkMath::Pi() * (radius * radius);
     }
   }
   else
