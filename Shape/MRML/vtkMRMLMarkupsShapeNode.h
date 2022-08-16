@@ -86,8 +86,11 @@ public:
   vtkGetMacro(Resolution, double);
   
   vtkPolyData * GetShapeWorld() const {return this->ShapeWorld;}
+  // For Tube
+  vtkPolyData * GetSplineWorld() const {return this->SplineWorld;}
   // Used by 3D representation.
   void SetShapeWorld(vtkPolyData * polydata) {this->ShapeWorld = polydata;}
+  void SetSplineWorld(vtkPolyData * polydata) {this->SplineWorld = polydata;}
   
   vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
   vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
@@ -129,6 +132,7 @@ protected:
   double Resolution { 45.0 };
   
   vtkPolyData * ShapeWorld = nullptr;
+  vtkPolyData * SplineWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;
 
 private:

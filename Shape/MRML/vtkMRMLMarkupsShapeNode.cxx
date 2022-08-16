@@ -106,6 +106,7 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
   {
     this->RemoveAllControlPoints();
   }
+  this->SplineWorld = nullptr;
   this->Modified();
 }
 
