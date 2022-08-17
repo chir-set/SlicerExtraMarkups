@@ -27,6 +27,9 @@
 #include <vtkObjectFactory.h>
 #include <vtkPlane.h>
 #include <vtkClipPolyData.h>
+#include <vtkClipClosedSurface.h>
+#include <vtkPlaneCollection.h>
+#include <vtkTriangleFilter.h>
 
 // STD includes
 #include <cassert>
@@ -88,7 +91,8 @@ void vtkSlicerStenosisMeasurement3DLogic
 bool vtkSlicerStenosisMeasurement3DLogic::Process(vtkMRMLMarkupsShapeNode * wall,
                                             vtkMRMLSegmentationNode * lumen, std::string segmentID,
                                             vtkMRMLMarkupsFiducialNode * boundary,
-                                            vtkPolyData * wallOut, vtkPolyData * lumenOut)
+                                            vtkPolyData * wallOpenOut, vtkPolyData * lumenOpenOut,
+                                            vtkPolyData * wallClosedOut, vtkPolyData * lumenClosedOut)
 {
   // N.B. : we don't call ::UpdateBoundaryControlPointPosition here.
   if (wall == nullptr || lumen == nullptr || segmentID.empty() || boundary == nullptr
@@ -101,7 +105,8 @@ bool vtkSlicerStenosisMeasurement3DLogic::Process(vtkMRMLMarkupsShapeNode * wall
   }
   
   // Get wall polydata from shape markups node.
-  vtkPolyData * wallSurface = wall->GetShapeWorld();
+  vtkPolyData * wallOpenSurface = wall->GetShapeWorld();
+  vtkPolyData * wallClosedSurface = wall->GetCappedTubeWorld();
   // Generate lumen polydata from lumen segment.
   vtkNew<vtkPolyData> lumenSurface;
   if (!lumen->GetClosedSurfaceRepresentation(segmentID, lumenSurface))
@@ -150,14 +155,18 @@ bool vtkSlicerStenosisMeasurement3DLogic::Process(vtkMRMLMarkupsShapeNode * wall
   vtkMath::Subtract(p1Neighbour, p1, startDirection);
   vtkMath::Subtract(p2Neighbour, p2, endDirection);
   
-  // Clip wall and lumen at p1. Clip the result at p2.
+  // Open surface : Clip wall and lumen at p1. Clip the result at p2.
   vtkNew<vtkPolyData> wallIntermediate;
-  this->Clip(wallSurface, wallIntermediate, p1, startDirection, false);
-  this->Clip(wallIntermediate, wallOut, p2, endDirection, false);
+  this->Clip(wallOpenSurface, wallIntermediate, p1, startDirection, false);
+  this->Clip(wallIntermediate, wallOpenOut, p2, endDirection, false);
   
   vtkNew<vtkPolyData> lumenIntermediate;
   this->Clip(lumenSurface, lumenIntermediate, p1, startDirection, false);
-  this->Clip(lumenIntermediate, lumenOut, p2, endDirection, false);
+  this->Clip(lumenIntermediate, lumenOpenOut, p2, endDirection, false);
+  
+  // Closed surface
+  this->ClipClosed(wallClosedSurface, wallClosedOut, p1, startDirection, p2, endDirection);
+  this->ClipClosed(lumenSurface, lumenClosedOut, p1, startDirection, p2, endDirection);
   
   return true;
 }
@@ -217,18 +226,37 @@ bool vtkSlicerStenosisMeasurement3DLogic::UpdateBoundaryControlPointPosition
   return true;
 }
 
-/*
-wallNode = slicer.util.getNode("SH")
-lumenNode = slicer.util.getNode("Segmentation")
-segmentID = "Segment_1"
-fiducialNode = slicer.util.getNode("F")
-wallOut = vtk.vtkPolyData()
-lumenOut = vtk.vtkPolyData()
-
-logic = slicer.modules.stenosismeasurement3d.logic()
-
-logic.Process(wallNode, lumenNode, segmentID, fiducialNode, wallOut, lumenOut)
-
-wallModel = slicer.modules.models.logic().AddModel(wallOut)
-lumenModel = slicer.modules.models.logic().AddModel(lumenOut)
- */
+//-----------------------------------------------------------------------------
+bool vtkSlicerStenosisMeasurement3DLogic::ClipClosed(vtkPolyData * input, vtkPolyData * output,
+            double * startOrigin, double * startNormal, double * endOrigin, double * endNormal)
+{
+  if (input == nullptr || startOrigin == NULL || startNormal == NULL
+    || endOrigin == NULL || endNormal == NULL
+  )
+  {
+    vtkErrorMacro("Can't clip, invalid parameters.");
+    return false;
+  }
+  vtkNew<vtkPlane> startPlane;
+  startPlane->SetOrigin(startOrigin);
+  startPlane->SetNormal(startNormal);
+  vtkNew<vtkPlane> endPlane;
+  endPlane->SetOrigin(endOrigin);
+  endPlane->SetNormal(endNormal);
+  vtkNew<vtkPlaneCollection> planes;
+  planes->AddItem(startPlane);
+  planes->AddItem(endPlane);
+  planes->Modified();
+  
+  vtkNew<vtkClipClosedSurface> clipper;
+  clipper->SetClippingPlanes(planes);
+  clipper->SetInputData(input);
+  clipper->Update();
+  
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  triangleFilter->SetInputData(clipper->GetOutput());
+  triangleFilter->Update();
+  output->DeepCopy(triangleFilter->GetOutput());
+  
+  return true;
+}

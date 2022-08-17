@@ -52,7 +52,8 @@ public:
   bool Process(vtkMRMLMarkupsShapeNode * wall,
                vtkMRMLSegmentationNode * lumen, std::string segmentID,
                vtkMRMLMarkupsFiducialNode * boundary,
-               vtkPolyData * wallOut, vtkPolyData * lumenOut);
+               vtkPolyData * wallOpenOut, vtkPolyData * lumenOpenOut,
+               vtkPolyData * wallClosedOut, vtkPolyData * lumenClosedOut);
 
 protected:
   vtkSlicerStenosisMeasurement3DLogic();
@@ -65,9 +66,12 @@ protected:
   void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
   void OnMRMLSceneNodeRemoved(vtkMRMLNode* node) override;
   
-  // Cut the input using a plane; either part may be in output.
+  // Cut the input using a plane; either part may be in output. Create open polydata for display.
   bool Clip(vtkPolyData * input, vtkPolyData * output,
             double * origin, double * normal, bool clipped = false);
+  // Create closed clipped polydata, suitable for vtkMassProperties.
+  bool ClipClosed(vtkPolyData * input, vtkPolyData * output,
+            double * startOrigin, double * startNormal, double * endOrigin, double * endNormal);
 private:
 
   vtkSlicerStenosisMeasurement3DLogic(const vtkSlicerStenosisMeasurement3DLogic&); // Not implemented

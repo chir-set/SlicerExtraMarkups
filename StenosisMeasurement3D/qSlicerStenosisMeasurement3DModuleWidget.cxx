@@ -135,20 +135,22 @@ void qSlicerStenosisMeasurement3DModuleWidget::onApply()
   }
   
   // Create output data.
-  vtkSmartPointer<vtkPolyData> wallOut = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPolyData> lumenOut = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPolyData> wallOpen = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPolyData> lumenOpen = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPolyData> wallClosed = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPolyData> lumenClosed = vtkSmartPointer<vtkPolyData>::New();
   // Do the job.
   bool result = this->logic->Process(shapeNodeReal, segmentationNodeReal, currentSegmentID,
-                                     fiducialNodeReal, wallOut, lumenOut);
+                                     fiducialNodeReal, wallOpen, lumenOpen, wallClosed, lumenClosed);
   if (!result)
   {
     this->showStatusMessage("Processing failed.", 5000);
     return;
   }
   // Finally show result.
-  this->showResult(wallOut, lumenOut);
+  this->showResult(wallClosed, lumenClosed);
   // Optionally create models.
-  this->createModels(wallOut, lumenOut);
+  this->createModels(wallOpen, lumenOpen);
 }
 
 //-----------------------------------------------------------------------------
