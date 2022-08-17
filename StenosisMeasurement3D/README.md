@@ -19,7 +19,9 @@ Show models of the surfaces being cut down and measured.
 
 **Notes**
 
-The usefulness of evaluating arterial stenosis by volume in clinical practice is yet to be determined.
+ - If the first boundary point is at the begining or at the end of the wall's axis, the calculated volume is incorrect. This is yet unexplained. Draw a wall slightly beyond the zone of interest.
+ - 
+ - The usefulness of evaluating arterial stenosis by volume in clinical practice is yet to be determined.
 
 **Disclaimer**
 
