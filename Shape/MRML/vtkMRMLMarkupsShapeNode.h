@@ -88,9 +88,12 @@ public:
   vtkPolyData * GetShapeWorld() const {return this->ShapeWorld;}
   // For Tube
   vtkPolyData * GetSplineWorld() const {return this->SplineWorld;}
+  // This is to calculate volume with vtkMassProperties, it needs a closed polydata.
+  vtkPolyData * GetCappedTubeWorld() const {return this->CappedTubeWorld;}
   // Used by 3D representation.
   void SetShapeWorld(vtkPolyData * polydata) {this->ShapeWorld = polydata;}
   void SetSplineWorld(vtkPolyData * polydata) {this->SplineWorld = polydata;}
+  void SetCappedTubeWorld(vtkPolyData * polydata) {this->CappedTubeWorld = polydata;}
   
   vtkSetObjectMacro(ResliceNode, vtkMRMLNode);
   vtkGetObjectMacro(ResliceNode, vtkMRMLNode);
@@ -132,6 +135,7 @@ protected:
   double Resolution { 45.0 };
   
   vtkPolyData * ShapeWorld = nullptr;
+  vtkPolyData * CappedTubeWorld = nullptr;
   vtkPolyData * SplineWorld = nullptr;
   vtkMRMLNode * ResliceNode = nullptr;
 

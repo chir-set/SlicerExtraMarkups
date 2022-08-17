@@ -72,10 +72,17 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->Spline->SetPoints(points);
   this->SplineFunctionSource = vtkSmartPointer<vtkParametricFunctionSource>::New();
   this->SplineFunctionSource->SetParametricFunction(this->Spline);
+  // This is for display. Viewing a closed tube is not natural while dealing with arteries.
   this->Tube = vtkSmartPointer<vtkTubeFilter>::New();
   this->Tube->SetNumberOfSides(20);
   this->Tube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
   this->Tube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  // This is to calculate volume with vtkMassProperties, it needs a closed polydata.
+  this->CappedTube = vtkSmartPointer<vtkTubeFilter>::New();
+  this->CappedTube->SetNumberOfSides(20);
+  this->CappedTube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+  this->CappedTube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  this->CappedTube->SetCapping(true);
 }
 
 //------------------------------------------------------------------------------
@@ -583,8 +590,11 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   
   this->Tube->SetNumberOfSides(shapeNode->GetResolution());
   this->Tube->Update();
+  this->CappedTube->SetNumberOfSides(shapeNode->GetResolution());
+  this->CappedTube->Update();
   this->ShapeActor->SetVisibility(true);
-  shapeNode->SetShapeWorld(Tube->GetOutput());
+  shapeNode->SetShapeWorld(this->Tube->GetOutput());
+  shapeNode->SetCappedTubeWorld(this->CappedTube->GetOutput());
   shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
   
   // Doesn't work (color).

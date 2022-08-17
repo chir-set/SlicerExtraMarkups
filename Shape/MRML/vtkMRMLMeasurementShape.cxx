@@ -246,14 +246,14 @@ void vtkMRMLMeasurementShape::ComputeTube()
 {
   double measurement = 0.0;
   vtkMRMLMarkupsShapeNode * tubeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
-  if (!tubeNode || tubeNode->GetShapeWorld() == nullptr)
+  if (!tubeNode || tubeNode->GetCappedTubeWorld() == nullptr)
   {
     this->SetValue(measurement, "#ERR");
     return;
   }
   vtkNew<vtkTriangleFilter> triangleFilter;
   vtkNew<vtkMassProperties> massProperties;
-  triangleFilter->SetInputData(tubeNode->GetShapeWorld());
+  triangleFilter->SetInputData(tubeNode->GetCappedTubeWorld());
   triangleFilter->Update();
   massProperties->SetInputData(triangleFilter->GetOutput());
   massProperties->Update();

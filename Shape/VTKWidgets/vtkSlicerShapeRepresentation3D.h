@@ -90,6 +90,7 @@ protected:
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
   vtkSmartPointer<vtkTubeFilter> Tube;
+  vtkSmartPointer<vtkTubeFilter> CappedTube;
   
   vtkSmartPointer<vtkPolyDataMapper> ShapeMapper;
   vtkSmartPointer<vtkActor> ShapeActor;

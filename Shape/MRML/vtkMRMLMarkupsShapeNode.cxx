@@ -91,6 +91,7 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->RequiredNumberOfControlPoints = -1;
       this->MaximumNumberOfControlPoints = -1;
       this->ForceTubeMeasurements();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -107,6 +108,7 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
     this->RemoveAllControlPoints();
   }
   this->SplineWorld = nullptr;
+  this->CappedTubeWorld = nullptr;
   this->Modified();
 }
 
