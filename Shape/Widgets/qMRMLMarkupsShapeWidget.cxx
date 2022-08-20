@@ -143,6 +143,10 @@ void qMRMLMarkupsShapeWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
   if (d->MarkupsShapeNode)
   {
     d->shapeNameComboBox->setCurrentIndex( d->MarkupsShapeNode->GetShapeName());
+    d->radiusModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetRadiusMode());
+    d->drawModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetDrawMode2D());
+    d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
+    d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
   }
 }
 
@@ -175,7 +179,6 @@ void qMRMLMarkupsShapeWidget::onRadiusModeChanged()
     return;
   }
   d->MarkupsShapeNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------
@@ -188,7 +191,6 @@ void qMRMLMarkupsShapeWidget::onDrawModeChanged()
     return;
   }
   d->MarkupsShapeNode->SetDrawMode2D(d->drawModeComboBox->currentIndex());
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------
@@ -201,7 +203,6 @@ void qMRMLMarkupsShapeWidget::onResolutionChanged(double value)
     return;
   }
   d->MarkupsShapeNode->SetResolution(value);
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------
@@ -214,7 +215,6 @@ void qMRMLMarkupsShapeWidget::onResliceNodeChanged(vtkMRMLNode * node)
     return;
   }
   d->MarkupsShapeNode->SetResliceNode(node);
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------
@@ -227,5 +227,4 @@ void qMRMLMarkupsShapeWidget::onResliceButtonClicked()
     return;
   }
   d->MarkupsShapeNode->ResliceToControlPoints();
-  d->MarkupsShapeNode->UpdateScene(this->mrmlScene());
 }
