@@ -442,7 +442,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
     double * closestPointOnRing = this->RingSource->GetOutput()->GetPoint(closestIdOnRing);
     if (p3[0] != closestPointOnRing[0] || p3[1] != closestPointOnRing[1] || p3[2] != closestPointOnRing[2])
     {
-      if (shapeNode->GetNumberOfDefinedControlPoints() == 3)
+      if (shapeNode->GetNumberOfDefinedControlPoints() == 3 && shapeNode->GetModifiedSinceRead())
       {
         shapeNode->SetNthControlPointPositionWorld(2, closestPointOnRing);
       }

@@ -22,6 +22,7 @@
 
 // Shape MRML includes
 #include "vtkMRMLMarkupsShapeNode.h"
+#include "vtkMRMLMarkupsShapeJsonStorageNode.h"
 
 // Shape VTKWidgets includes
 #include "vtkSlicerShapeWidget.h"
@@ -44,6 +45,7 @@ vtkStandardNewMacro(vtkSlicerShapeLogic);
 //---------------------------------------------------------------------------
 vtkSlicerShapeLogic::vtkSlicerShapeLogic()
 {
+  this->RegisterJsonStorageNodeForMarkupsType("Shape", "vtkMRMLMarkupsShapeJsonStorageNode");
 }
 
 //---------------------------------------------------------------------------
@@ -75,4 +77,6 @@ void vtkSlicerShapeLogic::RegisterNodes()
   vtkNew<vtkMRMLMarkupsShapeNode> markupsShapeNode;
   vtkNew<vtkSlicerShapeWidget> ShapeWidget;
   markupsLogic->RegisterMarkupsNode(markupsShapeNode, ShapeWidget);
+  
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsShapeJsonStorageNode>::New());
 }

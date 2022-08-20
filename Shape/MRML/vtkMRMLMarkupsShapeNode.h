@@ -35,17 +35,20 @@ public:
     Sphere = 0,
     Ring,
     Disk,
-    Tube
+    Tube,
+    ShapeName_Last
   };
   enum
   {
     Centered = 0,
-    Circumferential
+    Circumferential,
+    RadiusMode_Last
   };
   enum
   {
     Intersection = 0,
-    Projection
+    Projection,
+    DrawMode2D_Last
   };
   static vtkMRMLMarkupsShapeNode* New();
   vtkTypeMacro(vtkMRMLMarkupsShapeNode, vtkMRMLMarkupsNode);
@@ -75,12 +78,20 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsShapeNode);
   
+  vtkMRMLStorageNode* CreateDefaultStorageNode() override;
+  
   vtkGetMacro(ShapeName, int);
   void SetShapeName(int shapeName);
+  static const char* GetShapeNameAsString(int shapeName);
+  static int GetShapeNameFromString(const char* name);
+  static const char* GetRadiusModeAsString(int radiusMode);
+  static int GetRadiusModeFromString(const char* mode);
+  static const char* GetDrawMode2DAsString(int drawMode2D);
+  static int GetDrawMode2DFromString(const char* mode);
   
-  vtkSetMacro(RadiusMode, int);
+  vtkSetClampMacro(RadiusMode, int, this->Centered, this->Circumferential);
   vtkGetMacro(RadiusMode, int);
-  vtkSetMacro(DrawMode2D, int);
+  vtkSetClampMacro(DrawMode2D, int, this->Intersection, this->Projection);
   vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);

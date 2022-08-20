@@ -1,5 +1,8 @@
 project(vtkSlicer${MODULE_NAME}ModuleMRML)
 
+
+find_package(RapidJSON REQUIRED)
+
 set(KIT ${PROJECT_NAME})
 
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
@@ -12,6 +15,9 @@ set(${KIT}_SRCS
   vtkMRMLMarkupsShapeNode.cxx
   vtkMRMLMeasurementShape.h
   vtkMRMLMeasurementShape.cxx
+  vtkMRMLMarkupsShapeJsonStorageNode.h
+  vtkMRMLMarkupsShapeJsonStorageNode_Private.h
+  vtkMRMLMarkupsShapeJsonStorageNode.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES

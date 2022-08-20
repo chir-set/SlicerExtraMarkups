@@ -20,6 +20,7 @@
 
 #include "vtkMRMLMarkupsShapeNode.h"
 #include "vtkMRMLMeasurementShape.h"
+#include "vtkMRMLMarkupsShapeJsonStorageNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -27,6 +28,7 @@
 #include <vtkMRMLSliceNode.h>
 #include <vtkCollection.h>
 #include <vtkCallbackCommand.h>
+#include <vtkMRMLScene.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
@@ -52,6 +54,128 @@ vtkMRMLMarkupsShapeNode::~vtkMRMLMarkupsShapeNode()
 void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLStorageNode* vtkMRMLMarkupsShapeNode::CreateDefaultStorageNode()
+{
+  vtkMRMLScene* scene = this->GetScene();
+  if (scene == nullptr)
+  {
+    vtkErrorMacro("CreateDefaultStorageNode failed: scene is invalid");
+    return nullptr;
+  }
+  return vtkMRMLStorageNode::SafeDownCast(
+    scene->CreateNodeByClass("vtkMRMLMarkupsShapeJsonStorageNode"));
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsShapeNode::GetShapeNameAsString(int shapeName)
+{
+  switch (shapeName)
+  {
+    case vtkMRMLMarkupsShapeNode::Sphere:
+      return "Sphere";
+    case vtkMRMLMarkupsShapeNode::Ring:
+      return "Ring";
+    case vtkMRMLMarkupsShapeNode::Disk:
+      return "Disk";
+    case vtkMRMLMarkupsShapeNode::Tube:
+      return "Tube";
+    default:
+      break;
+  }
+  return "";
+}
+
+//-----------------------------------------------------------
+int vtkMRMLMarkupsShapeNode::GetShapeNameFromString(const char* name)
+{
+  if (name == nullptr)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i = 0; i < vtkMRMLMarkupsShapeNode::ShapeName_Last; i++)
+  {
+    if (strcmp(name, vtkMRMLMarkupsShapeNode::GetShapeNameAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsShapeNode::GetRadiusModeAsString(int radiusMode)
+{
+  switch (radiusMode)
+  {
+    case vtkMRMLMarkupsShapeNode::Centered:
+      return "Centered";
+    case vtkMRMLMarkupsShapeNode::Circumferential:
+      return "Circumferential";
+    default:
+      break;
+  }
+  return "";
+}
+
+//-----------------------------------------------------------
+int vtkMRMLMarkupsShapeNode::GetRadiusModeFromString(const char* mode)
+{
+  if (mode == nullptr)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i = 0; i < vtkMRMLMarkupsShapeNode::RadiusMode_Last; i++)
+  {
+    if (strcmp(mode, vtkMRMLMarkupsShapeNode::GetRadiusModeAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLMarkupsShapeNode::GetDrawMode2DAsString(int drawMode2D)
+{
+  switch (drawMode2D)
+  {
+    case vtkMRMLMarkupsShapeNode::Intersection:
+      return "Intersection";
+    case vtkMRMLMarkupsShapeNode::Projection:
+      return "Projection";
+    default:
+      break;
+  }
+  return "";
+}
+
+//-----------------------------------------------------------
+int vtkMRMLMarkupsShapeNode::GetDrawMode2DFromString(const char* mode)
+{
+  if (mode == nullptr)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i = 0; i < vtkMRMLMarkupsShapeNode::DrawMode2D_Last; i++)
+  {
+    if (strcmp(mode, vtkMRMLMarkupsShapeNode::GetDrawMode2DAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
 }
 
 //----------------------------------------------------------------------------
@@ -103,12 +227,10 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->RemoveNthControlPoint(this->MaximumNumberOfControlPoints);
     }
   }
-  else
-  {
-    this->RemoveAllControlPoints();
-  }
+  
   this->SplineWorld = nullptr;
   this->CappedTubeWorld = nullptr;
+
   this->Modified();
 }
 
@@ -403,13 +525,6 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
   addAreaMeasurement("area");
   addAreaMeasurement("innerArea");
   addAreaMeasurement("outerArea");
-  /*
-   * If we switch from Ring to Disk, inner and outer radii may be identical.
-   * The Disk is not drawn, that's OK.
-   * But the measurements are surprisingly not updated until an MRML event.
-   * Force an update.
-   */
-  this->UpdateAllMeasurements();
 }
 
 //----------------------------------------------------------------------------
