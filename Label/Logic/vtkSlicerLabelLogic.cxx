@@ -22,6 +22,7 @@
 
 // Label MRML includes
 #include "vtkMRMLMarkupsLabelNode.h"
+#include "vtkMRMLMarkupsLabelJsonStorageNode.h"
 
 // Label VTKWidgets includes
 #include "vtkSlicerLabelWidget.h"
@@ -44,6 +45,7 @@ vtkStandardNewMacro(vtkSlicerLabelLogic);
 //---------------------------------------------------------------------------
 vtkSlicerLabelLogic::vtkSlicerLabelLogic()
 {
+  this->RegisterJsonStorageNodeForMarkupsType("Label", "vtkMRMLMarkupsLabelJsonStorageNode");
 }
 
 //---------------------------------------------------------------------------
@@ -75,4 +77,6 @@ void vtkSlicerLabelLogic::RegisterNodes()
   vtkNew<vtkMRMLMarkupsLabelNode> markupsLabelNode;
   vtkNew<vtkSlicerLabelWidget> Label_FIRST_LOWERWidget;
   markupsLogic->RegisterMarkupsNode(markupsLabelNode, Label_FIRST_LOWERWidget);
+  
+  scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsLabelJsonStorageNode>::New());
 }

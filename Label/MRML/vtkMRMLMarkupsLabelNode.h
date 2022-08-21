@@ -36,7 +36,8 @@ public:
   {
     ViewScaleFactor = 0,
     LineLength,
-    Fixed
+    Fixed,
+    TipDimensionMode3D_Last
   };
   static vtkMRMLMarkupsLabelNode* New();
   vtkTypeMacro(vtkMRMLMarkupsLabelNode, vtkMRMLMarkupsNode);
@@ -66,10 +67,14 @@ public:
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsLabelNode);
   
+  vtkMRMLStorageNode* CreateDefaultStorageNode() override;
+  
   vtkGetMacro(Label, QString);
   vtkSetMacro(Label, QString);
-  vtkSetMacro(ThreeDTipDimensionMode, int);
-  vtkGetMacro(ThreeDTipDimensionMode, int);
+  vtkSetClampMacro(TipDimensionMode3D, int, this->ViewScaleFactor, this->Fixed);
+  vtkGetMacro(TipDimensionMode3D, int);
+  static const char* GetTipDimensionMode3DAsString(int mode);
+  static int GetTipDimensionMode3DFromString(const char* name);
 
 protected:
   vtkMRMLMarkupsLabelNode();
@@ -78,7 +83,7 @@ protected:
   void operator=(const vtkMRMLMarkupsLabelNode&);
   
   QString Label = "Label";
-  int ThreeDTipDimensionMode { ViewScaleFactor };
+  int TipDimensionMode3D { ViewScaleFactor };
 
 private:
   

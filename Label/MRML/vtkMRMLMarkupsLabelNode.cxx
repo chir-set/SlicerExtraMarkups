@@ -23,6 +23,7 @@
 // VTK includes
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkMRMLScene.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsLabelNode);
@@ -46,3 +47,54 @@ void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 }
+
+//----------------------------------------------------------------------------
+vtkMRMLStorageNode* vtkMRMLMarkupsLabelNode::CreateDefaultStorageNode()
+{
+  vtkMRMLScene* scene = this->GetScene();
+  if (scene == nullptr)
+  {
+    vtkErrorMacro("CreateDefaultStorageNode failed: scene is invalid");
+    return nullptr;
+  }
+  return vtkMRMLStorageNode::SafeDownCast(
+    scene->CreateNodeByClass("vtkMRMLMarkupsLabelJsonStorageNode"));
+}
+
+//----------------------------------------------------------------------------
+const char * vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DAsString(int mode)
+{
+  switch (mode)
+  {
+    case vtkMRMLMarkupsLabelNode::ViewScaleFactor:
+      return "ViewScaleFactor";
+    case vtkMRMLMarkupsLabelNode::LineLength:
+      return "LineLength";
+    case vtkMRMLMarkupsLabelNode::Fixed:
+      return "Fixed";
+    default:
+      break;
+  }
+  return "";
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DFromString(const char* name)
+{
+  if (name == nullptr)
+  {
+    // invalid name
+    return -1;
+  }
+  for (int i = 0; i < vtkMRMLMarkupsLabelNode::TipDimensionMode3D_Last; i++)
+  {
+    if (strcmp(name, vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DAsString(i)) == 0)
+    {
+      // found a matching name
+      return i;
+    }
+  }
+  // unknown name
+  return -1;
+}
+

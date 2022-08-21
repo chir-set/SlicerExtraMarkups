@@ -10,6 +10,9 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkMRMLMarkupsLabelNode.h
   vtkMRMLMarkupsLabelNode.cxx
+  vtkMRMLMarkupsLabelJsonStorageNode.h
+  vtkMRMLMarkupsLabelJsonStorageNode_Private.h
+  vtkMRMLMarkupsLabelJsonStorageNode.cxx
   )
 
 set(${KIT}_TARGET_LIBRARIES

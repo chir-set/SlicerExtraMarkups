@@ -125,8 +125,7 @@ void qMRMLMarkupsLabelWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
   if (d->MarkupsLabelNode)
   {
     d->labelTextEdit->setPlainText(d->MarkupsLabelNode->GetLabel());
-    d->ThreeDTipDimensionModeComboBox->setCurrentIndex( d->MarkupsLabelNode->GetThreeDTipDimensionMode());
-    d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
+    d->ThreeDTipDimensionModeComboBox->setCurrentIndex( d->MarkupsLabelNode->GetTipDimensionMode3D());
   }
 }
 
@@ -140,7 +139,6 @@ void qMRMLMarkupsLabelWidget::onTextChanged()
     return;
   }
   d->MarkupsLabelNode->SetLabel(d->labelTextEdit->toPlainText());
-  d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
 }
 
 // --------------------------------------------------------------------------
@@ -152,6 +150,5 @@ void qMRMLMarkupsLabelWidget::onThreeDTipDimensionModeChanged(int mode)
   {
     return;
   }
-  d->MarkupsLabelNode->SetThreeDTipDimensionMode(mode);
-  d->MarkupsLabelNode->UpdateScene(this->mrmlScene());
+  d->MarkupsLabelNode->SetTipDimensionMode3D(mode);
 }
