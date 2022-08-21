@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkmrmlmarkupsLabel_LOWERnode_h_
-#define __vtkmrmlmarkupsLabel_LOWERnode_h_
+#ifndef __vtkmrmlmarkupsLabelnode_h_
+#define __vtkmrmlmarkupsLabelnode_h_
 
 #include <vtkMRMLMarkupsNode.h>
 
@@ -89,4 +89,4 @@ private:
   
 };
 
-#endif //vtkmrmlmarkupsLabel_LOWERnode_h_
+#endif //vtkmrmlmarkupsLabelnode_h_

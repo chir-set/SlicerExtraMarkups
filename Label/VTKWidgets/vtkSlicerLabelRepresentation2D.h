@@ -37,8 +37,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkslicerLabel_LOWERrepresentation2d_h_
-#define __vtkslicerLabel_LOWERrepresentation2d_h_
+#ifndef __vtkslicerLabelrepresentation2d_h_
+#define __vtkslicerLabelrepresentation2d_h_
 
 #include "vtkSlicerLabelModuleVTKWidgetsExport.h"
 
@@ -100,4 +100,4 @@ private:
   void operator=(const vtkSlicerLabelRepresentation2D&) = delete;
 };
 
-#endif // __vtkslicerLabel_LOWERrepresentation3d_h_
+#endif // __vtkslicerLabelrepresentation3d_h_

@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkslicerLabel_LOWERrepresentation3d_h_
-#define __vtkslicerLabel_LOWERrepresentation3d_h_
+#ifndef __vtkslicerLabelrepresentation3d_h_
+#define __vtkslicerLabelrepresentation3d_h_
 
 #include "vtkSlicerLabelModuleVTKWidgetsExport.h"
 
@@ -88,4 +88,4 @@ private:
   
 };
 
-#endif // __vtkslicerLabel_LOWERrepresentation3d_h_
+#endif // __vtkslicerLabelrepresentation3d_h_

@@ -37,8 +37,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkslicerShape_LOWERrepresentation2d_h_
-#define __vtkslicerShape_LOWERrepresentation2d_h_
+#ifndef __vtkslicerShaperepresentation2d_h_
+#define __vtkslicerShaperepresentation2d_h_
 
 #include "vtkSlicerShapeModuleVTKWidgetsExport.h"
 
@@ -134,4 +134,4 @@ private:
   void operator=(const vtkSlicerShapeRepresentation2D&) = delete;
 };
 
-#endif // __vtkslicerShape_LOWERrepresentation3d_h_
+#endif // __vtkslicerShaperepresentation3d_h_

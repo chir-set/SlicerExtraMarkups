@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkslicerShape_LOWERrepresentation3d_h_
-#define __vtkslicerShape_LOWERrepresentation3d_h_
+#ifndef __vtkslicerShaperepresentation3d_h_
+#define __vtkslicerShaperepresentation3d_h_
 
 #include "vtkSlicerShapeModuleVTKWidgetsExport.h"
 
@@ -109,4 +109,4 @@ private:
   bool DoUpdateFromMRML = true;
 };
 
-#endif // __vtkslicerShape_LOWERrepresentation3d_h_
+#endif // __vtkslicerShaperepresentation3d_h_

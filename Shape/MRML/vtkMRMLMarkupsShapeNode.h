@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkmrmlmarkupsShape_LOWERnode_h_
-#define __vtkmrmlmarkupsShape_LOWERnode_h_
+#ifndef __vtkmrmlmarkupsshapenode_h_
+#define __vtkmrmlmarkupsshapenode_h_
 
 #include <vtkMRMLMarkupsNode.h>
 
@@ -155,4 +155,4 @@ private:
   
 };
 
-#endif //vtkmrmlmarkupsShape_LOWERnode_h_
+#endif //vtkmrmlmarkupsshapenode_h_

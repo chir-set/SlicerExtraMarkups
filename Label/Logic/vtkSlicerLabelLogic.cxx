@@ -75,8 +75,8 @@ void vtkSlicerLabelLogic::RegisterNodes()
     }
 
   vtkNew<vtkMRMLMarkupsLabelNode> markupsLabelNode;
-  vtkNew<vtkSlicerLabelWidget> Label_FIRST_LOWERWidget;
-  markupsLogic->RegisterMarkupsNode(markupsLabelNode, Label_FIRST_LOWERWidget);
+  vtkNew<vtkSlicerLabelWidget> LabelWidget;
+  markupsLogic->RegisterMarkupsNode(markupsLabelNode, LabelWidget);
   
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsLabelJsonStorageNode>::New());
 }
