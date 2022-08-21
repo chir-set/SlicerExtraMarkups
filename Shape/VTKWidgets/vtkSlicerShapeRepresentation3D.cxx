@@ -518,7 +518,7 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   this->TextActorPositionWorld[2] = p2[2];
 }
 
-//---------------------------- Sphere ------------------------------------------
+//---------------------------- Tube ------------------------------------------
 void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   this->Superclass::UpdateFromMRML(caller, event, callData);
