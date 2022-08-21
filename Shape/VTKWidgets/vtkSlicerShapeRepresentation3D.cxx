@@ -30,6 +30,7 @@
 #include <vtkProperty.h>
 #include <vtkTupleInterpolator.h>
 #include <vtkPointData.h>
+#include <vtkCollection.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerShapeRepresentation3D);
@@ -265,6 +266,22 @@ void vtkSlicerShapeRepresentation3D::BuildMiddlePoint()
   this->MiddlePointSource->SetRadius(this->ControlPointSize);
 }
 
+//----------------------------------------------------------------------------
+vtkObject * vtkSlicerShapeRepresentation3D::GetFirstViewNode(vtkMRMLScene* scene) const
+{
+  if (!scene)
+  {
+    return nullptr;
+  }
+  vtkCollection * allNodes = scene->GetNodesByClass(this->ViewNode->GetClassName());
+  if (!allNodes)
+  {
+    return nullptr;
+  }
+  return allNodes->GetItemAsObject(0);
+}
+
+
 //---------------------------- Disk ------------------------------------------
 void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
                                                    unsigned long event,
@@ -339,7 +356,10 @@ void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[1] = farthestPoint[1];
   this->TextActorPositionWorld[2] = farthestPoint[2];
   
-  shapeNode->SetShapeWorld(this->DiskSource->GetOutput());
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->DiskSource->GetOutput());
+  }
 }
 
 //---------------------------- Ring ------------------------------------------
@@ -418,7 +438,10 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   
   this->RingSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
   this->RingSource->Update();
-  shapeNode->SetShapeWorld(this->RingSource->GetOutput());
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->RingSource->GetOutput());
+  }
   
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
@@ -493,7 +516,10 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   this->SphereSource->SetPhiResolution(shapeNode->GetResolution());
   this->SphereSource->SetThetaResolution(shapeNode->GetResolution());
   this->SphereSource->Update();
-  shapeNode->SetShapeWorld(this->SphereSource->GetOutput());
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->SphereSource->GetOutput());
+  }
   
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
@@ -593,9 +619,12 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->CappedTube->SetNumberOfSides(shapeNode->GetResolution());
   this->CappedTube->Update();
   this->ShapeActor->SetVisibility(true);
-  shapeNode->SetShapeWorld(this->Tube->GetOutput());
-  shapeNode->SetCappedTubeWorld(this->CappedTube->GetOutput());
-  shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->Tube->GetOutput());
+    shapeNode->SetCappedTubeWorld(this->CappedTube->GetOutput());
+    shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
+  }
   
   // Doesn't work (color).
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;

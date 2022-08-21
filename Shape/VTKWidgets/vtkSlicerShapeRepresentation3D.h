@@ -34,6 +34,7 @@
 #include <vtkTubeFilter.h>
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
+#include <vtkMRMLScene.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -100,6 +101,9 @@ protected:
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  
+  // Set shape, spline and closed tube pointers in markups node from the first view only.
+  vtkObject * GetFirstViewNode(vtkMRMLScene * scene) const;
 
 private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;
