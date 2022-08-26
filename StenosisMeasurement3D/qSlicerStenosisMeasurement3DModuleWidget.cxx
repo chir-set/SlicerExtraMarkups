@@ -81,7 +81,7 @@ void qSlicerStenosisMeasurement3DModuleWidget::setup()
                    this, SLOT(onShapeNodeChanged(vtkMRMLNode*)));
   QObject::connect(d->inputFiducialSelector, SIGNAL(currentNodeChanged(vtkMRMLNode*)),
                    this, SLOT(onFiducialNodeChanged(vtkMRMLNode*)));
-  QObject::connect(d->inputFiducialSelector, SIGNAL(nodeAdded(vtkMRMLNode*)),
+  QObject::connect(d->inputFiducialSelector, SIGNAL(nodeAddedByUser(vtkMRMLNode*)),
                    this, SLOT(onFiducialNodeChanged(vtkMRMLNode*)));
   
   // Put p1 and p2 ficucial points on the tube spline at nearest point when they are moved.
