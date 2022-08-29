@@ -30,6 +30,7 @@ protected:
     void ComputeRing();
     void ComputeSphere();
     void ComputeTube();
+    void ComputeCone();
 };
 
 #endif // VTKMRMLMEASUREMENTSHAPE_H

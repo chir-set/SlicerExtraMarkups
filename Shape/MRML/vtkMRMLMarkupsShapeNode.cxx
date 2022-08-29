@@ -82,6 +82,8 @@ const char* vtkMRMLMarkupsShapeNode::GetShapeNameAsString(int shapeName)
       return "Disk";
     case vtkMRMLMarkupsShapeNode::Tube:
       return "Tube";
+    case vtkMRMLMarkupsShapeNode::Cone:
+      return "Cone";
     default:
       break;
   }
@@ -216,6 +218,12 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->MaximumNumberOfControlPoints = -1;
       this->ForceTubeMeasurements();
       break;
+    case Cone:
+      // Points 0 : centre of the base base; point 2 : radius; point 3 : tip
+      this->RequiredNumberOfControlPoints = 3;
+      this->MaximumNumberOfControlPoints = 3;
+      this->ForceConeMeasurements();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -318,21 +326,34 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   this->GetNthControlPointPositionWorld(0, rasP1);
   this->GetNthControlPointPositionWorld(1, rasP2);
   const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(rasP1, rasP2));
-  const double currentRadius = (this->RadiusMode == Centered)
-                              ? lineLength : lineLength / 2;
-  const double difference = radius - currentRadius;
+  double currentRadius = 0.0;
+  double difference = 0.0;
+  if (this->GetShapeName() != this->Cone)
+  {
+    currentRadius = (this->RadiusMode == Centered)
+                                ? lineLength : lineLength / 2;
+  }
+  else
+  {
+    currentRadius = lineLength;
+  }
+  difference = radius - currentRadius;
+  
   double rasP2Shifted[3] = { 0.0 };
   this->FindLinearCoordinateByDistance(rasP1, rasP2, rasP2Shifted, difference);
   
   this->SetNthControlPointPositionWorld(1, rasP2Shifted);
-  // Don't move center, move p1.
-  if (this->RadiusMode == Circumferential)
+  if (this->GetShapeName() != this->Cone)
   {
-    double rasP1Shifted[3] = { 0.0 };
-    this->FindLinearCoordinateByDistance(rasP2, rasP1, rasP1Shifted, difference);
-    this->SetNthControlPointPositionWorld(0, rasP1Shifted);
+    // Don't move center, move p1.
+    if (this->RadiusMode == Circumferential)
+    {
+      double rasP1Shifted[3] = { 0.0 };
+      this->FindLinearCoordinateByDistance(rasP2, rasP1, rasP1Shifted, difference);
+      this->SetNthControlPointPositionWorld(0, rasP1Shifted);
+    }
+    // Text actor does not move until mouse is hovered on a control point.
   }
-  // Text actor does not move until mouse is hovered on a control point.
 }
 
 // Merging all shapes introduces complexity, API becomes bad looking, with shape specific functions.
@@ -408,6 +429,31 @@ void vtkMRMLMarkupsShapeNode::SetOuterRadius(double radius)
   this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(farthestPoint), farthestPointShifted);
 }
 
+//----------------------------API only----------------------------------------
+void vtkMRMLMarkupsShapeNode::SetHeight(double height)
+{
+  if (this->ShapeName != this->Cone)
+  {
+    vtkErrorMacro("Current shape is not a Cone.");
+    return;
+  }
+  if (height <= 0)
+  {
+    vtkErrorMacro("Height must be greater than zero.");
+    return;
+  }
+  double rasP1[3] = { 0.0 };
+  double rasP3[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, rasP1);
+  this->GetNthControlPointPositionWorld(2, rasP3);
+  const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(rasP1, rasP3));
+  const double difference = height - lineLength;
+  double rasP3Shifted[3] = { 0.0 };
+  this->FindLinearCoordinateByDistance(rasP1, rasP3, rasP3Shifted, difference);
+  
+  this->SetNthControlPointPositionWorld(2, rasP3Shifted);
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
 {
@@ -423,6 +469,8 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
       this->ResliceToPlane();
       break;
     case Tube:
+      break;
+    case Cone:
       break;
     default :
       vtkErrorMacro("Unknown shape.");
@@ -608,6 +656,46 @@ void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
   volumeMeasurement->SetPrintFormat("%-#4.4g %s");
   volumeMeasurement->SetInputMRMLNode(this);
   volumeMeasurement->SetEnabled(true);
+  this->Measurements->AddItem(volumeMeasurement);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  auto addMeasurement = [&] (const char * name, bool enabled)
+  {
+    vtkNew<vtkMRMLMeasurementShape> measurement;
+    measurement->SetName(name);
+    measurement->SetUnits("mm");
+    measurement->SetPrintFormat("%-#4.4g%s");
+    measurement->SetInputMRMLNode(this);
+    measurement->SetEnabled(enabled);
+    this->Measurements->AddItem(measurement);
+  };
+  
+  addMeasurement("radius", true);
+  addMeasurement("height", true);
+  addMeasurement("slant", false);
+  
+  vtkNew<vtkMRMLMeasurementShape> areaMeasurement;
+  areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g %s");
+  areaMeasurement->SetInputMRMLNode(this);
+  areaMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(areaMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
+  volumeMeasurement->SetName("volume");
+  volumeMeasurement->SetUnits("cm3");
+  volumeMeasurement->SetDisplayCoefficient(0.001);
+  volumeMeasurement->SetPrintFormat("%-#4.4g %s");
+  volumeMeasurement->SetInputMRMLNode(this);
+  volumeMeasurement->SetEnabled(false);
   this->Measurements->AddItem(volumeMeasurement);
 }
 

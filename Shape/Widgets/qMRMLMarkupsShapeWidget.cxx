@@ -65,6 +65,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Ring");
   this->shapeNameComboBox->addItem("Disk");
   this->shapeNameComboBox->addItem("Tube");
+  this->shapeNameComboBox->addItem("Cone");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
   this->drawModeComboBox->addItem("Intersection");
@@ -162,11 +163,15 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
   d->MarkupsShapeNode->SetShapeName(shapeName);
   
   d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
-                                && shapeName != vtkMRMLMarkupsShapeNode::Tube);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Tube
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
   d->radiusModeComboBox->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
-                                && shapeName != vtkMRMLMarkupsShapeNode::Tube);
-  d->reslicePushButton->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube);
-  d->resliceInputSelector->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Tube
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+  d->reslicePushButton->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+  d->resliceInputSelector->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
 }
 
 // --------------------------------------------------------------------------

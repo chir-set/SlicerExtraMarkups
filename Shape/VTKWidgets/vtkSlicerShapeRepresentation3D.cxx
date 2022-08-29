@@ -42,6 +42,8 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->RingSource = vtkSmartPointer<vtkDiskSource>::New();
   this->RadiusSource = vtkSmartPointer<vtkLineSource>::New();
   this->SphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  this->ConeSource = vtkSmartPointer<vtkConeSource>::New();
+  this->ConeSource->CappingOn();
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
@@ -57,7 +59,6 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->MiddlePointMapper->SetInputConnection(this->MiddlePointSource->GetOutputPort());
   this->MiddlePointActor = vtkSmartPointer<vtkActor>::New();
   this->MiddlePointActor->SetMapper(this->MiddlePointMapper);
-  
   
   this->RadiusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->RadiusMapper->SetInputConnection(this->RadiusSource->GetOutputPort());
@@ -232,6 +233,9 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
       break;
     case vtkMRMLMarkupsShapeNode::Tube :
       this->UpdateTubeFromMRML(caller, event, callData);
+      break;
+    case vtkMRMLMarkupsShapeNode::Cone :
+      this->UpdateConeFromMRML(caller, event, callData);
       break;
     default:
       vtkErrorMacro("Unknown shape.");
@@ -643,4 +647,101 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];
   this->TextActor->SetVisibility(true);
+}
+
+
+//---------------------------- Cone -------------------------------------------
+void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  if (!this->DoUpdateFromMRML)
+  {
+    return;
+  }
+  vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  this->RadiusActor->SetVisibility(false);
+  this->MiddlePointActor->SetVisibility(false);
+  if (!(shapeNode->GetNumberOfDefinedControlPoints(true) == 3))
+  {
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  shapeNode->GetNthControlPointPositionWorld(1, p2);
+  shapeNode->GetNthControlPointPositionWorld(2, p3);
+  
+  this->ShapeMapper->SetInputConnection(this->ConeSource->GetOutputPort());
+  
+  double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+  double direction[3] = { 0.0 };
+  // Points towards p3
+  vtkMath::Subtract(p3, p1, direction);
+
+  double center[3] = {0.0};
+  center[0] = (p1[0] + p3[0]) / 2.0;
+  center[1] = (p1[1] + p3[1]) / 2.0;
+  center[2] = (p1[2] + p3[2]) / 2.0;
+  
+  double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  
+  this->ConeSource->SetCenter(center);
+  this->ConeSource->SetRadius(radius);
+  this->ConeSource->SetHeight(height);
+  this->ConeSource->SetDirection(direction);
+  this->ConeSource->SetResolution(shapeNode->GetResolution());
+  this->ConeSource->Update();
+  
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->ConeSource->GetOutput());
+  }
+  
+  bool visibility = this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  this->ShapeActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  // Stick p2 on rim : place a sphere at the base, cut it and find point.
+  this->DoUpdateFromMRML = false;
+  vtkNew<vtkSphereSource> baseSphere;
+  baseSphere->SetCenter(p1);
+  baseSphere->SetRadius(radius);
+  baseSphere->SetPhiResolution(360);
+  baseSphere->SetThetaResolution(360);
+  baseSphere->Update();
+  vtkNew<vtkPlane> basePlane;
+  basePlane->SetOrigin(p1);
+  basePlane->SetNormal(direction);
+  vtkNew<vtkCutter> baseCutter;
+  baseCutter->SetInputConnection(baseSphere->GetOutputPort());
+  baseCutter->SetCutFunction(basePlane);
+  baseCutter->Update();
+  vtkIdType closestIdOnRim = baseCutter->GetOutput()->FindPoint(p2);
+  if (closestIdOnRim >= 0)
+  {
+    double * closestPointOnRim = baseCutter->GetOutput()->GetPoint(closestIdOnRim);
+    if (p2[0] != closestPointOnRim[0] || p2[1] != closestPointOnRim[1] || p2[2] != closestPointOnRim[2])
+    {
+      if (shapeNode->GetNumberOfDefinedControlPoints() == 3 && shapeNode->GetModifiedSinceRead())
+      {
+        shapeNode->SetNthControlPointPositionWorld(1, closestPointOnRim);
+      }
+    }
+  }
+  this->DoUpdateFromMRML = true;
+  
+  this->TextActorPositionWorld[0] = p3[0];
+  this->TextActorPositionWorld[1] = p3[1];
+  this->TextActorPositionWorld[2] = p3[2];
 }

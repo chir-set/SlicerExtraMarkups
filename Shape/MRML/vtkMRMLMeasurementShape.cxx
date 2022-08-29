@@ -46,6 +46,9 @@ void vtkMRMLMeasurementShape::Compute()
     case vtkMRMLMarkupsShapeNode::Tube:
       this->ComputeTube();
       break;
+    case vtkMRMLMarkupsShapeNode::Cone:
+      this->ComputeCone();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -266,6 +269,59 @@ void vtkMRMLMeasurementShape::ComputeTube()
   if (this->GetName() == std::string("volume"))
   {
     measurement = massProperties->GetVolume();
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeCone()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * coneNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!coneNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  coneNode->GetNthControlPointPositionWorld(0, p1);
+  coneNode->GetNthControlPointPositionWorld(1, p2);
+  coneNode->GetNthControlPointPositionWorld(2, p3);
+  const double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+  const double slant = std::sqrt(vtkMath::Distance2BetweenPoints(p2, p3));
+  
+  if (this->GetName() == std::string("radius"))
+  {
+    measurement = radius;
+  }
+  else
+  if (this->GetName() == std::string("height"))
+  {
+    measurement = height;
+  }
+  else
+  if (this->GetName() == std::string("slant"))
+  {
+    measurement = slant;
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = (vtkMath::Pi() * radius * slant) + (vtkMath::Pi() * radius * radius);
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = (vtkMath::Pi() * radius * radius * height) / 3.0;
   }
   else
   {

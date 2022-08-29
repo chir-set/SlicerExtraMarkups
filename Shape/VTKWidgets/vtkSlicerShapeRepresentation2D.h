@@ -55,6 +55,7 @@
 #include <vtkTubeFilter.h>
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
+#include <vtkConeSource.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -99,6 +100,7 @@ protected:
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
@@ -118,6 +120,7 @@ protected:
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkDiskSource> RingSource;
   vtkSmartPointer<vtkSphereSource> SphereSource;
+  vtkSmartPointer<vtkConeSource> ConeSource;
   
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;

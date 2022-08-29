@@ -36,6 +36,7 @@ public:
     Ring,
     Disk,
     Tube,
+    Cone,
     ShapeName_Last
   };
   enum
@@ -119,6 +120,8 @@ public:
   // For Tube shape;
   double GetRadiusAtNthControlPoint(int n);
   void SetRadiusAtNthControlPoint(int n, double radius);
+  // For Cone shape.
+  void SetHeight(double height);
 
 protected:
   vtkMRMLMarkupsShapeNode();
@@ -134,6 +137,7 @@ protected:
   void ForceRingMeasurements();
   void ForceSphereMeasurements();
   void ForceTubeMeasurements();
+  void ForceConeMeasurements();
   
   // Tube
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;

@@ -34,6 +34,7 @@
 #include <vtkTubeFilter.h>
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
+#include <vtkConeSource.h>
 #include <vtkMRMLScene.h>
 
 //------------------------------------------------------------------------------
@@ -83,6 +84,7 @@ protected:
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkDiskSource> RingSource;
   vtkSmartPointer<vtkSphereSource> SphereSource;
+  vtkSmartPointer<vtkConeSource> ConeSource;
   
   vtkSmartPointer<vtkLineSource> RadiusSource;
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
@@ -101,6 +103,7 @@ protected:
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   
   // Set shape, spline and closed tube pointers in markups node from the first view only.
   vtkObject * GetFirstViewNode(vtkMRMLScene * scene) const;
