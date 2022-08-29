@@ -303,6 +303,11 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
     vtkErrorMacro("Current shape is a disk. Use SetInnerRadius and SetOuterRadius");
     return;
   }
+  if (this->ShapeName == Tube)
+  {
+    vtkErrorMacro("Current shape is a tube. Use SetRadiusAtNthControlPoint.");
+    return;
+  }
   if (radius <= 0)
   {
     vtkErrorMacro("Radius must be greater than zero.");
