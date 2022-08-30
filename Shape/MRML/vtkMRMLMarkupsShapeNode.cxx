@@ -82,6 +82,8 @@ const char* vtkMRMLMarkupsShapeNode::GetShapeNameAsString(int shapeName)
       return "Disk";
     case vtkMRMLMarkupsShapeNode::Tube:
       return "Tube";
+    case vtkMRMLMarkupsShapeNode::Cylinder:
+      return "Cylinder";
     case vtkMRMLMarkupsShapeNode::Cone:
       return "Cone";
     default:
@@ -218,8 +220,14 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->MaximumNumberOfControlPoints = -1;
       this->ForceTubeMeasurements();
       break;
+    case Cylinder:
+      // Points 0 : centre at one end; point 2 : radius; point 3 : centre of the opposite end
+      this->RequiredNumberOfControlPoints = 3;
+      this->MaximumNumberOfControlPoints = 3;
+      this->ForceCylinderMeasurements();
+      break;
     case Cone:
-      // Points 0 : centre of the base base; point 2 : radius; point 3 : tip
+      // Points 0 : centre of the base; point 2 : radius; point 3 : tip
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceConeMeasurements();
@@ -328,7 +336,7 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(rasP1, rasP2));
   double currentRadius = 0.0;
   double difference = 0.0;
-  if (this->GetShapeName() != this->Cone)
+  if ((this->GetShapeName() != this->Cone) && (this->GetShapeName() != this->Cylinder))
   {
     currentRadius = (this->RadiusMode == Centered)
                                 ? lineLength : lineLength / 2;
@@ -343,7 +351,7 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   this->FindLinearCoordinateByDistance(rasP1, rasP2, rasP2Shifted, difference);
   
   this->SetNthControlPointPositionWorld(1, rasP2Shifted);
-  if (this->GetShapeName() != this->Cone)
+  if ((this->GetShapeName() != this->Cone) && (this->GetShapeName() != this->Cylinder))
   {
     // Don't move center, move p1.
     if (this->RadiusMode == Circumferential)
@@ -432,9 +440,9 @@ void vtkMRMLMarkupsShapeNode::SetOuterRadius(double radius)
 //----------------------------API only----------------------------------------
 void vtkMRMLMarkupsShapeNode::SetHeight(double height)
 {
-  if (this->ShapeName != this->Cone)
+  if ((this->ShapeName != this->Cone) && (this->GetShapeName() != this->Cylinder))
   {
-    vtkErrorMacro("Current shape is not a Cone.");
+    vtkErrorMacro("Current shape is not a Cone nor a Cylinder.");
     return;
   }
   if (height <= 0)
@@ -469,6 +477,8 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
       this->ResliceToPlane();
       break;
     case Tube:
+      break;
+    case Cylinder:
       break;
     case Cone:
       break;
@@ -659,6 +669,44 @@ void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
   this->Measurements->AddItem(volumeMeasurement);
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceCylinderMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  
+  auto addMeasurement = [&] (const char * name, bool enabled)
+  {
+    vtkNew<vtkMRMLMeasurementShape> measurement;
+    measurement->SetName(name);
+    measurement->SetUnits("mm");
+    measurement->SetPrintFormat("%-#4.4g%s");
+    measurement->SetInputMRMLNode(this);
+    measurement->SetEnabled(enabled);
+    this->Measurements->AddItem(measurement);
+  };
+  
+  addMeasurement("radius", true);
+  addMeasurement("height", true);
+  
+  vtkNew<vtkMRMLMeasurementShape> areaMeasurement;
+  areaMeasurement->SetName("area");
+  areaMeasurement->SetUnits("cm2");
+  areaMeasurement->SetDisplayCoefficient(0.01);
+  areaMeasurement->SetPrintFormat("%-#4.4g %s");
+  areaMeasurement->SetInputMRMLNode(this);
+  areaMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(areaMeasurement);
+  
+  vtkNew<vtkMRMLMeasurementShape> volumeMeasurement;
+  volumeMeasurement->SetName("volume");
+  volumeMeasurement->SetUnits("cm3");
+  volumeMeasurement->SetDisplayCoefficient(0.001);
+  volumeMeasurement->SetPrintFormat("%-#4.4g %s");
+  volumeMeasurement->SetInputMRMLNode(this);
+  volumeMeasurement->SetEnabled(false);
+  this->Measurements->AddItem(volumeMeasurement);
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()

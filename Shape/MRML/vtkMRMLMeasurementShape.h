@@ -31,6 +31,7 @@ protected:
     void ComputeSphere();
     void ComputeTube();
     void ComputeCone();
+    void ComputeCylinder();
 };
 
 #endif // VTKMRMLMEASUREMENTSHAPE_H

@@ -65,6 +65,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Ring");
   this->shapeNameComboBox->addItem("Disk");
   this->shapeNameComboBox->addItem("Tube");
+  this->shapeNameComboBox->addItem("Cylinder");
   this->shapeNameComboBox->addItem("Cone");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
@@ -164,14 +165,18 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
   
   d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
                                 && shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->radiusModeComboBox->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk
                                 && shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->reslicePushButton->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->resliceInputSelector->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone);
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
+                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
 }
 
 // --------------------------------------------------------------------------

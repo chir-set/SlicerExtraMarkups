@@ -85,6 +85,8 @@ protected:
   vtkSmartPointer<vtkDiskSource> RingSource;
   vtkSmartPointer<vtkSphereSource> SphereSource;
   vtkSmartPointer<vtkConeSource> ConeSource;
+  vtkSmartPointer<vtkTubeFilter> CylinderSource; // Regular tube.
+  vtkSmartPointer<vtkLineSource> CylinderAxis;
   
   vtkSmartPointer<vtkLineSource> RadiusSource;
   vtkSmartPointer<vtkPolyDataMapper> RadiusMapper;
@@ -92,7 +94,7 @@ protected:
   
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
-  vtkSmartPointer<vtkTubeFilter> Tube;
+  vtkSmartPointer<vtkTubeFilter> Tube; // Variable radius tube.
   vtkSmartPointer<vtkTubeFilter> CappedTube;
   
   vtkSmartPointer<vtkPolyDataMapper> ShapeMapper;
@@ -104,6 +106,7 @@ protected:
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   
   // Set shape, spline and closed tube pointers in markups node from the first view only.
   vtkObject * GetFirstViewNode(vtkMRMLScene * scene) const;
@@ -112,7 +115,7 @@ private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;
   void operator=(const vtkSlicerShapeRepresentation3D&) = delete;
   
-  // Ring : p3 is moved during UpdateFromMRML, block recursion.
+  // Ring, Cone, Cylinder : 1 point is moved during UpdateFromMRML, block recursion.
   bool DoUpdateFromMRML = true;
 };
 

@@ -36,6 +36,7 @@ public:
     Ring,
     Disk,
     Tube,
+    Cylinder,
     Cone,
     ShapeName_Last
   };
@@ -120,7 +121,7 @@ public:
   // For Tube shape;
   double GetRadiusAtNthControlPoint(int n);
   void SetRadiusAtNthControlPoint(int n, double radius);
-  // For Cone shape.
+  // For Cone, Cylinder shapes.
   void SetHeight(double height);
 
 protected:
@@ -137,6 +138,7 @@ protected:
   void ForceRingMeasurements();
   void ForceSphereMeasurements();
   void ForceTubeMeasurements();
+  void ForceCylinderMeasurements();
   void ForceConeMeasurements();
   
   // Tube

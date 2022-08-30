@@ -98,6 +98,12 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->Tube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
   this->Tube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
   
+  this->CylinderAxis = vtkSmartPointer<vtkLineSource>::New();
+  this->CylinderSource = vtkSmartPointer<vtkTubeFilter>::New();
+  this->CylinderSource->SetNumberOfSides(20);
+  this->CylinderSource->SetInputConnection(this->CylinderAxis->GetOutputPort());
+  this->CylinderSource->SetCapping(true);
+  
   this->WorldPlane = vtkSmartPointer<vtkPlane>::New();
   this->WorldCutter = vtkSmartPointer<vtkCutter>::New();
   //this->SliceViewCutter->SetInputConnection(this->DiskSource->GetOutputPort());
@@ -171,6 +177,9 @@ void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
       break;
     case vtkMRMLMarkupsShapeNode::Cone :
       this->UpdateConeFromMRML(caller, event, callData);
+      break;
+    case vtkMRMLMarkupsShapeNode::Cylinder :
+      this->UpdateCylinderFromMRML(caller, event, callData);
       break;
     default:
       vtkErrorMacro("Unknown shape.");
@@ -985,3 +994,93 @@ void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   this->WorldCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
 }
 
+//-----------------------------------------------------------------------------
+void vtkSlicerShapeRepresentation2D::UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  this->MiddlePointActor->SetVisibility(false);
+  this->RadiusActor->SetVisibility(false);
+  
+  vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  
+  this->VisibilityOn();
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  this->ShapeActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
+  this->WorldCutActor->SetVisibility(visibility);
+  
+  this->ShapeMapper->SetInputConnection(this->CylinderSource->GetOutputPort());
+  
+  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
+  {
+    double p1[3] = { 0.0 };
+    double p2[3] = { 0.0 };
+    double p3[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(0, p1);
+    shapeNode->GetNthControlPointPositionWorld(1, p2);
+    shapeNode->GetNthControlPointPositionWorld(2, p3);
+    
+    this->CylinderAxis->SetPoint1(p1);
+    this->CylinderAxis->SetPoint2(p3);
+    this->CylinderAxis->Update();
+    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+    
+    this->CylinderSource->SetRadius(radius);
+    this->CylinderSource->SetNumberOfSides(shapeNode->GetResolution());
+    this->CylinderSource->Update();
+    
+    // Update shape and map from world to slice.
+    this->ShapeWorldToSliceTransformer->SetInputConnection(this->CylinderSource->GetOutputPort());
+    this->ShapeWorldToSliceTransformer->Update();
+    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+    this->ShapeMapper->Update();
+    
+    // Update intersection and map from world to slice.
+    double origin[3] = { 0.0 };
+    double normal[3] = { 0.0 };
+    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+    for (int i = 0; i < 4; i++)
+    {
+      origin[i] = sliceToRAS->GetElement(i, 3);
+      normal[i] = sliceToRAS->GetElement(i, 2);
+    }
+    this->WorldPlane->SetOrigin(origin);
+    this->WorldPlane->SetNormal(normal);
+    this->WorldCutter->SetInputConnection(this->CylinderSource->GetOutputPort());
+    this->WorldCutter->Update();
+    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+    this->ShapeCutWorldToSliceTransformer->Update();
+    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+    this->WorldCutMapper->Update();
+    
+    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+    
+    double p3Display[3] = { 0.0 };
+    this->GetNthControlPointDisplayPosition(2, p3Display);
+    this->TextActor->SetDisplayPosition(p3Display[0], p3Display[1]);
+  }
+  else
+  {
+    this->MiddlePointActor->SetVisibility(false);
+    this->ShapeActor->SetVisibility(false);
+    this->RadiusActor->SetVisibility(false);
+    this->TextActor->SetVisibility(false);
+    this->WorldCutActor->SetVisibility(false);
+  }
+  
+  // Hide actors if they don't intersect the current slice
+  this->SliceDistance->Update();
+  if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
+  {
+    this->MiddlePointActor->SetVisibility(false);
+    this->ShapeActor->SetVisibility(false);
+    this->RadiusActor->SetVisibility(false);
+    this->TextActor->SetVisibility(false);
+    this->WorldCutActor->SetVisibility(false);
+  }
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  this->WorldCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+}

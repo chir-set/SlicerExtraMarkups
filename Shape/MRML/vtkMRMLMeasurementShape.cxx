@@ -46,6 +46,9 @@ void vtkMRMLMeasurementShape::Compute()
     case vtkMRMLMarkupsShapeNode::Tube:
       this->ComputeTube();
       break;
+    case vtkMRMLMarkupsShapeNode::Cylinder:
+      this->ComputeCylinder();
+      break;
     case vtkMRMLMarkupsShapeNode::Cone:
       this->ComputeCone();
       break;
@@ -322,6 +325,53 @@ void vtkMRMLMeasurementShape::ComputeCone()
   if (this->GetName() == std::string("volume"))
   {
     measurement = (vtkMath::Pi() * radius * radius * height) / 3.0;
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeCylinder()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * cylinderNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!cylinderNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  cylinderNode->GetNthControlPointPositionWorld(0, p1);
+  cylinderNode->GetNthControlPointPositionWorld(1, p2);
+  cylinderNode->GetNthControlPointPositionWorld(2, p3);
+  const double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+  
+  if (this->GetName() == std::string("radius"))
+  {
+    measurement = radius;
+  }
+  else
+  if (this->GetName() == std::string("height"))
+  {
+    measurement = height;
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = (2 * vtkMath::Pi() * radius * height);
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = (vtkMath::Pi() * radius * radius * height);
   }
   else
   {
