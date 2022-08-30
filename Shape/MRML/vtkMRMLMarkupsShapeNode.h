@@ -141,6 +141,15 @@ protected:
   void ForceCylinderMeasurements();
   void ForceConeMeasurements();
   
+  void AddScalarMeasurement(const char * name, bool enabled = false,
+                            const char * format = "%-#4.4g%s", const char * units = "mm");
+  void AddAreaMeasurement(const char * name, bool enabled = false,
+                          const char * format = "%-#4.4g%s",
+                          double coefficient = 0.01,  const char * units = "cm2");
+  void AddVolumeMeasurement(const char * name, bool enabled = false,
+                            const char * format = "%-#4.4g%s",
+                            double coefficient = 0.001,  const char * units = "cm3");
+  
   // Tube
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;
   static void OnPointPositionUndefined(vtkObject *caller,
