@@ -9,6 +9,8 @@
 #include <vtkTriangleFilter.h>
 #include <vtkMassProperties.h>
 
+#include <cmath>
+
 vtkStandardNewMacro(vtkMRMLMeasurementShape);
 
 //----------------------------------------------------------------------------
@@ -301,6 +303,7 @@ void vtkMRMLMeasurementShape::ComputeCone()
   const double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
   const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
   const double slant = std::sqrt(vtkMath::Distance2BetweenPoints(p2, p3));
+  const double angle = vtkMath::DegreesFromRadians(std::atan(radius / height));
   
   if (this->GetName() == std::string("radius"))
   {
@@ -315,6 +318,11 @@ void vtkMRMLMeasurementShape::ComputeCone()
   if (this->GetName() == std::string("slant"))
   {
     measurement = slant;
+  }
+  else
+  if (this->GetName() == std::string("aperture"))
+  {
+    measurement = angle * 2.0;
   }
   else
   if (this->GetName() == std::string("area"))

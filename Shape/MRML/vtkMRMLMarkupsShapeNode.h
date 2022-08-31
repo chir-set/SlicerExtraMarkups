@@ -123,6 +123,8 @@ public:
   void SetRadiusAtNthControlPoint(int n, double radius);
   // For Cone, Cylinder shapes.
   void SetHeight(double height);
+  // For Cone.
+  void SetAperture(double aperture); // Twice the angle of the slant on the axis.
 
 protected:
   vtkMRMLMarkupsShapeNode();

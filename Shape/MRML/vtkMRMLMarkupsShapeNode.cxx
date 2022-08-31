@@ -462,6 +462,31 @@ void vtkMRMLMarkupsShapeNode::SetHeight(double height)
   this->SetNthControlPointPositionWorld(2, rasP3Shifted);
 }
 
+//----------------------------API only----------------------------------------
+void vtkMRMLMarkupsShapeNode::SetAperture(double aperture)
+{
+  if (this->ShapeName != this->Cone)
+  {
+    vtkErrorMacro("Current shape is not a Cone.");
+    return;
+  }
+  if (aperture <= 0 || aperture >= 180)
+  {
+    vtkErrorMacro("Aperture must be greater than zero and less than 180.0.");
+    return;
+  }
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, p1);
+  this->GetNthControlPointPositionWorld(1, p2);
+  this->GetNthControlPointPositionWorld(2, p3);
+  
+  const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+  const double newRadius = std::tan(vtkMath::RadiansFromDegrees(aperture / 2.0)) * height;
+  this->SetRadius(newRadius);
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
 {
@@ -616,6 +641,7 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
   this->AddMeasurement("radius", true);
   this->AddMeasurement("height", true);
   this->AddMeasurement("slant");
+  this->AddMeasurement("aperture", false, "%-#4.4g%s", "°");
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
