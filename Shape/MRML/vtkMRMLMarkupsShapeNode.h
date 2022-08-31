@@ -144,12 +144,12 @@ protected:
   void ForceConeMeasurements();
   
   void AddMeasurement(const char * name, bool enabled = false,
-                            const char * format = "%-#4.4g%s", const char * units = "mm");
+                            const char * format = "%-#4.4g %s", const char * units = "mm");
   void AddAreaMeasurement(const char * name, bool enabled = false,
-                          const char * format = "%-#4.4g%s",
+                          const char * format = "%-#4.4g %s", // Space separator before unit gets ignored.
                           double coefficient = 0.01,  const char * units = "cm2");
   void AddVolumeMeasurement(const char * name, bool enabled = false,
-                            const char * format = "%-#4.4g%s",
+                            const char * format = "%-#4.4g %s", // Space separator before unit gets ignored.
                             double coefficient = 0.001,  const char * units = "cm3");
   
   // Tube

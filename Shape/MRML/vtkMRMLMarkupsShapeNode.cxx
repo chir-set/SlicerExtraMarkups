@@ -641,7 +641,7 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
   this->AddMeasurement("radius", true);
   this->AddMeasurement("height", true);
   this->AddMeasurement("slant");
-  this->AddMeasurement("aperture", false, "%-#4.4g%s", "°");
+  this->AddMeasurement("aperture", false, "%-#4.4g %s", "°");
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
