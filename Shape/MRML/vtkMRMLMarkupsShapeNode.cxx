@@ -561,9 +561,9 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddScalarMeasurement("innerRadius", true);
-  this->AddScalarMeasurement("outerRadius", true);
-  this->AddScalarMeasurement("width", false);
+  this->AddMeasurement("innerRadius", true);
+  this->AddMeasurement("outerRadius", true);
+  this->AddMeasurement("width", false);
   this->AddAreaMeasurement("area");
   this->AddAreaMeasurement("innerArea");
   this->AddAreaMeasurement("outerArea");
@@ -574,7 +574,7 @@ void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddScalarMeasurement("radius", true);
+  this->AddMeasurement("radius", true);
   this->AddAreaMeasurement("area");
 }
 
@@ -583,7 +583,7 @@ void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddScalarMeasurement("radius", true);
+  this->AddMeasurement("radius", true);
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -602,8 +602,8 @@ void vtkMRMLMarkupsShapeNode::ForceCylinderMeasurements()
 {
   this->RemoveAllMeasurements();
 
-  this->AddScalarMeasurement("radius", true);
-  this->AddScalarMeasurement("height", true);
+  this->AddMeasurement("radius", true);
+  this->AddMeasurement("height", true);
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -613,9 +613,9 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddScalarMeasurement("radius", true);
-  this->AddScalarMeasurement("height", true);
-  this->AddScalarMeasurement("slant");
+  this->AddMeasurement("radius", true);
+  this->AddMeasurement("height", true);
+  this->AddMeasurement("slant");
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -744,7 +744,7 @@ void vtkMRMLMarkupsShapeNode::SetRadiusAtNthControlPoint(int n, double radius)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::AddScalarMeasurement(const char* name, bool enabled,
+void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
                                                    const char* format, const char* units)
 {
   vtkNew<vtkMRMLMeasurementShape> measurement;

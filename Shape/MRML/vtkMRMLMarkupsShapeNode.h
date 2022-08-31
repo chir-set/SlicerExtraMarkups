@@ -141,7 +141,7 @@ protected:
   void ForceCylinderMeasurements();
   void ForceConeMeasurements();
   
-  void AddScalarMeasurement(const char * name, bool enabled = false,
+  void AddMeasurement(const char * name, bool enabled = false,
                             const char * format = "%-#4.4g%s", const char * units = "mm");
   void AddAreaMeasurement(const char * name, bool enabled = false,
                           const char * format = "%-#4.4g%s",
