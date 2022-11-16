@@ -40,6 +40,10 @@ set(MODULE_TARGET_LIBRARIES
   vtkSlicerMarkupsModuleLogic
   qSlicerMarkupsModuleWidgets
   )
+  
+set(MODULE_RESOURCES
+  Resources/qSlicer${MODULE_NAME}Module.qrc
+  )
 
 #-----------------------------------------------------------------------------
 slicerMacroBuildLoadableModule(
@@ -50,4 +54,5 @@ slicerMacroBuildLoadableModule(
   SRCS ${MODULE_SRCS}
   MOC_SRCS ${MODULE_MOC_SRCS}
   TARGET_LIBRARIES ${MODULE_TARGET_LIBRARIES}
+  RESOURCES ${MODULE_RESOURCES}
   )
