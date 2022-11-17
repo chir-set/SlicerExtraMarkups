@@ -46,9 +46,9 @@ public:
   //--------------------------------------------------------------------------------
   // MRMLNode methods
   //--------------------------------------------------------------------------------
-  const char* GetIcon() override {return ":/Icons/MarkupsGeneric.png";}
-  const char* GetAddIcon() override {return ":/Icons/MarkupsGenericMouseModePlace.png";}
-  const char* GetPlaceAddIcon() override {return ":/Icons/MarkupsGenericMouseModePlaceAdd.png";}
+  const char* GetIcon() override {return ":/Icons/MarkupsLabel.png";}
+  const char* GetAddIcon() override {return ":/Icons/MarkupsLabelMouseModePlace.png";}
+  const char* GetPlaceAddIcon() override {return ":/Icons/MarkupsLabelMouseModePlaceAdd.png";}
 
   vtkMRMLNode* CreateNodeInstance() override;
   /// Get node XML tag name (like Volume, Model)

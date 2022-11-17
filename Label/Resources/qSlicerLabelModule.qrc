@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icons/MarkupsLabel.png</file>
+        <file>Icons/MarkupsLabelMouseModePlace.png</file>
+        <file>Icons/MarkupsLabelMouseModePlaceAdd.png</file>
+    </qresource>
+</RCC>
+
