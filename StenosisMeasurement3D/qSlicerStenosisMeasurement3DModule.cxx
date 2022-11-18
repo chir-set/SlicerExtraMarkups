@@ -69,7 +69,7 @@ QString qSlicerStenosisMeasurement3DModule::acknowledgementText() const
 QStringList qSlicerStenosisMeasurement3DModule::contributors() const
 {
   QStringList moduleContributors;
-  moduleContributors << QString("SET [Surgeon] [Hobbyist developer]");
+  moduleContributors << QString("Saleem Edah-Tally [Surgeon] [Hobbyist developer]");
   return moduleContributors;
 }
 

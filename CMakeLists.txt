@@ -6,7 +6,7 @@ project(ExtraMarkups)
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/ExtraMarkups")
 set(EXTENSION_CATEGORY "Testing")
-set(EXTENSION_CONTRIBUTORS "SET ([Surgeon] [Hobbyist developer])")
+set(EXTENSION_CONTRIBUTORS "Saleem Edah-Tally ([Surgeon] [Hobbyist developer])")
 set(EXTENSION_DESCRIPTION "Set of derived custom markups.")
 set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/ExtraMarkups.png")
 set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/ExtraMarkups/Screenshots/1.png")
