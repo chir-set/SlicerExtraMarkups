@@ -21,7 +21,6 @@ include(${Slicer_USE_FILE})
 # Extension modules
 add_subdirectory(Label)
 add_subdirectory(Shape)
-add_subdirectory(StenosisMeasurement3D)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
