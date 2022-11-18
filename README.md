@@ -1,9 +1,9 @@
 # ExtraMarkups
 
 
-[Label](https://github.com/chir-set/ExtraMarkups/tree/main/Label/)
+[Label](https://github.com/chir-set/SlicerExtraMarkups/tree/main/Label/)
 
-[Shape](https://github.com/chir-set/ExtraMarkups/tree/main/Shape/)
+[Shape](https://github.com/chir-set/SlicerExtraMarkups/tree/main/Shape/)
 
 
 
