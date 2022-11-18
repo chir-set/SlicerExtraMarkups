@@ -59,7 +59,7 @@ public:
   //--------------------------------------------------------------------------------
   // MRMLNode methods
   //--------------------------------------------------------------------------------
-  const char* GetIcon() override {return ":/Icons/MarkupsShapeMouseMode.png";}
+  const char* GetIcon() override {return ":/Icons/MarkupsShape.png";}
   const char* GetAddIcon() override {return ":/Icons/MarkupsShapeMouseModePlace.png";}
   const char* GetPlaceAddIcon() override {return ":/Icons/MarkupsShapeMouseModePlaceAdd.png";}
 
