@@ -4,12 +4,12 @@ project(ExtraMarkups)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
-set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/ExtraMarkups")
-set(EXTENSION_CATEGORY "Testing")
+set(EXTENSION_HOMEPAGE "https://github.com/chir-set/ExtraMarkups/")
+set(EXTENSION_CATEGORY "Utilities")
 set(EXTENSION_CONTRIBUTORS "Saleem Edah-Tally ([Surgeon] [Hobbyist developer])")
-set(EXTENSION_DESCRIPTION "Set of derived custom markups.")
-set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/ExtraMarkups.png")
-set(EXTENSION_SCREENSHOTURLS "https://www.example.com/Slicer/Extensions/ExtraMarkups/Screenshots/1.png")
+set(EXTENSION_DESCRIPTION "Set of custom markups.")
+set(EXTENSION_ICONURL "https://github.com/chir-set/ExtraMarkups/blob/main/ExtraMarkups.png")
+set(EXTENSION_SCREENSHOTURLS "https://github.com/chir-set/ExtraMarkups/blob/main/Label/Label_0.png https://github.com/chir-set/ExtraMarkups/blob/main/Shape/Cone_0.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a list or "NA" if no dependencies
 
 #-----------------------------------------------------------------------------
