@@ -9,12 +9,6 @@ This custom markups draws an arrow with a text label by placing usual control po
 
 This custom markups draws defined primitive shapes (circle, cone...) by placing usual control points in slice views and 3D views.
 
-### Markups application
-
-[StenosisMeasurement3D](https://github.com/chir-set/ExtraMarkups/tree/main/StenosisMeasurement3D/)
-
-This module expects a *Tube* drawn with the *Shape* markups that represents an observer dependent arterial wall, and a *Segment* which is the result of segmenting a contrasted arterial lumen. It can then calculate the lesion volume by subtracting the lumen volume from the wall volume, and hence, determine a volumetric stenosis degree.
-
 
 ### License
 
