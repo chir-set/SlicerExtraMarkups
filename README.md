@@ -1,5 +1,6 @@
 # ExtraMarkups
 
+This 3D Slicer extension adds a *Label* markups node that draws an arrow with a text label, and a *Shape* markups node that can draw defined primitive shapes (circle, cone...). The result is controlled by placing usual control points in slice views and 3D views. Each object can be saved in scene and reloaded.
 
 [Label](https://github.com/chir-set/SlicerExtraMarkups/tree/main/Label/)
 

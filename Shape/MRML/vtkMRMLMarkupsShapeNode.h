@@ -91,9 +91,9 @@ public:
   static const char* GetDrawMode2DAsString(int drawMode2D);
   static int GetDrawMode2DFromString(const char* mode);
   
-  vtkSetClampMacro(RadiusMode, int, this->Centered, this->Circumferential);
+  vtkSetClampMacro(RadiusMode, int, Centered, Circumferential);
   vtkGetMacro(RadiusMode, int);
-  vtkSetClampMacro(DrawMode2D, int, this->Intersection, this->Projection);
+  vtkSetClampMacro(DrawMode2D, int, Intersection, Projection);
   vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
