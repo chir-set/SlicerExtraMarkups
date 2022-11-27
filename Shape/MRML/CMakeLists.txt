@@ -1,6 +1,5 @@
 project(vtkSlicer${MODULE_NAME}ModuleMRML)
 
-
 find_package(RapidJSON REQUIRED)
 
 set(KIT ${PROJECT_NAME})
@@ -8,6 +7,7 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_MRML_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${RapidJSON_INCLUDE_DIR}
   )
 
 set(${KIT}_SRCS

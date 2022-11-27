@@ -4,13 +4,13 @@
 // Templated on ROI storage node.
 
 // Markups includes
-#include "vtkSlicerMarkupsModuleMRMLExport.h"
+#include "vtkSlicerShapeModuleMRMLExport.h"
 #include "vtkMRMLMarkupsJsonStorageNode.h"
 
 class vtkMRMLMarkupsNode;
 class vtkMRMLMarkupsDisplayNode;
 
-class VTK_SLICER_MARKUPS_MODULE_MRML_EXPORT vtkMRMLMarkupsShapeJsonStorageNode
+class VTK_SLICER_SHAPE_MODULE_MRML_EXPORT vtkMRMLMarkupsShapeJsonStorageNode
 : public vtkMRMLMarkupsJsonStorageNode
 {
 public:

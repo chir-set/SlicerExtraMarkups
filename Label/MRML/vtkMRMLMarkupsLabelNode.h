@@ -71,7 +71,7 @@ public:
   
   vtkGetMacro(Label, QString);
   vtkSetMacro(Label, QString);
-  vtkSetClampMacro(TipDimensionMode3D, int, this->ViewScaleFactor, this->Fixed);
+  vtkSetClampMacro(TipDimensionMode3D, int, ViewScaleFactor, Fixed);
   vtkGetMacro(TipDimensionMode3D, int);
   static const char* GetTipDimensionMode3DAsString(int mode);
   static int GetTipDimensionMode3DFromString(const char* name);
