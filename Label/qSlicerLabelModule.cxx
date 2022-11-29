@@ -93,6 +93,7 @@ QStringList qSlicerLabelModule::contributors() const
   QStringList moduleContributors;
   moduleContributors << QString("Rafael Palomar (Oslo University Hospital / NTNU)");
   moduleContributors << QString("Saleem Edah-Tally [Surgeon] [Hobbyist developer]");
+  moduleContributors << QString("Andras Lasso (PerkLab)");
   return moduleContributors;
 }
 
