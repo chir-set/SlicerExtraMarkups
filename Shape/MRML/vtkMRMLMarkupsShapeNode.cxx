@@ -516,7 +516,7 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ResliceToPlane()
 {
-  if (!this->ResliceNode)
+  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 3)
   {
     return;
   }
@@ -553,7 +553,7 @@ void vtkMRMLMarkupsShapeNode::ResliceToPlane()
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ResliceToLine()
 {
-  if (!this->ResliceNode)
+  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 2)
   {
     return;
   }
