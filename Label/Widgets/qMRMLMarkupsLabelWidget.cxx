@@ -138,7 +138,7 @@ void qMRMLMarkupsLabelWidget::onTextChanged()
   {
     return;
   }
-  d->MarkupsLabelNode->SetLabel(d->labelTextEdit->toPlainText());
+  d->MarkupsLabelNode->SetLabel(d->labelTextEdit->toPlainText().toStdString().c_str());
 }
 
 // --------------------------------------------------------------------------

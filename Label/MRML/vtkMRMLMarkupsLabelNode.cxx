@@ -31,6 +31,7 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsLabelNode);
 //--------------------------------------------------------------------------------
 vtkMRMLMarkupsLabelNode::vtkMRMLMarkupsLabelNode()
 {
+  this->SetLabel("Label");
   /*
    * p1 : near the label
    * p2 : near what we want to label

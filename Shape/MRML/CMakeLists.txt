@@ -16,7 +16,6 @@ set(${KIT}_SRCS
   vtkMRMLMeasurementShape.h
   vtkMRMLMeasurementShape.cxx
   vtkMRMLMarkupsShapeJsonStorageNode.h
-  vtkMRMLMarkupsShapeJsonStorageNode_Private.h
   vtkMRMLMarkupsShapeJsonStorageNode.cxx
   )
 

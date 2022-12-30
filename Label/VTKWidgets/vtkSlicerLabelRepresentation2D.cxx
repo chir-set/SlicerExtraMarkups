@@ -126,7 +126,7 @@ void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
     this->TextActor->SetVisibility(false);
   }
   
-  this->TextActor->SetInput(labelNode->GetLabel().toStdString().c_str());
+  this->TextActor->SetInput(labelNode->GetLabel());
   this->TextActor->SetPosition(p1[0], p1[1]);
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
