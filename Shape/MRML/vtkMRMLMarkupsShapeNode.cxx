@@ -43,6 +43,10 @@ vtkMRMLMarkupsShapeNode::vtkMRMLMarkupsShapeNode()
   this->OnPointPositionUndefinedCallback->SetClientData( reinterpret_cast<void *>(this) );
   this->OnPointPositionUndefinedCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnPointPositionUndefined );
   this->AddObserver(vtkMRMLMarkupsNode::PointPositionUndefinedEvent, this->OnPointPositionUndefinedCallback);
+  
+  this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+  this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
+  this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
 }
 
 //--------------------------------------------------------------------------------
@@ -80,9 +84,6 @@ void vtkMRMLMarkupsShapeNode::CreateDefaultDisplayNodes()
     return;
   }
   vtkMRMLMarkupsNode::CreateDefaultDisplayNodes();
-  this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-  this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
-  this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
   /*
    * This function gets called twice on creation.
    * this->GetDisplayNode()->HasObserver(vtkMRMLMarkupsDisplayNode::JumpToPointEvent, this->OnJumpToPointCallback)

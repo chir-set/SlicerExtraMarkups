@@ -105,6 +105,9 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::vtkInternalShape::UpdateMarkupsNodeFrom
         shapeNode->SetResolution(resolution);
     }
     
+    // Reimplemented to observe JumpToPointEvent.
+    shapeNode->CreateDefaultDisplayNodes();
+    
     return vtkInternal::UpdateMarkupsNodeFromJsonValue(markupsNode, markupsObject);
 }
 
