@@ -21,6 +21,7 @@
 #include "vtkMRMLMarkupsShapeNode.h"
 #include "vtkMRMLMeasurementShape.h"
 #include "vtkMRMLMarkupsShapeJsonStorageNode.h"
+#include "vtkMRMLMarkupsDisplayNode.h"
 
 // VTK includes
 #include <vtkNew.h>
@@ -67,6 +68,31 @@ vtkMRMLStorageNode* vtkMRMLMarkupsShapeNode::CreateDefaultStorageNode()
   }
   return vtkMRMLStorageNode::SafeDownCast(
     scene->CreateNodeByClass("vtkMRMLMarkupsShapeJsonStorageNode"));
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::CreateDefaultDisplayNodes()
+{
+  vtkMRMLScene* scene = this->GetScene();
+  if (scene == nullptr)
+  {
+    vtkErrorMacro("CreateDefaultDisplayNodes failed: scene is invalid");
+    return;
+  }
+  vtkMRMLMarkupsNode::CreateDefaultDisplayNodes();
+  this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+  this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
+  this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
+  /*
+   * This function gets called twice on creation.
+   * this->GetDisplayNode()->HasObserver(vtkMRMLMarkupsDisplayNode::JumpToPointEvent, this->OnJumpToPointCallback)
+   * does not help. Using one-time flag DisplayNodeObserved.
+   */
+  if (this->GetDisplayNode() && !this->DisplayNodeObserved)
+  {
+    this->GetDisplayNode()->AddObserver(vtkMRMLMarkupsDisplayNode::JumpToPointEvent, this->OnJumpToPointCallback);
+    this->DisplayNodeObserved = true;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -514,9 +540,10 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::ResliceToPlane()
+void vtkMRMLMarkupsShapeNode::ResliceToPlane(int pointIndex1, int pointIndex2, int pointIndex3)
 {
-  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 3)
+  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 3
+    || pointIndex1 < 0 || pointIndex2 < 0 || pointIndex3 < 0)
   {
     return;
   }
@@ -529,9 +556,9 @@ void vtkMRMLMarkupsShapeNode::ResliceToPlane()
   double rasP2[3] = { 0.0 };
   double rasP3[3] = { 0.0 };
   double rasNormal[3] = { 0.0 };
-  this->GetNthControlPointPositionWorld(0, rasP1);
-  this->GetNthControlPointPositionWorld(1, rasP2);
-  this->GetNthControlPointPositionWorld(2, rasP3);
+  this->GetNthControlPointPositionWorld(pointIndex1, rasP1);
+  this->GetNthControlPointPositionWorld(pointIndex2, rasP2);
+  this->GetNthControlPointPositionWorld(pointIndex3, rasP3);
   
   // Relative to rasP1 (center)
   double rRasP2[3] = { rasP2[0] - rasP1[0], rasP2[1] - rasP1[1], rasP2[2] - rasP1[2] };
@@ -551,9 +578,10 @@ void vtkMRMLMarkupsShapeNode::ResliceToPlane()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::ResliceToLine()
+void vtkMRMLMarkupsShapeNode::ResliceToLine(int pointIndex1, int pointIndex2)
 {
-  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 2)
+  if (!this->ResliceNode || this->GetNumberOfControlPoints() < 2
+    || pointIndex1 < 0 || pointIndex2 < 0)
   {
     return;
   }
@@ -565,8 +593,8 @@ void vtkMRMLMarkupsShapeNode::ResliceToLine()
   double rasP1[3] = { 0.0 };
   double rasP2[3] = { 0.0 };
   double rasNormal[3] = { 0.0 };
-  this->GetNthControlPointPositionWorld(0, rasP1);
-  this->GetNthControlPointPositionWorld(1, rasP2);
+  this->GetNthControlPointPositionWorld(pointIndex1, rasP1);
+  this->GetNthControlPointPositionWorld(pointIndex2, rasP2);
   
   vtkMath::Cross(rasP1, rasP2, rasNormal);
   if (rasNormal[0] == 0.0 && rasNormal[1] == 0.0 && rasNormal[2] == 0.0)
@@ -687,6 +715,22 @@ void vtkMRMLMarkupsShapeNode::OnPointPositionUndefined(vtkObject* caller, unsign
     client->RemovingPairControlPoint = true;
     client->RemoveNthControlPoint(removedIndex - 1);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::OnJumpToPoint(vtkObject* caller, unsigned long event, void* clientData, void* callData)
+{
+  vtkMRMLMarkupsShapeNode * client = reinterpret_cast<vtkMRMLMarkupsShapeNode*>(clientData);
+  if (!client || client->GetNumberOfUndefinedControlPoints() > 0)
+  {
+    return;
+  }
+  vtkMRMLMarkupsDisplayNode * displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(client->GetDisplayNode());
+  if (!displayNode)
+  {
+    return;
+  }
+  client->ActiveControlPoint = displayNode->GetActiveControlPoint();
 }
 
 //----------------------------------------------------------------------------

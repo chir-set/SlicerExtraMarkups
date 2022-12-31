@@ -81,6 +81,7 @@ public:
   vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsShapeNode);
   
   vtkMRMLStorageNode* CreateDefaultStorageNode() override;
+  void CreateDefaultDisplayNodes() override;
   
   vtkGetMacro(ShapeName, int);
   void SetShapeName(int shapeName);
@@ -134,8 +135,8 @@ protected:
   
   void FindLinearCoordinateByDistance(const double * p1, const double * p2,
                                       double * result, const double difference);
-  void ResliceToPlane();
-  void ResliceToLine();
+  void ResliceToPlane(int pointIndex1 = 0, int pointIndex2 = 1, int pointIndex3 = 2);
+  void ResliceToLine(int pointIndex1 = 0, int pointIndex2 = 1);
   void ForceDiskMeasurements();
   void ForceRingMeasurements();
   void ForceSphereMeasurements();
@@ -156,11 +157,18 @@ protected:
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;
   static void OnPointPositionUndefined(vtkObject *caller,
                                        unsigned long event, void *clientData, void *callData);
+  // Any shape
+  vtkSmartPointer<vtkCallbackCommand> OnJumpToPointCallback;
+  static void OnJumpToPoint(vtkObject *caller,
+                                       unsigned long event, void *clientData, void *callData);
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };
   int DrawMode2D { Intersection };
   double Resolution { 45.0 };
+  
+  bool DisplayNodeObserved = false;
+  int ActiveControlPoint = 0;
   
   vtkPolyData * ShapeWorld = nullptr;
   vtkPolyData * CappedTubeWorld = nullptr;
