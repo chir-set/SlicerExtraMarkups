@@ -30,6 +30,7 @@
 #include <vtkCollection.h>
 #include <vtkCallbackCommand.h>
 #include <vtkMRMLScene.h>
+#include <vtkMatrix4x4.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
@@ -529,6 +530,10 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
       this->ResliceToPlane();
       break;
     case Tube:
+      if (this->SnapNthControlPointToTubeSurface(this->ActiveControlPoint, false))
+      {
+        this->ResliceToTubeCrossSection(this->ActiveControlPoint);
+      }
       break;
     case Cylinder:
       break;
@@ -813,6 +818,187 @@ void vtkMRMLMarkupsShapeNode::SetRadiusAtNthControlPoint(int n, double radius)
     this->SetNthControlPointPositionWorld(n - 1, p1New);
   }
 }
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, bool bypassLockedState)
+{
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return false;
+  }
+  if (!bypassLockedState && this->GetLocked())
+  {
+    vtkErrorMacro("Markups node is locked, aborting.");
+    return false;
+  }
+  if (pointIndex < 0
+    || this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0
+    || pointIndex >= this->GetNumberOfDefinedControlPoints())
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points, or fewer control points than requested.");
+    return false;
+  }
+  const double radius = this->GetRadiusAtNthControlPoint(pointIndex);
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  if ((pointIndex % 2) == 0)
+  {
+    this->GetNthControlPointPositionWorld(pointIndex, p1);
+    this->GetNthControlPointPositionWorld(pointIndex + 1, p2);
+  }
+  else {
+    this->GetNthControlPointPositionWorld(pointIndex, p2);
+    this->GetNthControlPointPositionWorld(pointIndex - 1, p1);
+  }
+  
+  // Middle point between p1 and p2.
+  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
+                          (p1[1] + p2[1]) / 2.0,
+                          (p1[2] + p2[2]) / 2.0};
+  double splineMiddlePoint[3] = { 0.0 };
+  double splineMiddlePointNeighbour[3] = { 0.0 };
+  vtkIdType id = this->SplineWorld->FindPoint(middlePoint);
+  vtkIdType idNeighbour = (id == this->SplineWorld->GetNumberOfPoints() - 1) // Last point
+                        ? id -1
+                        : id + 1;
+  // Closest point on spline to calculated middle point. Use this one onwards.
+  // NB : if the spline is a ball of wool, result is not predictable.
+  this->SplineWorld->GetPoint(id, splineMiddlePoint);
+  this->SplineWorld->GetPoint(idNeighbour, splineMiddlePointNeighbour);
+  // Put splineMiddlePoint at origin.
+  double rSplineMiddlePointNeighbour[3] = { splineMiddlePointNeighbour[0] - splineMiddlePoint[0],
+                                          splineMiddlePointNeighbour[1] - splineMiddlePoint[1],
+                                          splineMiddlePointNeighbour[2] - splineMiddlePoint[2]};
+  double rPerpendicular1[3] = { 0.0 };
+  double rPerpendicular2[3] = { 0.0 };
+  // Perpendiculars at origin.
+  vtkMath::Perpendiculars(rSplineMiddlePointNeighbour, rPerpendicular1, rPerpendicular2, 0.0);
+  // First perpendicular at splineMiddlePoint.
+  double perpendicular1[3] = { splineMiddlePoint[0] + rPerpendicular1[0],
+                              splineMiddlePoint[1] + rPerpendicular1[1],
+                              splineMiddlePoint[2] + rPerpendicular1[2]};
+  // This is usually 1.0 mm.
+  const double distance = std::sqrt(vtkMath::Distance2BetweenPoints(splineMiddlePoint, perpendicular1));
+  double newP1[3] = { 0.0 };
+  double newP2[3] = { 0.0 };
+  // radius may be less than distance.
+  this->FindLinearCoordinateByDistance(splineMiddlePoint, perpendicular1, newP1, radius - distance);
+  this->FindLinearCoordinateByDistance(newP1, splineMiddlePoint, newP2, radius);
+  if ((pointIndex % 2) == 0)
+  {
+    this->SetNthControlPointPositionWorld(pointIndex, newP1);
+    this->SetNthControlPointPositionWorld(pointIndex + 1, newP2);
+  }
+  else {
+    this->SetNthControlPointPositionWorld(pointIndex, newP2);
+    this->SetNthControlPointPositionWorld(pointIndex - 1, newP1);
+  }
+  return true;
+}
+
+//--------------------------- API only ---------------------------------------
+bool vtkMRMLMarkupsShapeNode::SnapAllControlPointsToTubeSurface(bool bypassLockedState)
+{
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return false;
+  }
+  if (!bypassLockedState && this->GetLocked())
+  {
+    vtkErrorMacro("Markups node is locked, aborting.");
+    return false;
+  }
+  if (this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0)
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points.");
+    return false;
+  }
+  for (int i = 0; i < this->GetNumberOfDefinedControlPoints(); i = i + 2)
+  {
+    this->SnapNthControlPointToTubeSurface(i, true);
+  }
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ResliceToTubeCrossSection(int pointIndex)
+{
+  
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return;
+  }
+  if (!this->ResliceNode)
+  {
+    return;
+  }
+  vtkMRMLSliceNode * resliceNode = vtkMRMLSliceNode::SafeDownCast(this->ResliceNode);
+  if (!resliceNode)
+  {
+    return;
+  }
+  if (pointIndex < 0
+    || this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0
+    || pointIndex >= this->GetNumberOfDefinedControlPoints())
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points, or fewer control points than requested.");
+    return;
+  }
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  if ((pointIndex % 2) == 0)
+  {
+    this->GetNthControlPointPositionWorld(pointIndex, p1);
+    this->GetNthControlPointPositionWorld(pointIndex + 1, p2);
+  }
+  else {
+    this->GetNthControlPointPositionWorld(pointIndex, p2);
+    this->GetNthControlPointPositionWorld(pointIndex - 1, p1);
+  }
+  
+  // Middle point between p1 and p2.
+  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
+                        (p1[1] + p2[1]) / 2.0,
+                        (p1[2] + p2[2]) / 2.0};
+  double splineMiddlePoint[3] = { 0.0 };
+  double splineMiddlePointNeighbour[3] = { 0.0 };
+  vtkIdType id = this->SplineWorld->FindPoint(middlePoint);
+  vtkIdType idNeighbour = (id == this->SplineWorld->GetNumberOfPoints() - 1) // Last point
+                        ? id -1
+                        : id + 1;
+  // Closest point on spline to calculated middle point. Use this one onwards.
+  // NB : if the spline is a ball of wool, result is not predictable.
+  this->SplineWorld->GetPoint(id, splineMiddlePoint);
+  this->SplineWorld->GetPoint(idNeighbour, splineMiddlePointNeighbour);
+  // Put splineMiddlePoint at origin.
+  double rSplineMiddlePointNeighbour[3] = { splineMiddlePointNeighbour[0] - splineMiddlePoint[0],
+                                          splineMiddlePointNeighbour[1] - splineMiddlePoint[1],
+                                          splineMiddlePointNeighbour[2] - splineMiddlePoint[2]};
+  double rPerpendicular1[3] = { 0.0 };
+  double rPerpendicular2[3] = { 0.0 };
+  // Perpendiculars at origin.
+  vtkMath::Perpendiculars(rSplineMiddlePointNeighbour, rPerpendicular1, rPerpendicular2, 0.0);
+
+  resliceNode->SetSliceToRASByNTP(
+    rSplineMiddlePointNeighbour[0], rSplineMiddlePointNeighbour[1], rSplineMiddlePointNeighbour[2],
+    rPerpendicular1[0], rPerpendicular1[1], rPerpendicular1[2],
+    splineMiddlePoint[0], splineMiddlePoint[1], splineMiddlePoint[2],
+    0);
+  resliceNode->UpdateMatrices();
+}
+
 
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,

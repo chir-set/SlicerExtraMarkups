@@ -122,6 +122,7 @@ public:
   // For Tube shape;
   double GetRadiusAtNthControlPoint(int n);
   void SetRadiusAtNthControlPoint(int n, double radius);
+  bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
   // For Cone, Cylinder shapes.
   void SetHeight(double height);
   // For Cone.
@@ -137,6 +138,8 @@ protected:
                                       double * result, const double difference);
   void ResliceToPlane(int pointIndex1 = 0, int pointIndex2 = 1, int pointIndex3 = 2);
   void ResliceToLine(int pointIndex1 = 0, int pointIndex2 = 1);
+  bool SnapNthControlPointToTubeSurface(int pointIndex = 0, bool bypassLockedState = false);
+  void ResliceToTubeCrossSection(int pointIndex = 0);
   void ForceDiskMeasurements();
   void ForceRingMeasurements();
   void ForceSphereMeasurements();
