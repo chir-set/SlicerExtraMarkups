@@ -120,8 +120,8 @@ public:
   bool DescribeDiskPointSpacing(double * closestPoint, double * farthestPoint,
                                double& innerRadius, double& outerRadius);
   // For Tube shape;
-  double GetRadiusAtNthControlPoint(int n);
-  void SetRadiusAtNthControlPoint(int n, double radius);
+  double GetNthControlPointRadius(int n);
+  void SetNthControlPointRadius(int n, double radius);
   bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
   // For Cone, Cylinder shapes.
   void SetHeight(double height);

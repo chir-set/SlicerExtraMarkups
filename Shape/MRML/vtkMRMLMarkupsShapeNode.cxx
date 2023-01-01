@@ -742,7 +742,7 @@ void vtkMRMLMarkupsShapeNode::OnJumpToPoint(vtkObject* caller, unsigned long eve
 }
 
 //----------------------------------------------------------------------------
-double vtkMRMLMarkupsShapeNode::GetRadiusAtNthControlPoint(int n)
+double vtkMRMLMarkupsShapeNode::GetNthControlPointRadius(int n)
 {
   if (this->GetShapeName() != Tube)
   {
@@ -776,14 +776,14 @@ double vtkMRMLMarkupsShapeNode::GetRadiusAtNthControlPoint(int n)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::SetRadiusAtNthControlPoint(int n, double radius)
+void vtkMRMLMarkupsShapeNode::SetNthControlPointRadius(int n, double radius)
 {
   if (radius <= 0.0)
   {
     vtkErrorMacro("Requested radius must be greater than 0.0.");
     return;
   }
-  double currentRadius = this->GetRadiusAtNthControlPoint(n);
+  double currentRadius = this->GetNthControlPointRadius(n);
   if (currentRadius <= 0)
   {
     return;
@@ -844,7 +844,7 @@ bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, b
     " or less than 4 control points, or fewer control points than requested.");
     return false;
   }
-  const double radius = this->GetRadiusAtNthControlPoint(pointIndex);
+  const double radius = this->GetNthControlPointRadius(pointIndex);
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
   if ((pointIndex % 2) == 0)
