@@ -67,8 +67,8 @@ mode:</string>
         <item row="1" column="1">
          <widget class="QComboBox" name="radiusModeComboBox">
           <property name="toolTip">
-           <string>Centered : first control point is the ring's center, the line length is its radius.
-Circumferential : both control points lie on the circumference, the line length is the ring's diameter.
+           <string>Centered : first control point is the center, the line length is its radius.
+Circumferential : both control points lie on the circumference, the line length is the diameter.
 </string>
           </property>
          </widget>
@@ -76,11 +76,9 @@ Circumferential : both control points lie on the circumference, the line length 
         <item row="2" column="1">
          <widget class="QComboBox" name="drawModeComboBox">
           <property name="toolTip">
-           <string>World projection : draw the projection of the ring from 3D space on a slice view.
+           <string>Intersection : draw the intersection of a slice view with the shape in 3D space.
 
-World intersection : draw the intersection of a slice view with the ring in 3D space.
-
-Slice projection : draw a ring from the projection of control points on a slice view.</string>
+Projection : draw the projection of control points on a slice view.</string>
           </property>
          </widget>
         </item>
@@ -136,7 +134,7 @@ mode:</string>
          <item row="0" column="1">
           <widget class="qMRMLNodeComboBox" name="resliceInputSelector">
            <property name="toolTip">
-            <string>Make this node co-planer to the ring.</string>
+            <string>Use this node to show meaningful control points in a single slice.</string>
            </property>
            <property name="nodeTypes">
             <stringlist>
@@ -160,7 +158,7 @@ mode:</string>
          <item row="0" column="0">
           <widget class="QPushButton" name="reslicePushButton">
            <property name="toolTip">
-            <string>Reslice the selected node to be co-planar to the ring.</string>
+            <string>Reslice the selected node to show meaningful control points in a single slice.</string>
            </property>
            <property name="text">
             <string>Reslice:</string>
