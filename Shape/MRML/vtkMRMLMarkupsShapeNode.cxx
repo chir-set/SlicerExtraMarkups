@@ -30,7 +30,6 @@
 #include <vtkCollection.h>
 #include <vtkCallbackCommand.h>
 #include <vtkMRMLScene.h>
-#include <vtkMatrix4x4.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
