@@ -536,8 +536,10 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
       }
       break;
     case Cylinder:
+      this->ResliceToPlane();
       break;
     case Cone:
+      this->ResliceToPlane();
       break;
     default :
       vtkErrorMacro("Unknown shape.");
