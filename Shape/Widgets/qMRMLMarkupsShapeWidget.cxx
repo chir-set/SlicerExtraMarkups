@@ -171,12 +171,6 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Tube
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
-  d->reslicePushButton->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
-  d->resliceInputSelector->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Tube
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cone
-                                && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
 }
 
 // --------------------------------------------------------------------------
