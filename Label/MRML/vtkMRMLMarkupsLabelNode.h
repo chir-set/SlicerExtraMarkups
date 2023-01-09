@@ -69,8 +69,9 @@ public:
   
   vtkMRMLStorageNode* CreateDefaultStorageNode() override;
   
-  vtkGetMacro(Label, QString);
-  vtkSetMacro(Label, QString);
+  vtkGetStringMacro(Label);
+  vtkSetStringMacro(Label);
+
   vtkSetClampMacro(TipDimensionMode3D, int, ViewScaleFactor, Fixed);
   vtkGetMacro(TipDimensionMode3D, int);
   static const char* GetTipDimensionMode3DAsString(int mode);
@@ -82,11 +83,8 @@ protected:
   vtkMRMLMarkupsLabelNode(const vtkMRMLMarkupsLabelNode&);
   void operator=(const vtkMRMLMarkupsLabelNode&);
   
-  QString Label = "Label";
-  int TipDimensionMode3D { ViewScaleFactor };
-
-private:
-  
+  char* Label{ nullptr };
+  int TipDimensionMode3D{ ViewScaleFactor };  
 };
 
 #endif //vtkmrmlmarkupsLabelnode_h_

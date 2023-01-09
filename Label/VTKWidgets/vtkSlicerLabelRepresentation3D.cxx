@@ -251,7 +251,7 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   }
   
   this->AppendedArrow->Update();
-  this->TextActor->SetInput(labelNode->GetLabel().toStdString().c_str());
+  this->TextActor->SetInput(labelNode->GetLabel());
   this->TextActorPositionWorld[0] = p1[0];
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];

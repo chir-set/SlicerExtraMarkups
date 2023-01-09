@@ -1,17 +1,20 @@
+/// Storage node for reading/writing properties of vtkMRMLMarkupsShapeNode.
+///
+/// The implementation is based on vtkMRMLMarkupsROIJsonStorageNode.
+///
+
 #ifndef VTKMRMLMARKUPSSHAPEJSONSTORAGENODE_H
 #define VTKMRMLMARKUPSSHAPEJSONSTORAGENODE_H
-
-// Templated on ROI storage node.
 
 // Markups includes
 #include "vtkSlicerShapeModuleMRMLExport.h"
 #include "vtkMRMLMarkupsJsonStorageNode.h"
 
+class vtkMRMLMarkupsJsonElement;
+class vtkMRMLMarkupsJsonWriter;
 class vtkMRMLMarkupsNode;
-class vtkMRMLMarkupsDisplayNode;
 
-class VTK_SLICER_SHAPE_MODULE_MRML_EXPORT vtkMRMLMarkupsShapeJsonStorageNode
-: public vtkMRMLMarkupsJsonStorageNode
+class VTK_SLICER_SHAPE_MODULE_MRML_EXPORT vtkMRMLMarkupsShapeJsonStorageNode : public vtkMRMLMarkupsJsonStorageNode
 {
 public:
     static vtkMRMLMarkupsShapeJsonStorageNode* New();
@@ -26,9 +29,9 @@ protected:
     ~vtkMRMLMarkupsShapeJsonStorageNode() override;
     vtkMRMLMarkupsShapeJsonStorageNode(const vtkMRMLMarkupsShapeJsonStorageNode&);
     void operator=(const vtkMRMLMarkupsShapeJsonStorageNode&);
-    
-    class vtkInternalShape;
-    friend class vtkInternalShape;
+
+    bool WriteBasicProperties(vtkMRMLMarkupsJsonWriter* writer, vtkMRMLMarkupsNode* markupsNode) override;
+    bool UpdateMarkupsNodeFromJsonValue(vtkMRMLMarkupsNode* markupsNode, vtkMRMLMarkupsJsonElement* markupObject) override;
 };
 
 #endif // VTKMRMLMARKUPSSHAPEJSONSTORAGENODE_H
