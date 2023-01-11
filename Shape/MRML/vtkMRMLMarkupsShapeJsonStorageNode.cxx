@@ -78,5 +78,12 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
     shapeNode->SetResolution(resolution);
     }
 
+  /* 
+   * Reimplemented to observe JumpToPointEvent.
+   * On loading a save scene, this is needed to track active control point;
+   * used to reslice a Tube at active control point.
+  */
+  shapeNode->CreateDefaultDisplayNodes();
+  
   return Superclass::UpdateMarkupsNodeFromJsonValue(markupsNode, markupsObject);
 }
