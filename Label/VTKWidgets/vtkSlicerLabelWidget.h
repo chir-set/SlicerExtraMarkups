@@ -37,6 +37,7 @@ public:
                                   vtkRenderer* renderer) override;
 
   /// Create instance of the markups widget
+  VTK_NEWINSTANCE
   virtual vtkSlicerMarkupsWidget* CreateInstance() const override;
 
 protected:
