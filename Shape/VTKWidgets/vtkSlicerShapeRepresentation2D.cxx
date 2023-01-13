@@ -454,7 +454,7 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
   double origin[3] = { 0.0 };
   double normal[3] = { 0.0 };
   vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 3; i++)
   {
     origin[i] = sliceToRAS->GetElement(i, 3);
     normal[i] = sliceToRAS->GetElement(i, 2);
@@ -587,7 +587,7 @@ void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
     double origin[3] = { 0.0 };
     double normal[3] = { 0.0 };
     vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
       origin[i] = sliceToRAS->GetElement(i, 3);
       normal[i] = sliceToRAS->GetElement(i, 2);
@@ -712,7 +712,7 @@ void vtkSlicerShapeRepresentation2D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
     double origin[3] = { 0.0 };
     double normal[3] = { 0.0 };
     vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
       origin[i] = sliceToRAS->GetElement(i, 3);
       normal[i] = sliceToRAS->GetElement(i, 2);
@@ -851,7 +851,7 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   double origin[3] = { 0.0 };
   double normal[3] = { 0.0 };
   vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < 3; i++)
   {
     origin[i] = sliceToRAS->GetElement(i, 3);
     normal[i] = sliceToRAS->GetElement(i, 2);
@@ -947,7 +947,7 @@ void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
     double origin[3] = { 0.0 };
     double normal[3] = { 0.0 };
     vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
       origin[i] = sliceToRAS->GetElement(i, 3);
       normal[i] = sliceToRAS->GetElement(i, 2);
@@ -1038,7 +1038,7 @@ void vtkSlicerShapeRepresentation2D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
     double origin[3] = { 0.0 };
     double normal[3] = { 0.0 };
     vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
     {
       origin[i] = sliceToRAS->GetElement(i, 3);
       normal[i] = sliceToRAS->GetElement(i, 2);
