@@ -30,6 +30,8 @@
 #include <vtkCollection.h>
 #include <vtkCallbackCommand.h>
 #include <vtkMRMLScene.h>
+#include <vtkPolyLineSource.h>
+#include <vtkPointData.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
@@ -1000,6 +1002,61 @@ void vtkMRMLMarkupsShapeNode::ResliceToTubeCrossSection(int pointIndex)
   resliceNode->UpdateMatrices();
 }
 
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
+                                                    int numberOfPointsToTrimAtStart, int numberOfPointsToTrimAtEnd)
+{
+  /*
+   * At each end, the tube is bell shaped. This is apparent when any tube end is made very large.
+   * This is a problem for modules that rely on radii along the spline. They expect a smooth radius variation.
+   * Provide a spline that is trimmed at both ends by the specified number of points.
+   */
+  if (trimmedSpline == nullptr)
+  {
+    vtkErrorMacro("Trimmed spline parameter must not be NULL.");
+    return false;
+  }
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return false;
+  }
+  vtkPoints * splinePoints = this->SplineWorld->GetPoints();
+  const int numberOfSplinePoints = splinePoints->GetNumberOfPoints();
+  if (numberOfPointsToTrimAtStart < 0
+    || numberOfPointsToTrimAtEnd < 0
+    || (numberOfPointsToTrimAtStart + numberOfPointsToTrimAtEnd) > (numberOfSplinePoints - 3))
+  {
+    vtkErrorMacro("Any number of points to trim must be greater than zero and there must remain at least 3 points.");
+    return false;
+  }
+  
+  vtkNew<vtkPolyLineSource> polyLineSpline;
+  polyLineSpline->SetNumberOfPoints(numberOfSplinePoints - (numberOfPointsToTrimAtStart + numberOfPointsToTrimAtEnd));
+  vtkIdType id = 0;
+  for (int i = numberOfPointsToTrimAtStart; i < numberOfSplinePoints - numberOfPointsToTrimAtEnd; i++)
+  {
+    double p[3] = { 0.0 };
+    this->SplineWorld->GetPoint(i, p);
+    polyLineSpline->SetPoint(id, p[0], p[1], p[2]);
+    id++;
+  }
+  polyLineSpline->Update();
+  
+  trimmedSpline->Initialize();
+  trimmedSpline->DeepCopy(polyLineSpline->GetOutput());
+  
+  vtkDoubleArray * splineRadiusArray = vtkDoubleArray::SafeDownCast(this->SplineWorld->GetPointData()->GetArray("TubeRadius"));
+  vtkSmartPointer<vtkDoubleArray> trimmedRadiusArray = vtkSmartPointer<vtkDoubleArray>::New();
+  trimmedRadiusArray->SetName(splineRadiusArray->GetName());
+  for (int i = numberOfPointsToTrimAtStart; i < numberOfSplinePoints - numberOfPointsToTrimAtEnd; i++)
+  {
+    trimmedRadiusArray->InsertNextValue(splineRadiusArray->GetValue(i));
+  }
+  trimmedSpline->GetPointData()->AddArray(trimmedRadiusArray);
+  
+  return true;
+}
 
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
