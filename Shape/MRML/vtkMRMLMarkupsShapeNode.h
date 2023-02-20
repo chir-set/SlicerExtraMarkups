@@ -99,6 +99,7 @@ public:
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
   
+  bool GetCenterWorld(double center[3]);
   vtkPolyData * GetShapeWorld() const {return this->ShapeWorld;}
   // For Tube
   vtkPolyData * GetSplineWorld() const {return this->SplineWorld;}

@@ -1059,6 +1059,94 @@ bool vtkMRMLMarkupsShapeNode::GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
 }
 
 //----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
+{
+  if (this->ShapeName == Tube || this->ShapeName == Cylinder)
+  {
+    vtkErrorMacro("GetCenterWorld is not implemented for Tube and Cylinder shapes.");
+    return false;
+  }
+  if (this->GetNumberOfUndefinedControlPoints() || this->GetNumberOfUndefinedControlPoints(true))
+  {
+    vtkErrorMacro("Aborting because Shape node has undefined points.");
+    return false;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  switch (this->ShapeName)
+  {
+    case Sphere:
+      if (this->GetNumberOfDefinedControlPoints() != 2)
+      {
+        vtkErrorMacro("Shape::Sphere node does not have 2 defined control points.");
+        return false;
+      }
+      if (this->RadiusMode == Centered)
+      {
+        this->GetNthControlPointPositionWorld(0, center);
+      }
+      else
+      {
+        this->GetNthControlPointPositionWorld(0, p1);
+        this->GetNthControlPointPositionWorld(1, p2);
+        for (int i = 0; i < 3; i++)
+        {
+          center[i] = (p1[i] + p2[i]) / 2.0;
+        }
+      }
+      break;
+    case Ring:
+      if (this->GetNumberOfDefinedControlPoints() != 3)
+      {
+        vtkErrorMacro("Shape::Ring node does not have 3 defined control points.");
+        return false;
+      }
+      if (this->RadiusMode == Centered)
+      {
+        this->GetNthControlPointPositionWorld(0, center);
+      }
+      else
+      {
+        this->GetNthControlPointPositionWorld(0, p1);
+        this->GetNthControlPointPositionWorld(1, p2);
+        for (int i = 0; i < 3; i++)
+        {
+          center[i] = (p1[i] + p2[i]) / 2.0;
+        }
+      }
+      break;
+    case Disk:
+      if (this->GetNumberOfDefinedControlPoints() != 3)
+      {
+        vtkErrorMacro("Shape::Disk node does not have 3 defined control points.");
+        return false;
+      }
+      this->GetNthControlPointPositionWorld(0, center);
+      break;
+    case Cone:
+      // Centre of mass : a quarter distance from base centre to tip.
+      if (this->GetNumberOfDefinedControlPoints() != 3)
+      {
+        vtkErrorMacro("Shape::Cone node does not have 3 defined control points.");
+        return false;
+      }
+      {
+        this->GetNthControlPointPositionWorld(0, p1);
+        this->GetNthControlPointPositionWorld(2, p3);
+        const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
+        this->FindLinearCoordinateByDistance(p1, p3, center, -height * 0.75);
+      }
+      break;
+    default:
+      break;
+  }
+  return true;
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
                                                    const char* format, const char* units)
 {
