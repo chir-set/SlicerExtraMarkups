@@ -755,7 +755,7 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[2] = p3[2];
 }
 
-//---------------------------- Cone -------------------------------------------
+//---------------------------- Cylinder -------------------------------------------
 void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   if (!this->DoUpdateFromMRML)
