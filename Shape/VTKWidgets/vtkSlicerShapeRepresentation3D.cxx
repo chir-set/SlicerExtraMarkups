@@ -352,8 +352,8 @@ void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
   this->DiskSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
   this->DiskSource->Update();
   
-  this->ShapeActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -459,7 +459,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
   
-  visibility = (this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->RadiusActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
@@ -537,9 +537,10 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
   
-  this->ShapeActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->RadiusActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->TextActor->SetVisibility(this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 2;
+  this->ShapeActor->SetVisibility(visibility);
+  this->RadiusActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -707,7 +708,7 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
     shapeNode->SetShapeWorld(this->ConeSource->GetOutput());
   }
   
-  bool visibility = this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   
@@ -793,7 +794,7 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
     shapeNode->SetShapeWorld(this->CylinderSource->GetOutput());
   }
   
-  bool visibility = this->GetAllControlPointsVisible() && shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   
