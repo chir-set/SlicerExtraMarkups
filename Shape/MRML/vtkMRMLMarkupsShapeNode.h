@@ -126,6 +126,9 @@ public:
   double GetNthControlPointRadius(int n);
   void SetNthControlPointRadius(int n, double radius);
   bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
+  vtkGetMacro(DisplayCappedTube, bool);
+  vtkSetMacro(DisplayCappedTube, bool);
+  vtkBooleanMacro(DisplayCappedTube, bool);
   // For Cone, Cylinder shapes.
   void SetHeight(double height);
   // For Cone.
@@ -175,6 +178,7 @@ protected:
   
   bool DisplayNodeObserved = false;
   int ActiveControlPoint = 0;
+  bool DisplayCappedTube = false;
   
   vtkPolyData * ShapeWorld = nullptr;
   vtkPolyData * CappedTubeWorld = nullptr;

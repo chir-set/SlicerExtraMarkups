@@ -577,7 +577,14 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   }
   
   this->TextActor->SetVisibility(true);
-  this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
+  if (!shapeNode->GetDisplayCappedTube())
+  {
+    this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
+  }
+  else
+  {
+    this->ShapeMapper->SetInputConnection(this->CappedTube->GetOutputPort());
+  }
   
   vtkNew<vtkPoints> splinePoints;
   vtkNew<vtkTupleInterpolator> interpolatedRadius;

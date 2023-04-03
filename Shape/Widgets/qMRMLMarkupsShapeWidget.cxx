@@ -73,6 +73,8 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->drawModeComboBox->addItem("Projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
+  this->displayCappedTubeToolButton->setVisible(false);
+  
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onShapeChanged(int)));
   QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
@@ -85,6 +87,8 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
                    q, SLOT(onResliceNodeChanged(vtkMRMLNode*)));
   QObject::connect(this->reslicePushButton, SIGNAL(clicked()),
                    q, SLOT(onResliceButtonClicked()));
+  QObject::connect(this->displayCappedTubeToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onDisplayCappedTubeClicked(bool)));
 }
 
 // --------------------------------------------------------------------------
@@ -149,6 +153,7 @@ void qMRMLMarkupsShapeWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
     d->drawModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetDrawMode2D());
     d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
     d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
+    d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
   }
 }
 
@@ -171,6 +176,7 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Tube
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
+  d->displayCappedTubeToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
 }
 
 // --------------------------------------------------------------------------
@@ -231,4 +237,16 @@ void qMRMLMarkupsShapeWidget::onResliceButtonClicked()
     return;
   }
   d->MarkupsShapeNode->ResliceToControlPoints();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onDisplayCappedTubeClicked(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetDisplayCappedTube(value);
 }

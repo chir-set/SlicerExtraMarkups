@@ -46,17 +46,14 @@
       </property>
       <item>
        <layout class="QFormLayout" name="formLayout">
-        <item row="0" column="0">
+        <item row="1" column="0">
          <widget class="QLabel" name="shapeNameLabel">
           <property name="text">
            <string>Shape:</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="shapeNameComboBox"/>
-        </item>
-        <item row="1" column="0">
+        <item row="2" column="0">
          <widget class="QLabel" name="radiusModeLabel">
           <property name="text">
            <string>Radius
@@ -64,7 +61,7 @@ mode:</string>
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
+        <item row="2" column="1">
          <widget class="QComboBox" name="radiusModeComboBox">
           <property name="toolTip">
            <string>Centered : first control point is the center, the line length is its radius.
@@ -73,7 +70,7 @@ Circumferential : both control points lie on the circumference, the line length 
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
+        <item row="3" column="1">
          <widget class="QComboBox" name="drawModeComboBox">
           <property name="toolTip">
            <string>Intersection : draw the intersection of a slice view with the shape in 3D space.
@@ -82,7 +79,7 @@ Projection : draw the projection of control points on a slice view.</string>
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="drawModeLabel">
           <property name="text">
            <string>Slice view
@@ -90,14 +87,14 @@ mode:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
+        <item row="4" column="0">
          <widget class="QLabel" name="resolutionLabel">
           <property name="text">
            <string>Resolution:</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
+        <item row="4" column="1">
          <widget class="ctkSliderWidget" name="resolutionSliderWidget">
           <property name="toolTip">
            <string>Circumference resolution.</string>
@@ -118,6 +115,26 @@ mode:</string>
            <double>45.000000000000000</double>
           </property>
          </widget>
+        </item>
+        <item row="1" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QComboBox" name="shapeNameComboBox"/>
+          </item>
+          <item>
+           <widget class="QToolButton" name="displayCappedTubeToolButton">
+            <property name="toolTip">
+             <string>Cap the ends of the Tube node in 3D views.</string>
+            </property>
+            <property name="text">
+             <string>Display capped tube</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>

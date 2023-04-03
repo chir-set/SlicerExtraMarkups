@@ -66,6 +66,7 @@ public slots:
   void onResolutionChanged(double value);
   void onResliceNodeChanged(vtkMRMLNode * node);
   void onResliceButtonClicked();
+  void onDisplayCappedTubeClicked(bool value);
 
 protected:
   void setup();

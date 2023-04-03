@@ -43,6 +43,7 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::WriteBasicProperties(
   writer->WriteStringProperty("radiusMode", shapeNode->GetRadiusModeAsString(shapeNode->GetRadiusMode()));
   writer->WriteStringProperty("drawMode2D", shapeNode->GetDrawMode2DAsString(shapeNode->GetDrawMode2D()));
   writer->WriteDoubleProperty("resolution", shapeNode->GetResolution());
+  writer->WriteBoolProperty("displayCappedTube", shapeNode->GetDisplayCappedTube());
   // Ignoring shapeNode->ResliceNode.
 
   return true;
@@ -76,6 +77,11 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
   if (markupsObject->GetDoubleProperty("resolution", resolution))
     {
     shapeNode->SetResolution(resolution);
+    }
+  if (markupsObject->HasMember("displayCappedTube"))
+    {
+      bool displayCappedTube = markupsObject->GetBoolProperty("displayCappedTube");
+      shapeNode->SetDisplayCappedTube(displayCappedTube);
     }
 
   /* 
