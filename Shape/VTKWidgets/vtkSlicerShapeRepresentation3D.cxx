@@ -44,6 +44,8 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->SphereSource = vtkSmartPointer<vtkSphereSource>::New();
   this->ConeSource = vtkSmartPointer<vtkConeSource>::New();
   this->ConeSource->CappingOn();
+  this->ArcSource = vtkSmartPointer<vtkArcSource>::New();
+  this->ArcSource->UseNormalAndAngleOn();
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
@@ -245,6 +247,9 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
       break;
     case vtkMRMLMarkupsShapeNode::Cylinder :
       this->UpdateCylinderFromMRML(caller, event, callData);
+      break;
+    case vtkMRMLMarkupsShapeNode::Arc :
+      this->UpdateArcFromMRML(caller, event, callData);
       break;
     default:
       vtkErrorMacro("Unknown shape.");
@@ -849,4 +854,122 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
+}
+
+//---------------------------- Arc -------------------------------------------
+void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  if (!this->DoUpdateFromMRML)
+  {
+    return;
+  }
+  vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  this->RadiusActor->SetVisibility(false);
+  this->MiddlePointActor->SetVisibility(false);
+  /*
+   * Don't include preview for ::Centered mode.
+   * Else, for unknown reasons, p3 is badly placed when the node is just created,
+   * p3 being very close to p2. When p3 is moved subsequently, no unexpected
+   * behaviour is seen.
+   */
+  if (!(shapeNode->GetNumberOfDefinedControlPoints(shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Circumferential) == 3))
+  {
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  shapeNode->GetNthControlPointPositionWorld(1, p2);
+  shapeNode->GetNthControlPointPositionWorld(2, p3);
+  
+  this->ShapeMapper->SetInputConnection(this->ArcSource->GetOutputPort());
+  
+  double polarVector1[3] = { 0.0 };
+  double polarVector2[3] = { 0.0 }; // Nor really, but will be when repositioned.
+  double normal[3] = { 0.0 }; // Normal to the plane.
+  vtkMath::Subtract(p2, p1, polarVector1);
+  vtkMath::Subtract(p3, p1, polarVector2);
+  vtkMath::Cross(polarVector1, polarVector2, normal);
+  const double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(polarVector1, polarVector2));
+  
+  this->ArcSource->SetCenter(p1);
+  this->ArcSource->SetPolarVector(polarVector1);
+  this->ArcSource->SetNormal(normal);
+  this->ArcSource->SetAngle(angle);
+  this->ArcSource->SetResolution(shapeNode->GetResolution());
+  this->ArcSource->Update();
+  
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    shapeNode->SetShapeWorld(this->ArcSource->GetOutput());
+  }
+  
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  this->ShapeActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  // Not really 'Radius mode'.
+  if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+  {
+    // Centre (p1) position is not calculated. p3 is calculated.
+    // Stick p3 on the other end of the arc.
+    double arcEndPoint[3] = { 0.0 };
+    const vtkIdType arcEndPointId = this->ArcSource->GetOutput()->FindPoint(p3);
+    this->ArcSource->GetOutput()->GetPoint(arcEndPointId, arcEndPoint);
+    if (arcEndPoint[0] != p3[0] || arcEndPoint[1] != p3[1] || arcEndPoint[2] != p3[2])
+    {
+      this->DoUpdateFromMRML = false;
+      shapeNode->SetNthControlPointPositionWorld(2, arcEndPoint);
+      shapeNode->GetNthControlPointPositionWorld(2, p3);
+      this->DoUpdateFromMRML = true;
+    }
+  }
+  else
+  {
+    // Centre (p1) position is calculated. p3 is not calculated.
+    // Let p1 remain the centre of the arc.
+    /*
+     * For unknown reasons, if p1 is moved sideways, the arc does not join
+     * p2 and p2 as long as p1 is moved. It remains so when p1 is no longer
+     * moved. As soon as the mouse moves again, the arc is completely restored
+     * between p2 and p3.
+     */
+    // In plane direction vectors.
+    double binormal[3] = { 0.0 };
+    double centreDirectionVector[3] = { 0.0 };
+    double midPoint[3] = {(p2[0] + p3[0]) / 2.0, (p2[1] + p3[1]) / 2.0, (p2[2] + p3[2]) / 2.0};
+    double tangent[3] = { 0.0 }; // From middle point between p2 and p3 to p2.
+    
+    vtkMath::Subtract(p2, midPoint, tangent);
+    vtkMath::Subtract(p1, midPoint, centreDirectionVector);
+    vtkMath::Cross(normal, tangent, binormal);
+    
+    double centreProjection[3] = { 0.0 }; // Project centre on binormal.
+    double inPlaneCentreProjection[3] = { 0.0 };
+    vtkMath::ProjectVector(centreDirectionVector, binormal, centreProjection);
+    vtkMath::Add(midPoint, centreProjection, inPlaneCentreProjection);
+    if (inPlaneCentreProjection[0] != p1[0] || inPlaneCentreProjection[1] != p1[1] || inPlaneCentreProjection[2] != p1[2])
+    {
+      this->DoUpdateFromMRML = false;
+      shapeNode->SetNthControlPointPositionWorld(0, inPlaneCentreProjection);
+      shapeNode->GetNthControlPointPositionWorld(0, p1);
+      this->DoUpdateFromMRML = true;
+    }
+  }
+  
+  this->TextActorPositionWorld[0] = p1[0];
+  this->TextActorPositionWorld[1] = p1[1];
+  this->TextActorPositionWorld[2] = p1[2];
 }

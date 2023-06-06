@@ -38,6 +38,7 @@ public:
     Tube,
     Cylinder,
     Cone,
+    Arc,
     ShapeName_Last
   };
   enum
@@ -152,6 +153,7 @@ protected:
   void ForceTubeMeasurements();
   void ForceCylinderMeasurements();
   void ForceConeMeasurements();
+  void ForceArcMeasurements();
   
   void AddMeasurement(const char * name, bool enabled = false,
                             const char * format = "%-#4.4g %s", const char * units = "mm");

@@ -54,6 +54,9 @@ void vtkMRMLMeasurementShape::Compute()
     case vtkMRMLMarkupsShapeNode::Cone:
       this->ComputeCone();
       break;
+    case vtkMRMLMarkupsShapeNode::Arc:
+      this->ComputeArc();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -380,6 +383,53 @@ void vtkMRMLMeasurementShape::ComputeCylinder()
   if (this->GetName() == std::string("volume"))
   {
     measurement = (vtkMath::Pi() * radius * radius * height);
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeArc()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * arcNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!arcNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  arcNode->GetNthControlPointPositionWorld(0, p1);
+  arcNode->GetNthControlPointPositionWorld(1, p2);
+  arcNode->GetNthControlPointPositionWorld(2, p3);
+  const double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+  
+  double radiusVector1[3] = { 0.0 };
+  double radiusVector2[3] = { 0.0 };
+  vtkMath::Subtract(p2, p1, radiusVector1);
+  vtkMath::Subtract(p3, p1, radiusVector2);
+  double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(radiusVector1, radiusVector2));
+  
+  if (this->GetName() == std::string("radius"))
+  {
+    measurement = radius;
+  }
+  else
+  if (this->GetName() == std::string("angle"))
+  {
+    measurement = angle;
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = (vtkMath::Pi() * radius * radius) / angle;
   }
   else
   {

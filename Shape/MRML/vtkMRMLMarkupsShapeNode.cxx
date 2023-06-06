@@ -115,6 +115,8 @@ const char* vtkMRMLMarkupsShapeNode::GetShapeNameAsString(int shapeName)
       return "Cylinder";
     case vtkMRMLMarkupsShapeNode::Cone:
       return "Cone";
+    case vtkMRMLMarkupsShapeNode::Arc:
+      return "Arc";
     default:
       break;
   }
@@ -260,6 +262,12 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceConeMeasurements();
+      break;
+    case Arc:
+      // Points 0 : centre; point 2 : radius and polar vector; point 3 : normal and angle
+      this->RequiredNumberOfControlPoints = 3;
+      this->MaximumNumberOfControlPoints = 3;
+      this->ForceArcMeasurements();
       break;
     default :
       vtkErrorMacro("Unknown shape.");
@@ -542,6 +550,9 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
     case Cone:
       this->ResliceToPlane();
       break;
+    case Arc:
+      this->ResliceToPlane();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -683,6 +694,15 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
   this->AddVolumeMeasurement("volume");
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceArcMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("angle", true, "%-#4.4g %s", "°");
+  this->AddMeasurement("radius");
+  this->AddAreaMeasurement("area");
+}
 //----------------------------------------------------------------------------
 /*
  * Tube : remove an adjacent point.
@@ -1139,12 +1159,19 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
         this->FindLinearCoordinateByDistance(p1, p3, center, -height * 0.75);
       }
       break;
+    case Arc:
+      if (this->GetNumberOfDefinedControlPoints() != 3)
+      {
+        vtkErrorMacro("Shape::Arc node does not have 3 defined control points.");
+        return false;
+      }
+      this->GetNthControlPointPositionWorld(0, center);
+      break;
     default:
       break;
   }
   return true;
 }
-
 
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
