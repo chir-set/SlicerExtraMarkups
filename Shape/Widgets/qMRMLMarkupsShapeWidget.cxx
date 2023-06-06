@@ -67,6 +67,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Tube");
   this->shapeNameComboBox->addItem("Cylinder");
   this->shapeNameComboBox->addItem("Cone");
+  this->shapeNameComboBox->addItem("Arc");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
   this->drawModeComboBox->addItem("Intersection");

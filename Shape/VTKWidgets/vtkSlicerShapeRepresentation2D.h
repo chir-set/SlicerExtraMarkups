@@ -56,6 +56,7 @@
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkConeSource.h>
+#include <vtkArcSource.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -102,6 +103,7 @@ protected:
   void UpdateTubeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateArcFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
@@ -124,6 +126,7 @@ protected:
   vtkSmartPointer<vtkConeSource> ConeSource;
   vtkSmartPointer<vtkTubeFilter> CylinderSource; // Regular tube.
   vtkSmartPointer<vtkLineSource> CylinderAxis;
+  vtkSmartPointer<vtkArcSource> ArcSource;
   
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
