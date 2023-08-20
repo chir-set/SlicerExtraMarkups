@@ -141,8 +141,6 @@ protected:
   vtkMRMLMarkupsShapeNode(const vtkMRMLMarkupsShapeNode&);
   void operator=(const vtkMRMLMarkupsShapeNode&);
   
-  void FindLinearCoordinateByDistance(const double * p1, const double * p2,
-                                      double * result, const double difference);
   void ResliceToPlane(int pointIndex1 = 0, int pointIndex2 = 1, int pointIndex3 = 2);
   void ResliceToLine(int pointIndex1 = 0, int pointIndex2 = 1);
   bool SnapNthControlPointToTubeSurface(int pointIndex = 0, bool bypassLockedState = false);

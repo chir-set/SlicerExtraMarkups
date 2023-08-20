@@ -335,19 +335,6 @@ bool vtkMRMLMarkupsShapeNode::DescribeDiskPointSpacing(double * closestPoint, do
   return true;
 }
 
-//----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::FindLinearCoordinateByDistance(const double * p1, const double * p2,
-                                                            double * result, const double difference)
-{
-  // Relative to p1, itself placed at origin. Simplifies reasoning.
-  const double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
-  const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
-  const double factor = (1.0 + (difference / lineLength));
-  result[0] = p1[0] + (rp2[0] * factor);
-  result[1] = p1[1] + (rp2[1] * factor);
-  result[2] = p1[2] + (rp2[2] * factor);
-}
-
 //----------------------------API only----------------------------------------
 void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
 {
@@ -385,7 +372,7 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   difference = radius - currentRadius;
   
   double rasP2Shifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, rasP2, rasP2Shifted, difference);
+  vtkMath::GetPointAlongLine(rasP2Shifted, rasP1, rasP2, difference);
   
   this->SetNthControlPointPositionWorld(1, rasP2Shifted);
   if ((this->GetShapeName() != this->Cone) && (this->GetShapeName() != this->Cylinder))
@@ -394,7 +381,7 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
     if (this->RadiusMode == Circumferential)
     {
       double rasP1Shifted[3] = { 0.0 };
-      this->FindLinearCoordinateByDistance(rasP2, rasP1, rasP1Shifted, difference);
+      vtkMath::GetPointAlongLine(rasP1Shifted, rasP2, rasP1, difference);
       this->SetNthControlPointPositionWorld(0, rasP1Shifted);
     }
     // Text actor does not move until mouse is hovered on a control point.
@@ -433,7 +420,7 @@ void vtkMRMLMarkupsShapeNode::SetInnerRadius(double radius)
   
   const double difference = radius - innerRadius;
   double closestPointShifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, closestPoint, closestPointShifted, difference);
+  vtkMath::GetPointAlongLine(closestPointShifted, rasP1, closestPoint, difference);
   
   this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(closestPoint), closestPointShifted);
 }
@@ -469,7 +456,7 @@ void vtkMRMLMarkupsShapeNode::SetOuterRadius(double radius)
   
   const double difference = radius - outerRadius;
   double farthestPointShifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, farthestPoint, farthestPointShifted, difference);
+  vtkMath::GetPointAlongLine(farthestPointShifted, rasP1, farthestPoint, difference);
   
   this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(farthestPoint), farthestPointShifted);
 }
@@ -494,7 +481,7 @@ void vtkMRMLMarkupsShapeNode::SetHeight(double height)
   const double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(rasP1, rasP3));
   const double difference = height - lineLength;
   double rasP3Shifted[3] = { 0.0 };
-  this->FindLinearCoordinateByDistance(rasP1, rasP3, rasP3Shifted, difference);
+  vtkMath::GetPointAlongLine(rasP3Shifted, rasP1, rasP3, difference);
   
   this->SetNthControlPointPositionWorld(2, rasP3Shifted);
 }
@@ -821,14 +808,14 @@ void vtkMRMLMarkupsShapeNode::SetNthControlPointRadius(int n, double radius)
     this->GetNthControlPointPositionWorld(n, p2);
     this->GetNthControlPointPositionWorld(n - 1, p1);
   }
-  const double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
+  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
                             (p1[1] + p2[1]) / 2.0,
                             (p1[2] + p2[2]) / 2.0};
   double p1New[3] = { 0.0 };
   double p2New[3] = { 0.0 };
   const double radiusDifference = radius - currentRadius;
-  this->FindLinearCoordinateByDistance(middlePoint, p1, p1New, radiusDifference);
-  this->FindLinearCoordinateByDistance(middlePoint, p2, p2New, radiusDifference);
+  vtkMath::GetPointAlongLine(p1New, middlePoint, p1, radiusDifference);
+  vtkMath::GetPointAlongLine(p2New, middlePoint, p2, radiusDifference);
   
   if ((n % 2) == 0)
   {
@@ -909,8 +896,8 @@ bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, b
   double newP1[3] = { 0.0 };
   double newP2[3] = { 0.0 };
   // radius may be less than distance.
-  this->FindLinearCoordinateByDistance(splineMiddlePoint, perpendicular1, newP1, radius - distance);
-  this->FindLinearCoordinateByDistance(newP1, splineMiddlePoint, newP2, radius);
+  vtkMath::GetPointAlongLine(newP1, splineMiddlePoint, perpendicular1, radius - distance);
+  vtkMath::GetPointAlongLine(newP2, newP1, splineMiddlePoint, radius);
   if ((pointIndex % 2) == 0)
   {
     this->SetNthControlPointPositionWorld(pointIndex, newP1);
@@ -1156,7 +1143,7 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
         this->GetNthControlPointPositionWorld(0, p1);
         this->GetNthControlPointPositionWorld(2, p3);
         const double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
-        this->FindLinearCoordinateByDistance(p1, p3, center, -height * 0.75);
+        vtkMath::GetPointAlongLine(center, p1, p3, -height * 0.75);
       }
       break;
     case Arc:
