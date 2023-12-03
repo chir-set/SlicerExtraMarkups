@@ -27,6 +27,8 @@ Here, in the 'Centered' radius mode, the centre is fixed when the circumferentia
 
 Here the points are treated in pairs, for drawing, point removal and reslicing. The latter operates on the last clicked point.
 
+These helper [videos](https://disk.yandex.com/d/1lRilHh997rksw) illustrate different ways of placing control points to the best estimate of an arterial wall.
+
 ![Tube](Tube_0.png)
 
 **Cone**
