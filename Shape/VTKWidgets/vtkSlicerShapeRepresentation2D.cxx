@@ -210,21 +210,6 @@ void vtkSlicerShapeRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode *markupsN
   this->Superclass::SetMarkupsNode(markupsNode);
 }
 
-//-----------------------------------------------------------------------------
-void vtkSlicerShapeRepresentation2D::UpdateInteractionPipeline()
-{
-  if (!this->MiddlePointActor->GetVisibility() || !this->ShapeActor->GetVisibility()
-    || !this->TextActor->GetVisibility() || !this->WorldCutActor->GetVisibility()
-    || !this->RadiusActor->GetVisibility()
-  )
-  {
-    this->InteractionPipeline->Actor->SetVisibility(false);
-    return;
-  }
-  // Final visibility handled by superclass in vtkSlicerMarkupsWidgetRepresentation
-  Superclass::UpdateInteractionPipeline();
-}
-
 //----------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
 {

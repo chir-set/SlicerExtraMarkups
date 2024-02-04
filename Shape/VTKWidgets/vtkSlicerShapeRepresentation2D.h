@@ -96,7 +96,6 @@ protected:
   ~vtkSlicerShapeRepresentation2D() override;
   
   void SetMarkupsNode(vtkMRMLMarkupsNode *markupsNode) override;
-  void UpdateInteractionPipeline() override;
   void UpdateDiskFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
