@@ -654,7 +654,7 @@ void vtkMRMLMarkupsShapeNode::ForceTubeMeasurements()
   this->RemoveAllMeasurements();
   
   this->AddAreaMeasurement("area");
-  this->AddVolumeMeasurement("volume", true);
+  this->AddVolumeMeasurement("volume");
 }
 
 //----------------------------------------------------------------------------
