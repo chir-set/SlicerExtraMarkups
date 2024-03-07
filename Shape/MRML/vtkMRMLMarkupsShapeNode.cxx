@@ -704,7 +704,9 @@ void vtkMRMLMarkupsShapeNode::OnPointPositionUndefined(vtkObject* caller, unsign
     return;
   }
   
-  if (client->RemovingPairControlPoint || client->GetNumberOfControlPoints() == 0)
+  if (client->RemovingPairControlPoint
+    || client->GetNumberOfControlPoints() == 0
+    || !callData)
   {
     // Point removal was triggered by this function, not in UI.
     client->RemovingPairControlPoint = false;
