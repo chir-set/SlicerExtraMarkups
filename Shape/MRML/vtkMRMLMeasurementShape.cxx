@@ -1,6 +1,5 @@
 // MRML includes
 #include "vtkMRMLMeasurementShape.h"
-#include "vtkMRMLUnitNode.h"
 
 // Markups includes
 #include "vtkMRMLMarkupsShapeNode.h"
