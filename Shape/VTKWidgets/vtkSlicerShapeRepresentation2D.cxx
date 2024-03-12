@@ -837,6 +837,14 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->ShapeWorldToSliceTransformer->Update();
   this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
   this->ShapeMapper->Update();
+
+  /* The tube surface has 2 arrays that we don't set : TubeRadius and TubeNormals
+   * TubeRadius forces a blue color on the surface.
+   * Removing it allows setting an arbitrary colour to the tube.
+   */
+  vtkPolyData * tubePolyData = this->Tube->GetOutput();
+  tubePolyData->GetPointData()->RemoveArray("TubeRadius");
+  tubePolyData->Modified();
   
   // Update intersection and map from world to slice.
   double origin[3] = { 0.0 };
