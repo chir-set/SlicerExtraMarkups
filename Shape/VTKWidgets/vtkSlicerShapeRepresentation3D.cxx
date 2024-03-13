@@ -684,20 +684,8 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->ShapeActor->SetVisibility(true);
   if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
   {
-    /* The tube surface has 2 arrays that we don't set : TubeRadius and TubeNormals
-     * TubeRadius forces a blue color on the surface.
-     * Removing it allows setting an arbitrary colour to the tube.
-     */
-    vtkPolyData * tubePolyData = this->Tube->GetOutput();
-    tubePolyData->GetPointData()->RemoveArray("TubeRadius");
-    tubePolyData->Modified();
-    shapeNode->SetShapeWorld(tubePolyData);
-    
-    vtkPolyData * cappedTubePolyData = this->CappedTube->GetOutput();
-    cappedTubePolyData->GetPointData()->RemoveArray("TubeRadius");
-    cappedTubePolyData->Modified();
-    shapeNode->SetCappedTubeWorld(cappedTubePolyData);
-    
+    shapeNode->SetShapeWorld(this->Tube->GetOutput());
+    shapeNode->SetCappedTubeWorld(this->CappedTube->GetOutput());
     shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
   }
   
