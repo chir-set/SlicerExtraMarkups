@@ -51,7 +51,7 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
-  this->ShapeMapper->SetScalarVisibility(true);
+  this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty>::New();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Selected)->Property);
   this->ShapeActor = vtkSmartPointer<vtkActor>::New();
@@ -692,7 +692,6 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     shapeNode->SetSplineWorld(this->SplineFunctionSource->GetOutput());
   }
   
-  // Doesn't work (color).
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);

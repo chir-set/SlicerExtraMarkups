@@ -79,7 +79,7 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   //this->DiskMapper->SetInputConnection(this->DiskSource->GetOutputPort());
   //this->DiskMapper->SetLookupTable(this->LineColorMap);
-  this->ShapeMapper->SetScalarVisibility(true);
+  this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty2D>::New();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Unselected)->Property);
   this->ShapeActor = vtkSmartPointer<vtkActor2D>::New();
@@ -113,6 +113,7 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->WorldCutter->SetCutFunction(this->WorldPlane);
   this->WorldCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->WorldCutMapper->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->WorldCutMapper->SetScalarVisibility(false);
   this->WorldCutActor = vtkSmartPointer<vtkActor2D>::New();
   this->WorldCutActor->SetMapper(this->WorldCutMapper);
 }
