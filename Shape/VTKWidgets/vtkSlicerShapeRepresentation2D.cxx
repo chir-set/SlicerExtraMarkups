@@ -134,13 +134,10 @@ void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
   this->NeedToRenderOn();
 
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
-  if (!shapeNode || !this->IsDisplayable())
+  if (!shapeNode)
   {
-    this->VisibilityOff();
     return;
   }
-
-  this->VisibilityOn();
 
   this->MiddlePointActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) >= 2);
   // Hide the middle point actor if it doesn't intersect the current slice
