@@ -245,6 +245,15 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     this->CameraIsBeingObserved = true;
   }
   
+  if (shapeNode->GetNumberOfControlPoints() < shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    this->ShapeActor->SetVisibility(false);
+    this->MiddlePointActor->SetVisibility(false);
+    this->RadiusActor->SetVisibility(false);
+    this->TextActor->SetVisibility(false);
+    return;
+  }
+  
   switch (shapeNode->GetShapeName())
   {
     case vtkMRMLMarkupsShapeNode::Sphere :
