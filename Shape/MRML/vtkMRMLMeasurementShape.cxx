@@ -33,6 +33,12 @@ void vtkMRMLMeasurementShape::Compute()
     this->SetValue(0.0, "#ERR");
     return;
   }
+  
+  if (shapeNode->GetNumberOfControlPoints() < shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
+  
   switch (shapeNode->GetShapeName())
   {
     case vtkMRMLMarkupsShapeNode::Sphere :
