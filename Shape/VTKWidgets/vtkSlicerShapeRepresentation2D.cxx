@@ -214,6 +214,10 @@ void vtkSlicerShapeRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode *markupsN
 //----------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return;
+  }
   this->MiddlePointActor->GetActors(pc);
   this->ShapeActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
@@ -225,6 +229,10 @@ void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
 //----------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return;
+  }
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->ShapeActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
@@ -236,6 +244,10 @@ void vtkSlicerShapeRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 //----------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return 0;
+  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -264,6 +276,10 @@ int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
 //-----------------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return 0;
+  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -292,6 +308,10 @@ int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 //-----------------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewport *viewport)
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return 0;
+  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -320,6 +340,10 @@ int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpo
 //-----------------------------------------------------------------------------
 vtkTypeBool vtkSlicerShapeRepresentation2D::HasTranslucentPolygonalGeometry()
 {
+  if (!this->WorldCutter->GetNumberOfInputConnections(0))
+  {
+    return false;
+  }
   if (this->Superclass::HasTranslucentPolygonalGeometry())
   {
     return true;
