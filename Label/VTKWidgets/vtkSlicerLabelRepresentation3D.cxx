@@ -34,7 +34,6 @@
 #include <vtkGlyph3DMapper.h>
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
-//#include <vtkMRMLScene.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerLabelRepresentation3D);
@@ -71,7 +70,6 @@ vtkSlicerLabelRepresentation3D::~vtkSlicerLabelRepresentation3D()
   if (this->CameraIsBeingObserved)
   {
     this->GetRenderer()->GetActiveCamera()->RemoveObserver(this->CameraModifiedCallbackCommand);
-    //this->SetCameraObservationStatus(false);
   }
 }
 
@@ -200,7 +198,7 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   if (!this->CameraIsBeingObserved)
   {
     this->GetRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, this->CameraModifiedCallbackCommand);
-    this->CameraIsBeingObserved = true; // remove if using vtkMRMLCameraNode
+    this->CameraIsBeingObserved = true;
     //this->SetCameraObservationStatus(true);
   }
   double p1[3] = { 0.0 };
@@ -290,36 +288,3 @@ double * vtkSlicerLabelRepresentation3D::GetBounds()
   boundingBox.GetBounds(this->Bounds);
   return this->Bounds;
 }
-
-
-//---------------------------------------------------------------------------
-/*bool vtkSlicerLabelRepresentation3D::SetCameraObservationStatus(bool observe)
-{
-  vtkWeakPointer<vtkCollection> mrmlCameraNodes = this->GetViewNode()->GetScene()->GetNodesByClass("vtkMRMLCameraNode");
-  if (!mrmlCameraNodes.GetPointer())
-  {
-    return false;
-  }
-  for (uint i = 0; i < mrmlCameraNodes->GetNumberOfItems(); i++)
-  {
-    this->MRMLCamera = vtkMRMLCameraNode::SafeDownCast(mrmlCameraNodes->GetItemAsObject(i));
-    if (!this->MRMLCamera.GetPointer())
-    {
-      return false;
-    }
-    if (this->MRMLCamera->GetCamera() == this->GetRenderer()->GetActiveCamera())
-    {
-      if (observe)
-      {
-        this->MRMLCamera->AddObserver(vtkMRMLCameraNode::CameraInteractionEvent, this->CameraModifiedCallbackCommand);
-      }
-      else
-      {
-        this->MRMLCamera->RemoveObserver(this->CameraModifiedCallbackCommand);
-      }
-      this->CameraIsBeingObserved = observe;
-      return true;
-    }
-  }
-  return false;
-}*/

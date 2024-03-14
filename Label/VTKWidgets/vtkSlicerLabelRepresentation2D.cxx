@@ -154,7 +154,7 @@ void vtkSlicerLabelRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode *markupsN
     }
     /*else
     {
-      this->SliceDistance->SetInputData(this->LabelSource->GetOutput());
+      ??
     }*/
   }
   this->Superclass::SetMarkupsNode(markupsNode);

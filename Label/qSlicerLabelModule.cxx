@@ -78,7 +78,7 @@ bool qSlicerLabelModule::isHidden() const
 //-----------------------------------------------------------------------------
 QString qSlicerLabelModule::helpText() const
 {
-  return "This module contains fundamental markups to be used in the Slicer-Liver extension.";
+  return "This module contains a markups node named 'Label'; it is drawn as an arrow.";
 }
 
 //-----------------------------------------------------------------------------
