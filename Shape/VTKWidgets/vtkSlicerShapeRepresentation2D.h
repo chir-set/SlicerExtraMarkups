@@ -130,6 +130,7 @@ protected:
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
   vtkSmartPointer<vtkTubeFilter> Tube; // Variable radius tube.
+  vtkSmartPointer<vtkTubeFilter> CappedTube;
   
   vtkSmartPointer<vtkTransformPolyDataFilter> ShapeWorldToSliceTransformer;
   vtkSmartPointer<vtkTransformPolyDataFilter> ShapeCutWorldToSliceTransformer;

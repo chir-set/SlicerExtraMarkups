@@ -95,6 +95,12 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->Tube->SetNumberOfSides(20);
   this->Tube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
   this->Tube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  // To be consistent with 3D views. The cap is projected or intersected in slice views.
+  this->CappedTube = vtkSmartPointer<vtkTubeFilter>::New();
+  this->CappedTube->SetNumberOfSides(20);
+  this->CappedTube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
+  this->CappedTube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  this->CappedTube->SetCapping(true);
   
   this->CylinderAxis = vtkSmartPointer<vtkLineSource>::New();
   this->CylinderSource = vtkSmartPointer<vtkTubeFilter>::New();
@@ -793,8 +799,16 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     return;
   }
   
-  this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
-  this->WorldCutter->SetInputConnection(this->Tube->GetOutputPort());
+  if (!shapeNode->GetDisplayCappedTube())
+  {
+    this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
+    this->WorldCutter->SetInputConnection(this->Tube->GetOutputPort());
+  }
+  else
+  {
+    this->ShapeMapper->SetInputConnection(this->CappedTube->GetOutputPort());
+    this->WorldCutter->SetInputConnection(this->CappedTube->GetOutputPort());
+  }
   
   this->TextActor->SetVisibility(true);
   
@@ -847,14 +861,29 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   splinePolyData->GetPointData()->AddArray(tubeRadius);
   splinePolyData->GetPointData()->SetActiveScalars("TubeRadius");
   
-  this->Tube->SetNumberOfSides(shapeNode->GetResolution());
-  this->Tube->Update();
+  if (!shapeNode->GetDisplayCappedTube())
+  {
+    this->Tube->SetNumberOfSides(shapeNode->GetResolution());
+    this->Tube->Update();
+  }
+  else
+  {
+    this->CappedTube->SetNumberOfSides(shapeNode->GetResolution());
+    this->CappedTube->Update();
+  }
   
   this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
   this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
   
   // Update shape and map from world to slice.
-  this->ShapeWorldToSliceTransformer->SetInputConnection(this->Tube->GetOutputPort());
+  if (!shapeNode->GetDisplayCappedTube())
+  {
+    this->ShapeWorldToSliceTransformer->SetInputConnection(this->Tube->GetOutputPort());
+  }
+  else
+  {
+    this->ShapeWorldToSliceTransformer->SetInputConnection(this->CappedTube->GetOutputPort());
+  }
   this->ShapeWorldToSliceTransformer->Update();
   this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
   this->ShapeMapper->Update();
@@ -870,7 +899,6 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   }
   this->WorldPlane->SetOrigin(origin);
   this->WorldPlane->SetNormal(normal);
-  this->WorldCutter->SetInputConnection(this->Tube->GetOutputPort());
   this->WorldCutter->Update();
   this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
   this->ShapeCutWorldToSliceTransformer->Update();
