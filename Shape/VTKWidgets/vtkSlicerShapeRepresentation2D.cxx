@@ -77,8 +77,6 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-  //this->DiskMapper->SetInputConnection(this->DiskSource->GetOutputPort());
-  //this->DiskMapper->SetLookupTable(this->LineColorMap);
   this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty2D>::New();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Unselected)->Property);
@@ -109,7 +107,6 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   
   this->WorldPlane = vtkSmartPointer<vtkPlane>::New();
   this->WorldCutter = vtkSmartPointer<vtkCutter>::New();
-  //this->SliceViewCutter->SetInputConnection(this->DiskSource->GetOutputPort());
   this->WorldCutter->SetCutFunction(this->WorldPlane);
   this->WorldCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->WorldCutMapper->SetInputConnection(this->WorldCutter->GetOutputPort());
@@ -202,7 +199,7 @@ void vtkSlicerShapeRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode *markupsN
     }
     else
     {
-      //this->SliceDistance->SetInputData(this->RingSource->GetOutput());
+      // ??
     }
   }
   this->Superclass::SetMarkupsNode(markupsNode);
@@ -381,11 +378,11 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
   this->WorldCutActor->SetVisibility(visibility);
   this->RadiusActor->SetVisibility(false);
   
-  double closestPoint[3] = { 0.0 }; // Unused here
+  double closestPoint[3] = { 0.0 };
   double farthestPoint[3] = { 0.0 };
   double farthestDisplayPoint[3] = { 0.0 };
   double innerDisplayRadius = 0.0, outerDisplayRadius = 0.0;
-  // shapeNode->DescribeDiskPointsProximity() uses world coordinates.
+  
   if (!shapeNode->DescribeDiskPointSpacing(closestPoint, farthestPoint,
                                             innerDisplayRadius, outerDisplayRadius))
   {
@@ -472,10 +469,12 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
     origin[i] = sliceToRAS->GetElement(i, 3);
     normal[i] = sliceToRAS->GetElement(i, 2);
   }
+  // Cut the invisible 3D representation.
   this->WorldPlane->SetOrigin(origin);
   this->WorldPlane->SetNormal(normal);
   this->WorldCutter->SetInputConnection(this->DiskSource->GetOutputPort());
   this->WorldCutter->Update();
+  // Transform to slice representation and show.
   this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
   this->ShapeCutWorldToSliceTransformer->Update();
   this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());

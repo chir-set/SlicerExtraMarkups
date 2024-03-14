@@ -78,7 +78,7 @@ bool qSlicerShapeModule::isHidden() const
 //-----------------------------------------------------------------------------
 QString qSlicerShapeModule::helpText() const
 {
-  return "This module contains fundamental markups to be used in the Slicer-Liver extension.";
+  return "This module contains a markups node named 'Shape'; it is drawn as different types of geometry.";
 }
 
 //-----------------------------------------------------------------------------

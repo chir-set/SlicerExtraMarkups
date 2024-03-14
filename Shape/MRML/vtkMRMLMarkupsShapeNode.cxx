@@ -243,9 +243,10 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
        * 
        * N.B. - control points need not and are not required to be on the surface.
        * A control point pair merely defines a radius value and a middle point for the spline (centerline).
+       * For control points to lie on the surface of the tube, adjacent pairs must not be too close to each other.
        * In practice, we would place points on the walls of a diseased artery, a short part of it.
        * All this is useless for healthy arteries : we have real structures using segmentation,
-       * that do not have perfectly circular cross-sections.
+       * and they do not have perfectly circular cross-sections.
        */
       this->RequiredNumberOfControlPoints = -1;
       this->MaximumNumberOfControlPoints = -1;
@@ -388,7 +389,6 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   }
 }
 
-// Merging all shapes introduces complexity, API becomes bad looking, with shape specific functions.
 //----------------------------API only----------------------------------------
 void vtkMRMLMarkupsShapeNode::SetInnerRadius(double radius)
 {

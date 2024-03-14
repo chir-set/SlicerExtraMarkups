@@ -50,7 +50,6 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->ArcSource->UseNormalAndAngleOn();
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  //this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
   this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty>::New();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Selected)->Property);
@@ -976,13 +975,7 @@ void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
   {
     // Centre (p1) position is calculated. p3 is not calculated.
     // Let p1 remain the centre of the arc.
-    /*
-     * For unknown reasons, if p1 is moved sideways, the arc does not join
-     * p2 and p2 as long as p1 is moved. It remains so when p1 is no longer
-     * moved. As soon as the mouse moves again, the arc is completely restored
-     * between p2 and p3.
-     */
-    // In plane direction vectors.
+    // In-plane direction vectors.
     double binormal[3] = { 0.0 };
     double centreDirectionVector[3] = { 0.0 };
     double midPoint[3] = {(p2[0] + p3[0]) / 2.0, (p2[1] + p3[1]) / 2.0, (p2[2] + p3[2]) / 2.0};

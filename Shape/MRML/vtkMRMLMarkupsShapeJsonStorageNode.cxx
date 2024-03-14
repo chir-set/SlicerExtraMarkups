@@ -86,8 +86,8 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
 
   /* 
    * Reimplemented to observe JumpToPointEvent.
-   * On loading a save scene, this is needed to track active control point;
-   * used to reslice a Tube at active control point.
+   * On loading a save scene, this is needed to track an active control point;
+   * used to reslice a Tube at the active control point.
   */
   shapeNode->CreateDefaultDisplayNodes();
   
