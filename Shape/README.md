@@ -45,12 +45,55 @@ Here, in the 'Centered' radius mode, the centre is fixed when the circumferentia
 
 ![Arc](Arc_0.png)
 
+---
 
+## Parametric shapes
 
+This subset of geometric shapes derives from the VTK library. Here they all require 4 control points, and can be updated according to their UVW parameters.
 
+**Ellipsoid**
 
+![Ellipsoid](Ellipsoid_0.png)
 
+**Toroid**
 
+![Toroid](Toroid_0.png)
+
+**BohemianDome**
+
+![BohemianDome](BohemianDome_0.png)
+
+**Bour**
+
+![Bour](Bour_0.png)
+
+**Boy**
+
+![Boy](Boy_0.png)
+
+**ConicSpiral**
+
+![ConicSpiral](ConicSpiral_0.png)
+
+**CrossCap**
+
+![CrossCap](CrossCap_0.png)
+
+**Kuen**
+
+![Kuen](Kuen_0.png)
+
+**Mobius**
+
+![Mobius](Mobius_0.png)
+
+**PluckerConoid**
+
+![PluckerConoid](PluckerConoid_0.png)
+
+**Roman**
+
+![Roman](Roman_0.png)
 
 
 

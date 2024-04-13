@@ -33,6 +33,8 @@
 #include <vtkCollection.h>
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
+#include <vtkTextActor.h>
+#include <vtkMatrix4x4.h>
 
 //------------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerShapeRepresentation3D);
@@ -94,6 +96,28 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->CylinderSource->SetNumberOfSides(20);
   this->CylinderSource->SetInputConnection(this->CylinderAxis->GetOutputPort());
   this->CylinderSource->SetCapping(true);
+
+  this->Ellipsoid = vtkSmartPointer<vtkParametricSuperEllipsoid>::New();
+  this->Toroid = vtkSmartPointer<vtkParametricSuperToroid>::New();
+  this->BohemianDome = vtkSmartPointer<vtkParametricBohemianDome>::New();
+  this->Bour = vtkSmartPointer<vtkParametricBour>::New();
+  this->Boy = vtkSmartPointer<vtkParametricBoy>::New();
+  this->CrossCap = vtkSmartPointer<vtkParametricCrossCap>::New();
+  this->ConicSpiral = vtkSmartPointer<vtkParametricConicSpiral>::New();
+  this->Kuen = vtkSmartPointer<vtkParametricKuen>::New();
+  this->Mobius = vtkSmartPointer<vtkParametricMobius>::New();
+  this->PluckerConoid = vtkSmartPointer<vtkParametricPluckerConoid>::New();
+  this->Roman = vtkSmartPointer<vtkParametricRoman>::New();
+  this->ParametricFunctionSource = vtkSmartPointer<vtkParametricFunctionSource>::New();
+  
+  this->ParametricMiddlePointSource = vtkSmartPointer<vtkSphereSource>::New();
+  this->ParametricMiddlePointMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->ParametricMiddlePointMapper->SetInputConnection(this->ParametricMiddlePointSource->GetOutputPort());
+  this->ParametricMiddlePointActor = vtkSmartPointer<vtkActor>::New();
+  this->ParametricMiddlePointActor->SetMapper(this->ParametricMiddlePointMapper);
+  this->ParametricTransform = vtkSmartPointer<vtkTransform>::New();
+  this->ParametricTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->ParametricTransformer->SetTransform(this->ParametricTransform);
 }
 
 //------------------------------------------------------------------------------
@@ -113,6 +137,7 @@ void vtkSlicerShapeRepresentation3D::GetActors(vtkPropCollection* pc)
   this->Superclass::GetActors(pc);
   this->ShapeActor->GetActors(pc);
   this->MiddlePointActor->GetActors(pc);
+  this->ParametricMiddlePointActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
 }
 
@@ -122,6 +147,7 @@ void vtkSlicerShapeRepresentation3D::ReleaseGraphicsResources(vtkWindow* win)
   this->Superclass::ReleaseGraphicsResources(win);
   this->ShapeActor->ReleaseGraphicsResources(win);
   this->MiddlePointActor->ReleaseGraphicsResources(win);
+  this->ParametricMiddlePointActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
 }
 
@@ -136,6 +162,10 @@ int vtkSlicerShapeRepresentation3D::RenderOverlay(vtkViewport* viewport)
   if (this->MiddlePointActor->GetVisibility())
   {
     count += this->MiddlePointActor->RenderOverlay(viewport);
+  }
+  if (this->ParametricMiddlePointActor->GetVisibility())
+  {
+    count += this->ParametricMiddlePointActor->RenderOverlay(viewport);
   }
   if (this->RadiusActor->GetVisibility())
   {
@@ -155,6 +185,10 @@ int vtkSlicerShapeRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
   if (this->MiddlePointActor->GetVisibility())
   {
     count += this->MiddlePointActor->RenderOpaqueGeometry(viewport);
+  }
+  if (this->ParametricMiddlePointActor->GetVisibility())
+  {
+    count += this->ParametricMiddlePointActor->RenderOpaqueGeometry(viewport);
   }
   if (this->RadiusActor->GetVisibility())
   {
@@ -177,6 +211,11 @@ int vtkSlicerShapeRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewpo
   {
     this->MiddlePointActor->SetPropertyKeys(this->GetPropertyKeys());
     count += this->MiddlePointActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+  if (this->ParametricMiddlePointActor->GetVisibility())
+  {
+    this->ParametricMiddlePointActor->SetPropertyKeys(this->GetPropertyKeys());
+    count += this->ParametricMiddlePointActor->RenderTranslucentPolygonalGeometry(viewport);
   }
   if (this->RadiusActor->GetVisibility())
   {
@@ -201,6 +240,11 @@ vtkTypeBool vtkSlicerShapeRepresentation3D::HasTranslucentPolygonalGeometry()
     }
   if (this->MiddlePointActor->GetVisibility() &&
       this->MiddlePointActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
+  if (this->ParametricMiddlePointActor->GetVisibility() &&
+    this->ParametricMiddlePointActor->HasTranslucentPolygonalGeometry())
   {
     return true;
   }
@@ -235,37 +279,47 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   {
     this->ShapeActor->SetVisibility(false);
     this->MiddlePointActor->SetVisibility(false);
+    this->ParametricMiddlePointActor->SetVisibility(false);
     this->RadiusActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
     return;
   }
   
-  switch (shapeNode->GetShapeName())
+  if (!shapeNode->IsParametric())
   {
-    case vtkMRMLMarkupsShapeNode::Sphere :
-      this->UpdateSphereFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Ring :
-      this->UpdateRingFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Disk :
-      this->UpdateDiskFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Tube :
-      this->UpdateTubeFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Cone :
-      this->UpdateConeFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Cylinder :
-      this->UpdateCylinderFromMRML(caller, event, callData);
-      break;
-    case vtkMRMLMarkupsShapeNode::Arc :
-      this->UpdateArcFromMRML(caller, event, callData);
-      break;
-    default:
-      vtkErrorMacro("Unknown shape.");
-      return;
+    // A ShapeActor's transform is applied in UpdateParametricFromMRML; restore it.
+    this->ShapeActor->SetUserTransform(nullptr);
+    switch (shapeNode->GetShapeName())
+    {
+      case vtkMRMLMarkupsShapeNode::Sphere :
+        this->UpdateSphereFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Ring :
+        this->UpdateRingFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Disk :
+        this->UpdateDiskFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Tube :
+        this->UpdateTubeFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Cone :
+        this->UpdateConeFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Cylinder :
+        this->UpdateCylinderFromMRML(caller, event, callData);
+        break;
+      case vtkMRMLMarkupsShapeNode::Arc :
+        this->UpdateArcFromMRML(caller, event, callData);
+        break;
+      default:
+        vtkErrorMacro("Unknown shape.");
+        return;
+    }
+  }
+  else
+  {
+    this->UpdateParametricFromMRML(caller, event, callData);
   }
 }
 
@@ -976,4 +1030,267 @@ void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
   this->TextActorPositionWorld[0] = p1[0];
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];
+}
+
+//--------------------- Ellipsoid, Toroid, BohemianDome ------------------------
+void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
+{
+  if (!this->DoUpdateFromMRML)
+  {
+    return;
+  }
+  /*
+   * We use 4 markups points:
+   *  - p1: centre in Centered mode; opposite to p4 and through the centre in Circumferential mode
+   *  - p2: X axis
+   *  - p3: Y axis
+   *  - p4: Z axis; controls orientation also, like p1.
+   * p2 and p3 are repositioned so that all points intersect at the centre at 90°.
+   * The VTK parametric function is always computed at origin according to the orthogonal axes.
+   * A transform is applied to the VTK actor to show the result within the control points.
+   * The same approach is used in slice views, followed by mapping in each view.
+   */
+  vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  // Set the respective parametric function in the function source.
+  switch (shapeNode->GetShapeName())
+  {
+    case vtkMRMLMarkupsShapeNode::Ellipsoid:
+      this->ParametricFunctionSource->SetParametricFunction(this->Ellipsoid);
+      break;
+    case vtkMRMLMarkupsShapeNode::Toroid:
+      this->ParametricFunctionSource->SetParametricFunction(this->Toroid);
+      break;
+    case vtkMRMLMarkupsShapeNode::BohemianDome:
+      this->ParametricFunctionSource->SetParametricFunction(this->BohemianDome);
+      break;
+    case vtkMRMLMarkupsShapeNode::Bour:
+      this->ParametricFunctionSource->SetParametricFunction(this->Bour);
+      break;
+    case vtkMRMLMarkupsShapeNode::Boy:
+      this->ParametricFunctionSource->SetParametricFunction(this->Boy);
+      break;
+    case vtkMRMLMarkupsShapeNode::CrossCap:
+      this->ParametricFunctionSource->SetParametricFunction(this->CrossCap);
+      break;
+    case vtkMRMLMarkupsShapeNode::ConicSpiral:
+      this->ParametricFunctionSource->SetParametricFunction(this->ConicSpiral);
+      break;
+    case vtkMRMLMarkupsShapeNode::Kuen:
+      this->ParametricFunctionSource->SetParametricFunction(this->Kuen);
+      break;
+    case vtkMRMLMarkupsShapeNode::Mobius:
+      this->ParametricFunctionSource->SetParametricFunction(this->Mobius);
+      break;
+    case vtkMRMLMarkupsShapeNode::PluckerConoid:
+      this->ParametricFunctionSource->SetParametricFunction(this->PluckerConoid);
+      break;
+    case vtkMRMLMarkupsShapeNode::Roman:
+      this->ParametricFunctionSource->SetParametricFunction(this->Roman);
+      break;
+    default:
+      vtkErrorMacro("Unfit shape.");
+      return;
+  }
+    
+  this->RadiusActor->SetVisibility(false);
+  this->MiddlePointActor->SetVisibility(false);
+  
+  if (shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
+  this->ShapeMapper->SetInputConnection(this->ParametricFunctionSource->GetOutputPort());
+  
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  double p4[3] = { 0.0 };
+  double direction[3] = { 0.0 }; // p4, centre
+  double center[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  shapeNode->GetNthControlPointPositionWorld(1, p2);
+  shapeNode->GetNthControlPointPositionWorld(2, p3);
+  shapeNode->GetNthControlPointPositionWorld(3, p4);
+  
+  if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+  {
+    // Centre is p1.
+    vtkMath::Assign(p1, center);
+    this->ParametricMiddlePointActor->SetVisibility(false);
+  }
+  else{
+    // Centre is midway between p1 and p4.
+    center[0] = (p1[0] + p4[0]) / 2.0;
+    center[1] = (p1[1] + p4[1]) / 2.0;
+    center[2] = (p1[2] + p4[2]) / 2.0;
+    // The middle point.
+    this->ParametricMiddlePointSource->SetCenter(center);
+    this->ParametricMiddlePointSource->SetRadius(this->ControlPointSize);
+    this->ParametricMiddlePointSource->Update();
+    this->ParametricMiddlePointActor->SetVisibility(true);
+  }
+  vtkMath::Subtract(p4, center, direction);
+  vtkMath::Normalize(direction);
+  
+  // Rotate {0, 0, 1} to direction[].
+  double transformReferenceAxis[3] = {0.0, 0.0, 1.0}; // From GetOrientationWXYZ().
+  double transformRotationAxis[3] = { 0.0 };
+  vtkMath::Cross(transformReferenceAxis, direction, transformRotationAxis);
+  double angleToTransformReferenceAxis = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(direction, transformReferenceAxis));
+  this->ParametricTransform->Identity();
+  this->ParametricTransform->RotateWXYZ(angleToTransformReferenceAxis, transformRotationAxis);
+  // Place at the centre.
+  this->ParametricTransform->PostMultiply();
+  this->ParametricTransform->Translate(center);
+  this->ParametricTransform->PreMultiply();
+  
+  // Calculate radii.
+  double xRadius = std::sqrt(vtkMath::Distance2BetweenPoints(center, p2));
+  double yRadius = std::sqrt(vtkMath::Distance2BetweenPoints(center, p3));
+  double zRadius = std::sqrt(vtkMath::Distance2BetweenPoints(center, p4));
+  
+  // Get orthogonal axes at centre.
+  double normal[3] = { 0.0 };
+  double binormal[3] = { 0.0 };
+  vtkMatrix4x4 * transformMatrix = this->ParametricTransform->GetMatrix();
+  for (int i = 0; i < 3; i++)
+  {
+    normal[i] = transformMatrix->GetElement(i, 0);
+    binormal[i] = transformMatrix->GetElement(i, 1);
+  }
+  
+  // p2 and p3 will be moved; calculate their new coordinates.
+  // At the centre.
+  double newP2[3] = { 0.0 };
+  double newP3[3] = { 0.0 };
+  double modelNormal[3] = { 0.0 };
+  double modelBinormal[3] = { 0.0 };
+  vtkMath::Add(center, normal, modelNormal);
+  vtkMath::Add(center, binormal, modelBinormal);
+  // At origin.
+  double origin[3] = { 0.0 };
+  double unitDistance1 = std::sqrt(vtkMath::Distance2BetweenPoints(origin, normal)); // Must be 1.0 since it is a unit vector.
+  double unitDistance2 = std::sqrt(vtkMath::Distance2BetweenPoints(origin, binormal));
+  // At the centre.
+  vtkMath::GetPointAlongLine(newP2, center, modelNormal, xRadius - unitDistance1);
+  vtkMath::GetPointAlongLine(newP3, center, modelBinormal, yRadius - unitDistance2);
+  
+  // Create the shape at origin.
+  switch (shapeNode->GetShapeName())
+  {
+    case vtkMRMLMarkupsShapeNode::Ellipsoid:
+      this->Ellipsoid->SetZRadius(zRadius);
+      this->Ellipsoid->SetYRadius(yRadius);
+      this->Ellipsoid->SetXRadius(xRadius);
+      this->Ellipsoid->SetN1(shapeNode->GetParametricN1());
+      this->Ellipsoid->SetN2(shapeNode->GetParametricN2());
+      break;
+    case vtkMRMLMarkupsShapeNode::Toroid:
+      // It is documented as a scaling factor.
+      this->Toroid->SetZRadius(zRadius);
+      this->Toroid->SetYRadius(yRadius);
+      this->Toroid->SetXRadius(xRadius);
+      this->Toroid->SetN1(shapeNode->GetParametricN1());
+      this->Toroid->SetN2(shapeNode->GetParametricN2());
+      this->Toroid->SetRingRadius(shapeNode->GetParametricRingRadius());
+      this->Toroid->SetCrossSectionRadius(shapeNode->GetParametricCrossSectionRadius());
+      break;
+    case vtkMRMLMarkupsShapeNode::BohemianDome:
+      this->BohemianDome->SetA(xRadius);
+      this->BohemianDome->SetB(yRadius);
+      this->BohemianDome->SetC(zRadius);
+      break;
+    case vtkMRMLMarkupsShapeNode::ConicSpiral:
+      this->ConicSpiral->SetA(xRadius);
+      this->ConicSpiral->SetB(zRadius); // Yes, to be interactively consistent.
+      this->ConicSpiral->SetC(yRadius);
+      this->ConicSpiral->SetN(shapeNode->GetParametricN());
+      break;
+    case vtkMRMLMarkupsShapeNode::PluckerConoid:
+      this->PluckerConoid->SetN((int) shapeNode->GetParametricN());
+      this->ParametricTransform->Scale(xRadius, yRadius, zRadius);
+      break;
+    case vtkMRMLMarkupsShapeNode::Roman:
+      this->Roman->SetRadius(shapeNode->GetParametricRadius());
+      this->ParametricTransform->Scale(xRadius, yRadius, zRadius);
+      break;
+    case vtkMRMLMarkupsShapeNode::Mobius:
+      this->Mobius->SetRadius(shapeNode->GetParametricRadius());
+      this->ParametricTransform->Scale(xRadius, yRadius, zRadius);
+      break;
+    case vtkMRMLMarkupsShapeNode::Kuen:
+    case vtkMRMLMarkupsShapeNode::CrossCap:
+    // vtkParametricBoy has a ZScale parameter with a default of 0.125.
+    // We ignore it and rely on the transform's scale function for simplicity.
+    // The ZScale parameter remains at 0.125.
+    case vtkMRMLMarkupsShapeNode::Boy:
+    case vtkMRMLMarkupsShapeNode::Bour:
+      // This geometry and many others do not have their own resizing parameters.
+      this->ParametricTransform->Scale(xRadius, yRadius, zRadius);
+      break;
+    default:
+      vtkErrorMacro("Unfit shape.");
+      return;
+  }
+  // UVW *resolution*.
+  this->ParametricFunctionSource->SetUResolution(shapeNode->GetResolution());
+  this->ParametricFunctionSource->SetVResolution(shapeNode->GetResolution());
+  this->ParametricFunctionSource->SetWResolution(shapeNode->GetResolution());
+  
+  // UVW values.
+  vtkParametricFunction * function = this->ParametricFunctionSource->GetParametricFunction();
+  function->SetMinimumU(shapeNode->GetParametricMinimumU());
+  function->SetMaximumU(shapeNode->GetParametricMaximumU());
+  function->SetMinimumV(shapeNode->GetParametricMinimumV());
+  function->SetMaximumV(shapeNode->GetParametricMaximumV());
+  function->SetMinimumW(shapeNode->GetParametricMinimumW());
+  function->SetMaximumW(shapeNode->GetParametricMaximumW());
+  function->SetJoinU(shapeNode->GetParametricJoinU());
+  function->SetJoinV(shapeNode->GetParametricJoinV());
+  function->SetJoinW(shapeNode->GetParametricJoinW());
+  function->SetTwistU(shapeNode->GetParametricTwistU());
+  function->SetTwistV(shapeNode->GetParametricTwistV());
+  function->SetTwistW(shapeNode->GetParametricTwistW());
+  function->SetClockwiseOrdering(shapeNode->GetParametricClockwiseOrdering());
+  this->ParametricFunctionSource->Update();
+  
+  // Block recursion while repositioning p2 and p3.
+  this->DoUpdateFromMRML = false;
+  shapeNode->SetNthControlPointPositionWorld(1, newP2);
+  shapeNode->SetNthControlPointPositionWorld(2, newP3);
+  this->DoUpdateFromMRML = true;
+  
+  // Move the shape from origin to the intersection (centre) of the markups points.
+  this->ShapeActor->SetUserTransform(ParametricTransform);
+  
+  // From the first 3D view.
+  if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
+  {
+    // Expose radii so that they need not be computed again.
+    shapeNode->SetParametricX(xRadius, false);
+    shapeNode->SetParametricY(yRadius, false);
+    shapeNode->SetParametricZ(zRadius, false);
+    
+    // Make the shape available from outside already repositioned.
+    this->ParametricTransformer->SetInputConnection(this->ParametricFunctionSource->GetOutputPort());
+    this->ParametricTransformer->Update();
+    shapeNode->SetShapeWorld(this->ParametricTransformer->GetOutput());
+  }
+  
+  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints());
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  double opacity = this->MarkupsDisplayNode->GetOpacity();
+  double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
+  this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->ShapeProperty->SetOpacity(fillOpacity);
+  this->ShapeActor->SetProperty(this->ShapeProperty);
+  
+  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints());
+  this->TextActorPositionWorld[0] = center[0];
+  this->TextActorPositionWorld[1] = center[1];
+  this->TextActorPositionWorld[2] = center[2];
 }

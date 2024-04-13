@@ -39,6 +39,17 @@ public:
     Cylinder,
     Cone,
     Arc,
+    Ellipsoid,
+    Toroid,
+    BohemianDome,
+    Bour,
+    Boy,
+    ConicSpiral,
+    CrossCap,
+    Kuen,
+    Mobius,
+    PluckerConoid,
+    Roman,
     ShapeName_Last
   };
   enum
@@ -99,6 +110,61 @@ public:
   vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
+  // Parametrics.
+  vtkGetMacro(ParametricN1, double);
+  vtkGetMacro(ParametricN2, double);
+  vtkGetMacro(ParametricN, double);
+  vtkGetMacro(ParametricRingRadius, double);
+  vtkGetMacro(ParametricCrossSectionRadius, double);
+  vtkGetMacro(ParametricRadius, double);
+  vtkGetMacro(ParametricX, double);
+  vtkGetMacro(ParametricY, double);
+  vtkGetMacro(ParametricZ, double);
+  vtkSetMacro(ParametricMinimumU, double);
+  vtkGetMacro(ParametricMinimumU, double);
+  vtkSetMacro(ParametricMaximumU, double);
+  vtkGetMacro(ParametricMaximumU, double);
+  vtkSetMacro(ParametricMinimumV, double);
+  vtkGetMacro(ParametricMinimumV, double);
+  vtkSetMacro(ParametricMaximumV, double);
+  vtkGetMacro(ParametricMaximumV, double);
+  vtkSetMacro(ParametricMinimumW, double);
+  vtkGetMacro(ParametricMinimumW, double);
+  vtkSetMacro(ParametricMaximumW, double);
+  vtkGetMacro(ParametricMaximumW, double);
+  vtkSetClampMacro(ParametricJoinU, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricJoinU, vtkTypeBool);
+  vtkSetClampMacro(ParametricJoinV, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricJoinV, vtkTypeBool);
+  vtkSetClampMacro(ParametricJoinW, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricJoinW, vtkTypeBool);
+  vtkSetClampMacro(ParametricTwistU, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricTwistU, vtkTypeBool);
+  vtkSetClampMacro(ParametricTwistV, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricTwistV, vtkTypeBool);
+  vtkSetClampMacro(ParametricTwistW, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricTwistW, vtkTypeBool);
+  vtkSetClampMacro(ParametricClockwiseOrdering, vtkTypeBool, 0, 1);
+  vtkGetMacro(ParametricClockwiseOrdering, vtkTypeBool);
+  std::pair<double, double> GetParametricRangeU()
+  {
+    return ParametricRangeU;
+  }
+  std::pair<double, double> GetParametricRangeV()
+  {
+    return ParametricRangeV;
+  }
+  std::pair<double, double> GetParametricRangeW()
+  {
+    return ParametricRangeW;
+  }
+  
+  bool SetParametricN(double value);
+  bool SetParametricN1(double value);
+  bool SetParametricN2(double value);
+  bool SetParametricRadius(double value);
+  bool SetParametricRingRadius(double value);
+  bool SetParametricCrossSectionRadius(double value);
   
   bool GetCenterWorld(double center[3]);
   vtkPolyData * GetShapeWorld() const {return this->ShapeWorld;}
@@ -134,6 +200,25 @@ public:
   void SetHeight(double height);
   // For Cone.
   void SetAperture(double aperture); // Twice the angle of the slant on the axis.
+  // For parametric shapes.
+  bool IsParametric() const {return ShapeIsParametric;}
+  bool SetParametricX(double value, bool moveControlPoint = true)
+  {
+    return SetParametricAxisValue('x', value, moveControlPoint);
+  }
+  bool SetParametricY(double value, bool moveControlPoint = true)
+  {
+    return SetParametricAxisValue('y', value, moveControlPoint);
+  }
+  bool SetParametricZ(double value, bool moveControlPoint = true)
+  {
+    return SetParametricAxisValue('z', value, moveControlPoint);
+  }
+  // Return 0 on success, 'x', 'y' or 'z' on failure.
+  int SetParametricXYZ(double value); // Isotropic
+  int SetParametricXYZ(double xvalue, double yvalue, double zvalue);
+  
+  bool SetParametricXYZToActiveControlPoint();
 
 protected:
   vtkMRMLMarkupsShapeNode();
@@ -152,6 +237,13 @@ protected:
   void ForceCylinderMeasurements();
   void ForceConeMeasurements();
   void ForceArcMeasurements();
+  // Parametric shapes. Volume may be wrong if UVW values are not default.
+  void ForceEllipsoidMeasurements();
+  void ForceToroidMeasurements();
+  void ForceBohemianDomeMeasurements();
+  void ForceConicSpiralMeasurements();
+  //   - Parametric shapes resized by a transform, not by object functions..
+  void ForceTransformScaledMeasurements(bool withVolume = false);
   
   void AddMeasurement(const char * name, bool enabled = false,
                             const char * format = "%-#4.4g %s", const char * units = "mm");
@@ -170,6 +262,8 @@ protected:
   vtkSmartPointer<vtkCallbackCommand> OnJumpToPointCallback;
   static void OnJumpToPoint(vtkObject *caller,
                                        unsigned long event, void *clientData, void *callData);
+  // Set Parametric{X,Y,Z} and optionally move a point at 'distance' from p1.
+  bool SetParametricAxisValue(const char axis, double distance, bool moveControlPoint);
 
   int ShapeName { Sphere };
   int RadiusMode { Centered };
@@ -179,6 +273,58 @@ protected:
   bool DisplayNodeObserved = false;
   int ActiveControlPoint = 0;
   bool DisplayCappedTube = false;
+  
+  bool ShapeIsParametric = false;
+  // SuperEllipsoid, SuperToroid.
+  double ParametricN1 = 1.0;
+  double ParametricN2 = 1.0;
+  // ConicSpiral
+  double ParametricN = 2.0;
+  
+  // Can be radius, scale factor, coefficients... Read first, second, third axis.
+  double ParametricX = 1.0; // LR; p1 - p2
+  double ParametricY = 1.0; // AP; p1 - p3
+  double ParametricZ = 1.0; // IS; p1 - p4
+  
+  // SuperToroid.
+  double ParametricRingRadius = 1.0;
+  double ParametricCrossSectionRadius = 0.5;
+  // Mobius, Roman.
+  double ParametricRadius = 1.0;
+  
+  // Common parametrics.
+  double ParametricMinimumU = 0.0;
+  double ParametricMaximumU = 0.0;
+  double ParametricMinimumV = 0.0;
+  double ParametricMaximumV = 0.0;
+  double ParametricMinimumW = 0.0;
+  double ParametricMaximumW = 0.0;
+  bool ParametricJoinU = false;
+  bool ParametricJoinV = false;
+  bool ParametricJoinW = false;
+  bool ParametricTwistU = false;
+  bool ParametricTwistV = false;
+  bool ParametricTwistW = false;
+  bool ParametricClockwiseOrdering = false;
+  
+  // For UI control.
+  std::pair<double, double> ParametricRangeU;
+  std::pair<double, double> ParametricRangeV;
+  std::pair<double, double> ParametricRangeW;
+  // MinimumW, MaximumW, JoinW and TwistU do not seem to be used anywhere
+  // in vtkParametric*.{h,cxx}.
+  enum {MinimumU = 0, MaximumU, MinimumV, MaximumV, MinimumW, MaximumW,
+        JoinU, JoinV, JoinW, TwistU, TwistV, TwistW,
+        ClockwiseOrdering}; // Column names in tuples
+  // Default UVW values for one geometry.
+  typedef std::tuple<double, double, double, double, double, double,
+                    bool, bool, bool, bool, bool, bool,
+                    bool> ParametricsTuple;
+  // Collection of defaults, from the header files.
+  typedef std::map<int, ParametricsTuple> ParametricsMap;
+  ParametricsMap Parametrics;
+  // Set defaut UVW whenever a shape is selected.
+  void ApplyDefaultParametrics();
   
   vtkPolyData * ShapeWorld = nullptr;
   vtkPolyData * CappedTubeWorld = nullptr;

@@ -49,6 +49,20 @@ vtkMRMLMarkupsShapeNode::vtkMRMLMarkupsShapeNode()
   this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
   this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
   this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
+  
+  const double pi = vtkMath::Pi();
+  // Default UVW values for all parametric shapes; obtained from the header files.
+  Parametrics[Ellipsoid] =     {-1.0 * pi, 1.0 * pi, -0.5 * pi, 0.5 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
+  Parametrics[Toroid] =        {0,         2.0 * pi, 0,         2.0 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 1};
+  Parametrics[BohemianDome] =  {-1.0 * pi, 1.0 * pi, -1.0 * pi, 1.0 * pi, 0.0, 1.0, 1, 1, 0, 0, 0, 0, 0};
+  Parametrics[Bour] =          {0,         1.0,      0,         4.0 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
+  Parametrics[Boy] =           {0,         1.0 * pi, 0,         1.0 * pi, 0.0, 1.0, 1, 1, 0, 1, 1, 0, 0};
+  Parametrics[CrossCap] =      {0,         1.0 * pi, 0,         1.0 * pi, 0.0, 1.0, 1, 1, 0, 1, 1, 0, 0};
+  Parametrics[ConicSpiral] =   {0,         2.0 * pi, 0,         2.0 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
+  Parametrics[Kuen] =          {-4.5,      4.5,      0.05,      1.0 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
+  Parametrics[Mobius] =        {0,         2.0 * pi, -1.0,      1.0,      0.0, 1.0, 1, 0, 0, 0, 0, 0, 0};
+  Parametrics[PluckerConoid] = {0,         3.0,      0.0,       2.0 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
+  Parametrics[Roman] =         {0,         1.0 * pi, 0,         1.0 * pi, 0.0, 1.0, 1, 1, 0, 1, 0, 0, 0};
 }
 
 //--------------------------------------------------------------------------------
@@ -117,6 +131,28 @@ const char* vtkMRMLMarkupsShapeNode::GetShapeNameAsString(int shapeName)
       return "Cone";
     case vtkMRMLMarkupsShapeNode::Arc:
       return "Arc";
+    case vtkMRMLMarkupsShapeNode::Ellipsoid:
+      return "Ellipsoid";
+    case vtkMRMLMarkupsShapeNode::Toroid:
+      return "Toroid";
+    case vtkMRMLMarkupsShapeNode::BohemianDome:
+      return "BohemianDome";
+    case vtkMRMLMarkupsShapeNode::Bour:
+      return "Bour";
+    case vtkMRMLMarkupsShapeNode::Boy:
+      return "Boy";
+    case vtkMRMLMarkupsShapeNode::ConicSpiral:
+      return "ConicSpiral";
+    case vtkMRMLMarkupsShapeNode::CrossCap:
+      return "CrossCap";
+    case vtkMRMLMarkupsShapeNode::Kuen:
+      return "Kuen";
+    case vtkMRMLMarkupsShapeNode::Mobius:
+      return "Mobius";
+    case vtkMRMLMarkupsShapeNode::PluckerConoid:
+      return "PluckerConoid";
+    case vtkMRMLMarkupsShapeNode::Roman:
+      return "Roman";
     default:
       break;
   }
@@ -220,17 +256,20 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
   switch (shapeName)
   {
     case Sphere :
+      this->ShapeIsParametric = false;
       this->RequiredNumberOfControlPoints = 2;
       this->MaximumNumberOfControlPoints = 2;
       this->ForceSphereMeasurements();
       break;
     case Ring:
+      this->ShapeIsParametric = false;
       // Third point is used to calculate normal relative to the center in 3D view.
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceRingMeasurements();
       break;
     case Disk:
+      this->ShapeIsParametric = false;
       // Point 0 : always the center.
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
@@ -248,38 +287,93 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
        * All this is useless for healthy arteries : we have real structures using segmentation,
        * and they do not have perfectly circular cross-sections.
        */
+      this->ShapeIsParametric = false;
       this->RequiredNumberOfControlPoints = -1;
       this->MaximumNumberOfControlPoints = -1;
       this->ForceTubeMeasurements();
       break;
     case Cylinder:
+      this->ShapeIsParametric = false;
       // Points 0 : centre at one end; point 2 : radius; point 3 : centre of the opposite end
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceCylinderMeasurements();
       break;
     case Cone:
+      this->ShapeIsParametric = false;
       // Points 0 : centre of the base; point 2 : radius; point 3 : tip
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceConeMeasurements();
       break;
     case Arc:
+      this->ShapeIsParametric = false;
       // Points 0 : centre; point 2 : radius and polar vector; point 3 : normal and angle
       this->RequiredNumberOfControlPoints = 3;
       this->MaximumNumberOfControlPoints = 3;
       this->ForceArcMeasurements();
       break;
+    case Roman :
+    case PluckerConoid :
+    case Mobius :
+    case Kuen :
+    case ConicSpiral :
+    case CrossCap :
+    case Boy :
+    case Bour :
+    case BohemianDome :
+    case Toroid :
+    case Ellipsoid :
+      this->ShapeIsParametric = true;
+      this->RequiredNumberOfControlPoints = 4;
+      this->MaximumNumberOfControlPoints = 4;
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
   };
+  if (this->ShapeIsParametric)
+  {
+    switch (shapeName)
+    {
+      case Ellipsoid:
+        this->ForceEllipsoidMeasurements();
+        break;
+      case Toroid:
+        this->ForceToroidMeasurements();
+        break;
+      case BohemianDome:
+        this->ForceBohemianDomeMeasurements();
+        break;
+      case Roman:
+      case PluckerConoid:
+      case Mobius:
+      case Kuen:
+      case Bour:
+        this->ForceTransformScaledMeasurements();
+        break;
+      case ConicSpiral:
+        this->ForceConicSpiralMeasurements();
+        break;
+      case CrossCap:
+      case Boy:
+        this->ForceTransformScaledMeasurements(true); // With volume measurement.
+        break;
+      default:
+        vtkErrorMacro("Unknown shape.");
+        return;
+    }
+  }
   if (this->MaximumNumberOfControlPoints > 0)
   {
     while (this->GetNumberOfControlPoints() > this->MaximumNumberOfControlPoints)
     {
       this->RemoveNthControlPoint(this->MaximumNumberOfControlPoints);
     }
+  }
+  if (this->ShapeIsParametric)
+  {
+    this->ApplyDefaultParametrics(); // Set default UVW values for this parametric shape.
   }
   
   this->SplineWorld = nullptr;
@@ -347,6 +441,11 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
   if (this->ShapeName == Tube)
   {
     vtkErrorMacro("Current shape is a tube. Use SetRadiusAtNthControlPoint.");
+    return;
+  }
+  if (this->IsParametric())
+  {
+    vtkErrorMacro("Current shape is not managed.");
     return;
   }
   if (radius <= 0)
@@ -520,9 +619,10 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
       this->ResliceToLine();
       break;
     case Ring:
-      this->ResliceToPlane();
-      break;
     case Disk:
+    case Cylinder:
+    case Cone:
+    case Arc:
       this->ResliceToPlane();
       break;
     case Tube:
@@ -531,15 +631,18 @@ void vtkMRMLMarkupsShapeNode::ResliceToControlPoints()
         this->ResliceToTubeCrossSection(this->ActiveControlPoint);
       }
       break;
-    case Cylinder:
-      this->ResliceToPlane();
-      break;
-    case Cone:
-      this->ResliceToPlane();
-      break;
-    case Arc:
-      this->ResliceToPlane();
-      break;
+    case Roman:
+    case PluckerConoid:
+    case Mobius:
+    case Kuen:
+    case CrossCap:
+    case Boy:
+    case Bour:
+    case BohemianDome:
+    case Toroid:
+    case Ellipsoid:
+      // Can be any combination; we want at least p1 and p4 since they control orientation.
+      this->ResliceToPlane(0, 1, 3);
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -690,6 +793,75 @@ void vtkMRMLMarkupsShapeNode::ForceArcMeasurements()
   this->AddMeasurement("radius");
   this->AddAreaMeasurement("area");
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceEllipsoidMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("radius-x");
+  this->AddMeasurement("radius-y");
+  this->AddMeasurement("radius-z");
+  this->AddMeasurement("n1", false, nullptr, nullptr);
+  this->AddMeasurement("n2", false, nullptr, nullptr);
+  this->AddVolumeMeasurement("volume");
+  this->AddAreaMeasurement("area");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceToroidMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("radius-x-scalefactor", false, nullptr, nullptr);
+  this->AddMeasurement("radius-y-scalefactor", false, nullptr, nullptr);
+  this->AddMeasurement("radius-z-scalefactor", false, nullptr, nullptr);
+  this->AddMeasurement("radius-ring");
+  this->AddMeasurement("radius-crosssection");
+  this->AddMeasurement("n1", false, nullptr, nullptr);
+  this->AddMeasurement("n2", false, nullptr, nullptr);
+  this->AddVolumeMeasurement("volume");
+  this->AddAreaMeasurement("area");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceBohemianDomeMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("a");
+  this->AddMeasurement("b");
+  this->AddMeasurement("c");
+  this->AddAreaMeasurement("area");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceConicSpiralMeasurements()
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("x", false, nullptr, nullptr);
+  this->AddMeasurement("y", false, nullptr, nullptr);
+  this->AddMeasurement("z", false, nullptr, nullptr);
+  this->AddMeasurement("n", false, nullptr, nullptr);
+  this->AddAreaMeasurement("area");
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ForceTransformScaledMeasurements(bool withVolume)
+{
+  this->RemoveAllMeasurements();
+  
+  this->AddMeasurement("x-scalefactor", false, nullptr, nullptr);
+  this->AddMeasurement("y-scalefactor", false, nullptr, nullptr);
+  this->AddMeasurement("z-scalefactor", false, nullptr, nullptr);
+  if (withVolume)
+  {
+    this->AddVolumeMeasurement("volume");
+  }
+  this->AddAreaMeasurement("area");
+}
+
 //----------------------------------------------------------------------------
 /*
  * Tube : remove an adjacent point.
@@ -1089,6 +1261,7 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
   double p3[3] = { 0.0 };
+  double p4[3] = { 0.0 };
   switch (this->ShapeName)
   {
     case Sphere:
@@ -1161,6 +1334,35 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
       }
       this->GetNthControlPointPositionWorld(0, center);
       break;
+    case Roman:
+    case PluckerConoid:
+    case Mobius:
+    case Kuen:
+    case ConicSpiral:
+    case CrossCap:
+    case Boy:
+    case Bour:
+    case BohemianDome:
+    case Toroid:
+    case Ellipsoid:
+      if (this->GetNumberOfDefinedControlPoints() != 4)
+      {
+        vtkErrorMacro("Shape::Ellipsoid node does not have 4 defined control points.");
+        return false;
+      }
+      this->GetNthControlPointPositionWorld(0, p1);
+      this->GetNthControlPointPositionWorld(3, p4);
+      if (this->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+      {
+        vtkMath::Assign(p1, center);
+      }
+      else
+      {
+        center[0] = (p1[0] + p4[0]) / 2.0;
+        center[1] = (p1[1] + p4[1]) / 2.0;
+        center[2] = (p1[2] + p4[2]) / 2.0;
+      }
+      break;
     default:
       break;
   }
@@ -1223,4 +1425,233 @@ void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enable
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
   this->Measurements->AddItem(measurement);
+}
+
+//----------------------------API only----------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricAxisValue(const char axis, double distance, bool moveControlPoint)
+{
+  if (!this->ShapeIsParametric)
+  {
+    vtkErrorMacro("Shape is not in the 'Parametric' group.");
+    return false;
+  }
+  int pointIndex = 0;
+  switch (axis)
+  {
+    case 'x':
+      pointIndex = 1;
+      break;
+    case 'y':
+      pointIndex = 2;
+      break;
+    case 'z':
+      pointIndex = 3;
+      break;
+    default:
+      vtkErrorMacro("Axis must be x, y or z.");
+      return false;
+  }
+  
+  if (!moveControlPoint) // Called from vtkSlicerShapeRepresentation3D
+  {
+    switch (pointIndex)
+    {
+      case 1:
+        this->ParametricX = distance;
+        break;
+      case 2:
+        this->ParametricY = distance;
+        break;
+      case 3:
+        this->ParametricZ = distance;
+        break;
+      default:
+        vtkErrorMacro("Point index must be 1, 2 or 3.");
+        return false;
+    }
+    return true;
+  }
+  
+  if (this->GetNumberOfDefinedControlPoints(false) < 4)
+  {
+    vtkErrorMacro("4 defined control points are required.");
+    return false;
+  }
+  
+  double p1[3] = { 0.0 };
+  double px[3] = { 0.0 };
+  double pNew[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, p1);
+  this->GetNthControlPointPositionWorld(pointIndex, px);
+  double currentDistance = std::sqrt(vtkMath::Distance2BetweenPoints(p1, px));
+  vtkMath::GetPointAlongLine(pNew, p1, px, distance - currentDistance);
+  this->SetNthControlPointPositionWorld(pointIndex, pNew);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLMarkupsShapeNode::SetParametricXYZ(double value) // Isotropic
+{
+  int axes[3] = {'x', 'y', 'z'};
+  for (int i = 0; i < 3; i++)
+  {
+    bool result = SetParametricAxisValue(axes[i], value, true);
+    if (!result)
+    {
+      return axes[i];
+    }
+  }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+int vtkMRMLMarkupsShapeNode::SetParametricXYZ(double xvalue, double yvalue, double zvalue)
+{
+  int axes[3] = {'x', 'y', 'z'};
+  double values[3] = {xvalue, yvalue, zvalue};
+  for (int i = 0; i < 3; i++)
+  {
+    bool result = SetParametricAxisValue(axes[i], values[i], true);
+    if (!result)
+    {
+      return axes[i];
+    }
+  }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricXYZToActiveControlPoint()
+{
+  if (!this->ShapeIsParametric)
+  {
+    vtkErrorMacro("Shape is not in the 'Parametric' group.");
+    return false;
+  }
+  if (this->GetNumberOfDefinedControlPoints(false) != this->GetRequiredNumberOfControlPoints())
+  {
+    vtkErrorMacro("Shape does not have required number of control points.");
+    return false;
+  }
+  // ActiveControlPoint is set by OnJumpToPoint(); it must have been clicked.
+  if (this->ActiveControlPoint == 0)
+  {
+    return false;
+  }
+  double p1[3] = { 0.0 };
+  double px[3] = { 0.0 };
+  this->GetNthControlPointPositionWorld(0, p1);
+  this->GetNthControlPointPositionWorld(this->ActiveControlPoint , px);
+  double distance = std::sqrt(vtkMath::Distance2BetweenPoints(p1, px));
+  return (this->SetParametricXYZ(distance) == 0);
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricN(double value)
+{
+  if (value == 0.0) // Cancels all drawing in a persistent way.
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricN = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricN1(double value)
+{
+  if (value == 0.0)
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricN1 = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricN2(double value)
+{
+  if (value == 0.0)
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricN2 = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricRadius(double value)
+{
+  if (value == 0.0)
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricRadius = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricRingRadius(double value)
+{
+  if (value == 0.0)
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricRingRadius = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::SetParametricCrossSectionRadius(double value)
+{
+  if (value == 0.0)
+  {
+    vtkWarningMacro("0.0 is not valid, ignoring.");
+    return false;
+  }
+  this->ParametricCrossSectionRadius = value;
+  this->Modified();
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::ApplyDefaultParametrics()
+{
+  if (!this->ShapeIsParametric)
+  {
+    return;
+  }
+  // Set the default UVW values for the current shape.
+  ParametricsTuple tuple = this->Parametrics[this->ShapeName];
+  this->ParametricRangeU.first = std::get<MinimumU>(tuple);
+  this->ParametricRangeU.second = std::get<MaximumU>(tuple);
+  this->ParametricRangeV.first = std::get<MinimumV>(tuple);
+  this->ParametricRangeV.second = std::get<MaximumV>(tuple);
+  this->ParametricRangeW.first = std::get<MinimumW>(tuple);
+  this->ParametricRangeW.second = std::get<MaximumW>(tuple);
+  
+  this->ParametricMinimumU = std::get<MinimumU>(tuple);
+  this->ParametricMaximumU = std::get<MaximumU>(tuple);
+  this->ParametricMinimumV = std::get<MinimumV>(tuple);
+  this->ParametricMaximumV = std::get<MaximumV>(tuple);
+  this->ParametricMinimumW = std::get<MinimumW>(tuple);
+  this->ParametricMaximumW = std::get<MaximumW>(tuple);
+  this->ParametricJoinU = std::get<JoinU>(tuple);
+  this->ParametricJoinV = std::get<JoinV>(tuple);
+  this->ParametricJoinW = std::get<JoinW>(tuple);
+  this->ParametricTwistU = std::get<TwistU>(tuple);
+  this->ParametricTwistV = std::get<TwistV>(tuple);
+  this->ParametricTwistW = std::get<TwistW>(tuple);
+  this->ParametricClockwiseOrdering = std::get<ClockwiseOrdering>(tuple);
 }

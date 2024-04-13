@@ -68,6 +68,17 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->shapeNameComboBox->addItem("Cylinder");
   this->shapeNameComboBox->addItem("Cone");
   this->shapeNameComboBox->addItem("Arc");
+  this->shapeNameComboBox->addItem("Ellipsoid");
+  this->shapeNameComboBox->addItem("Toroid");
+  this->shapeNameComboBox->addItem("BohemianDome");
+  this->shapeNameComboBox->addItem("Bour");
+  this->shapeNameComboBox->addItem("Boy");
+  this->shapeNameComboBox->addItem("ConicSpiral");
+  this->shapeNameComboBox->addItem("CrossCap");
+  this->shapeNameComboBox->addItem("Kuen");
+  this->shapeNameComboBox->addItem("Mobius");
+  this->shapeNameComboBox->addItem("PluckerConoid");
+  this->shapeNameComboBox->addItem("Roman");
   this->radiusModeComboBox->addItem("Centered");
   this->radiusModeComboBox->addItem("Circumferential");
   this->drawModeComboBox->addItem("Intersection");
@@ -75,6 +86,23 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   this->displayCappedTubeToolButton->setVisible(false);
+  this->parametricIsotropicScalingToolButton->setVisible(false);
+  this->parametricNLabel->setVisible(false);
+  this->parametricNSliderWidget->setVisible(false);
+  this->parametricN1Label->setVisible(false);
+  this->parametricN1SliderWidget->setVisible(false);
+  this->parametricN2Label->setVisible(false);
+  this->parametricN2SliderWidget->setVisible(false);
+  this->parametricRadiusLabel->setVisible(false);
+  this->parametricRadiusSliderWidget->setVisible(false);
+  this->parametricRingRadiusLabel->setVisible(false);
+  this->parametricRingRadiusSliderWidget->setVisible(false);
+  this->parametricCrossSectionRadiusLabel->setVisible(false);
+  this->parametricCrossSectionRadiusSliderWidget->setVisible(false);
+  
+  this->parametricsMainCollapsibleButton->setCollapsed(true);
+  this->parametricsMainCollapsibleButton->setVisible(false);
+  this->parametricsMoreCollapsibleButton->setCollapsed(true);
   
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onShapeChanged(int)));
@@ -90,6 +118,51 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
                    q, SLOT(onResliceButtonClicked()));
   QObject::connect(this->displayCappedTubeToolButton, SIGNAL(clicked(bool)),
                    q, SLOT(onDisplayCappedTubeClicked(bool)));
+  
+  // Object parameters.
+  QObject::connect(this->parametricIsotropicScalingToolButton, SIGNAL(clicked()),
+                   q, SLOT(onParametricIsotropicScalingButtonClicked()));
+  QObject::connect(this->parametricNSliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricNSliderChanged(double)));
+  QObject::connect(this->parametricN1SliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricN1SliderChanged(double)));
+  QObject::connect(this->parametricN2SliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricN2SliderChanged(double)));
+  QObject::connect(this->parametricRadiusSliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricRadiusSliderChanged(double)));
+  QObject::connect(this->parametricRingRadiusSliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricRingRadiusSliderChanged(double)));
+  QObject::connect(this->parametricCrossSectionRadiusSliderWidget, SIGNAL(valueChanged(double)),
+                   q, SLOT(onParametricCrossSectionRadiusSliderChanged(double)));
+  
+  // UVW parameters.
+  QObject::connect(this->parametricsURangeWidget, SIGNAL(minimumValueChanged(double)),
+                   q, SLOT(onParametricsMinimumURangeChanged(double)));
+  QObject::connect(this->parametricsURangeWidget, SIGNAL(maximumValueChanged(double)),
+                   q, SLOT(onParametricsMaximumURangeChanged(double)));
+  QObject::connect(this->parametricsVRangeWidget, SIGNAL(minimumValueChanged(double)),
+                   q, SLOT(onParametricsMinimumVRangeChanged(double)));
+  QObject::connect(this->parametricsVRangeWidget, SIGNAL(maximumValueChanged(double)),
+                   q, SLOT(onParametricsMaximumVRangeChanged(double)));
+  QObject::connect(this->parametricsWRangeWidget, SIGNAL(minimumValueChanged(double)),
+                   q, SLOT(onParametricsMinimumWRangeChanged(double)));
+  QObject::connect(this->parametricsWRangeWidget, SIGNAL(maximumValueChanged(double)),
+                   q, SLOT(onParametricsMaximumWRangeChanged(double)));
+  
+  QObject::connect(this->parametricsJoinUToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsJoinUToogled(bool)));
+  QObject::connect(this->parametricsJoinVToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsJoinVToogled(bool)));
+  QObject::connect(this->parametricsJoinWToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsJoinWToogled(bool)));
+  QObject::connect(this->parametricsTwistUToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsTwistUToogled(bool)));
+  QObject::connect(this->parametricsTwistVToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsTwistVToogled(bool)));
+  QObject::connect(this->parametricsTwistWToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsTwistWToogled(bool)));
+  QObject::connect(this->parametricsClockwiseOrderingToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onParametricsClockwiseOrderingToogled(bool)));
 }
 
 // --------------------------------------------------------------------------
@@ -123,18 +196,54 @@ void qMRMLMarkupsShapeWidget::updateWidgetFromMRML()
     }
 
   d->shapeCollapsibleButton->setVisible(true);
+
+  d->shapeNameComboBox->setCurrentIndex( d->MarkupsShapeNode->GetShapeName());
+  d->radiusModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetRadiusMode());
+  d->drawModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetDrawMode2D());
+  d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
+  d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
+  d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
   
-  vtkMRMLMarkupsShapeNode* shapeNode= vtkMRMLMarkupsShapeNode::SafeDownCast(d->MarkupsShapeNode);
-  if (!shapeNode)
+  if (!d->MarkupsShapeNode->IsParametric())
   {
     return;
   }
-  d->shapeNameComboBox->setCurrentIndex( shapeNode->GetShapeName());
-  d->radiusModeComboBox->setCurrentIndex(shapeNode->GetRadiusMode());
-  d->drawModeComboBox->setCurrentIndex(shapeNode->GetDrawMode2D());
-  d->resolutionSliderWidget->setValue(shapeNode->GetResolution());
-  d->resliceInputSelector->setCurrentNode(shapeNode->GetResliceNode());
-  d->displayCappedTubeToolButton->setChecked(shapeNode->GetDisplayCappedTube());
+  
+  // Object parameters.
+  d->parametricNSliderWidget->setValue(d->MarkupsShapeNode->GetParametricN());
+  d->parametricN1SliderWidget->setValue(d->MarkupsShapeNode->GetParametricN1());
+  d->parametricN2SliderWidget->setValue(d->MarkupsShapeNode->GetParametricN2());
+  d->parametricRadiusSliderWidget->setValue(d->MarkupsShapeNode->GetParametricRadius());
+  d->parametricRingRadiusSliderWidget->setValue(d->MarkupsShapeNode->GetParametricRingRadius());
+  d->parametricCrossSectionRadiusSliderWidget->setValue(d->MarkupsShapeNode->GetParametricCrossSectionRadius());
+  
+  // UVW parameters.
+  // Set the range for the current shape, then the current values.
+  std::pair<double, double> parametricRangeU = d->MarkupsShapeNode->GetParametricRangeU();
+  d->parametricsURangeWidget->setMinimum(parametricRangeU.first);
+  d->parametricsURangeWidget->setMaximum(parametricRangeU.second);
+  d->parametricsURangeWidget->setMinimumValue(d->MarkupsShapeNode->GetParametricMinimumU());
+  d->parametricsURangeWidget->setMaximumValue(d->MarkupsShapeNode->GetParametricMaximumU());
+  
+  std::pair<double, double> parametricRangeV = d->MarkupsShapeNode->GetParametricRangeV();
+  d->parametricsVRangeWidget->setMinimum(parametricRangeV.first);
+  d->parametricsVRangeWidget->setMaximum(parametricRangeV.second);
+  d->parametricsVRangeWidget->setMinimumValue(d->MarkupsShapeNode->GetParametricMinimumV());
+  d->parametricsVRangeWidget->setMaximumValue(d->MarkupsShapeNode->GetParametricMaximumV());
+  
+  std::pair<double, double> parametricRangeW = d->MarkupsShapeNode->GetParametricRangeW();
+  d->parametricsWRangeWidget->setMinimum(parametricRangeW.first);
+  d->parametricsWRangeWidget->setMaximum(parametricRangeW.second);
+  d->parametricsWRangeWidget->setMinimumValue(d->MarkupsShapeNode->GetParametricMinimumW());
+  d->parametricsWRangeWidget->setMaximumValue(d->MarkupsShapeNode->GetParametricMaximumW());
+  
+  d->parametricsClockwiseOrderingToolButton->setChecked(d->MarkupsShapeNode->GetParametricClockwiseOrdering());
+  d->parametricsJoinUToolButton->setChecked(d->MarkupsShapeNode->GetParametricJoinU());
+  d->parametricsJoinVToolButton->setChecked(d->MarkupsShapeNode->GetParametricJoinV());
+  d->parametricsJoinWToolButton->setChecked(d->MarkupsShapeNode->GetParametricJoinW());
+  d->parametricsTwistUToolButton->setChecked(d->MarkupsShapeNode->GetParametricTwistU());
+  d->parametricsTwistVToolButton->setChecked(d->MarkupsShapeNode->GetParametricTwistV());
+  d->parametricsTwistWToolButton->setChecked(d->MarkupsShapeNode->GetParametricTwistW());
 }
 
 
@@ -185,6 +294,32 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->displayCappedTubeToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
+  
+  // Object parameters.
+  d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric());
+  d->parametricN1Label->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
+                                  || shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricN1SliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
+                                  || shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricN2Label->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
+                                  || shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricN2SliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
+                                  || shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricRingRadiusLabel->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricRingRadiusSliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricCrossSectionRadiusLabel->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricCrossSectionRadiusSliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Toroid);
+  d->parametricNLabel->setVisible(shapeName == vtkMRMLMarkupsShapeNode::ConicSpiral
+                                || shapeName == vtkMRMLMarkupsShapeNode::PluckerConoid);
+  d->parametricNSliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::ConicSpiral
+                                || shapeName == vtkMRMLMarkupsShapeNode::PluckerConoid);
+  d->parametricRadiusLabel->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Mobius
+                                || shapeName == vtkMRMLMarkupsShapeNode::Roman);
+  d->parametricRadiusSliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Mobius
+                                || shapeName == vtkMRMLMarkupsShapeNode::Roman);
+  
+  // UVW parameters.
+  d->parametricsMainCollapsibleButton->setVisible(d->MarkupsShapeNode->IsParametric());
 }
 
 // --------------------------------------------------------------------------
@@ -257,4 +392,244 @@ void qMRMLMarkupsShapeWidget::onDisplayCappedTubeClicked(bool value)
     return;
   }
   d->MarkupsShapeNode->SetDisplayCappedTube(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricIsotropicScalingButtonClicked()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricXYZToActiveControlPoint();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricNSliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricN(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricN1SliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricN1(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricN2SliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricN2(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricRadiusSliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricRadius(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricRingRadiusSliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricRingRadius(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricCrossSectionRadiusSliderChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricCrossSectionRadius(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMinimumURangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMinimumU(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMaximumURangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMaximumU(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMinimumVRangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMinimumV(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMaximumVRangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMaximumV(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMinimumWRangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMinimumW(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsMaximumWRangeChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricMaximumW(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsJoinUToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricJoinU(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsJoinVToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricJoinV(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsJoinWToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricJoinW(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsTwistUToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricTwistU(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsTwistVToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricTwistV(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsTwistWToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricTwistW(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricsClockwiseOrderingToogled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricClockwiseOrdering(value);
 }

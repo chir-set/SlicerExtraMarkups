@@ -54,9 +54,22 @@
 #include <vtkCutter.h>
 #include <vtkTubeFilter.h>
 #include <vtkParametricSpline.h>
+#include <vtkParametricSuperEllipsoid.h>
+#include <vtkParametricSuperToroid.h>
+#include <vtkParametricBohemianDome.h>
+#include <vtkParametricBour.h>
+#include <vtkParametricBoy.h>
+#include <vtkParametricCrossCap.h>
+#include <vtkParametricConicSpiral.h>
+#include <vtkParametricKuen.h>
+#include <vtkParametricMobius.h>
+#include <vtkParametricPluckerConoid.h>
+#include <vtkParametricRoman.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkConeSource.h>
 #include <vtkArcSource.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 //------------------------------------------------------------------------------
 class vtkGlyphSource2D;
@@ -103,10 +116,15 @@ protected:
   void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
   void UpdateArcFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdateParametricFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
 
   vtkSmartPointer<vtkGlyphSource2D> MiddlePointSource;
   vtkSmartPointer<vtkPolyDataMapper2D> MiddlePointDataMapper;
   vtkSmartPointer<vtkActor2D> MiddlePointActor;
+  
+  vtkSmartPointer<vtkPolyDataMapper2D> ParametricMiddlePointMapper;
+  vtkSmartPointer<vtkActor2D> ParametricMiddlePointActor;
+  vtkSmartPointer<vtkGlyphSource2D> ParametricMiddlePointSource;
   
   vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
   vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
@@ -131,6 +149,21 @@ protected:
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
   vtkSmartPointer<vtkTubeFilter> Tube; // Variable radius tube.
   vtkSmartPointer<vtkTubeFilter> CappedTube;
+  
+  vtkSmartPointer<vtkParametricSuperEllipsoid> Ellipsoid;
+  vtkSmartPointer<vtkParametricSuperToroid> Toroid;
+  vtkSmartPointer<vtkParametricBohemianDome> BohemianDome;
+  vtkSmartPointer<vtkParametricBour> Bour;
+  vtkSmartPointer<vtkParametricBoy> Boy;
+  vtkSmartPointer<vtkParametricCrossCap> CrossCap;
+  vtkSmartPointer<vtkParametricConicSpiral> ConicSpiral;
+  vtkSmartPointer<vtkParametricKuen> Kuen;
+  vtkSmartPointer<vtkParametricMobius> Mobius;
+  vtkSmartPointer<vtkParametricPluckerConoid> PluckerConoid;
+  vtkSmartPointer<vtkParametricRoman> Roman;
+  vtkSmartPointer<vtkParametricFunctionSource> ParametricFunctionSource;
+  vtkSmartPointer<vtkTransform> ParametricTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> ParametricTransformer;
   
   vtkSmartPointer<vtkTransformPolyDataFilter> ShapeWorldToSliceTransformer;
   vtkSmartPointer<vtkTransformPolyDataFilter> ShapeCutWorldToSliceTransformer;

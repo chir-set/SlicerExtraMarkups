@@ -62,6 +62,27 @@ void vtkMRMLMeasurementShape::Compute()
     case vtkMRMLMarkupsShapeNode::Arc:
       this->ComputeArc();
       break;
+    case vtkMRMLMarkupsShapeNode::Ellipsoid:
+      this->ComputeEllipsoid();
+      break;
+    case vtkMRMLMarkupsShapeNode::Toroid:
+      this->ComputeToroid();
+      break;
+    case vtkMRMLMarkupsShapeNode::BohemianDome:
+      this->ComputeBohemianDome();
+      break;
+    case vtkMRMLMarkupsShapeNode::ConicSpiral:
+      this->ComputeConicSpiral();
+      break;
+    case vtkMRMLMarkupsShapeNode::Roman:
+    case vtkMRMLMarkupsShapeNode::PluckerConoid:
+    case vtkMRMLMarkupsShapeNode::Mobius:
+    case vtkMRMLMarkupsShapeNode::Kuen:
+    case vtkMRMLMarkupsShapeNode::CrossCap:
+    case vtkMRMLMarkupsShapeNode::Boy:
+    case vtkMRMLMarkupsShapeNode::Bour:
+      this->ComputeTransformScaledShape();
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -435,6 +456,294 @@ void vtkMRMLMeasurementShape::ComputeArc()
   if (this->GetName() == std::string("area"))
   {
     measurement = (vtkMath::Pi() * radius * radius) / angle;
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeEllipsoid()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * ellipsoidNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!ellipsoidNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(ellipsoidNode->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  double xRadius = ellipsoidNode->GetParametricX();
+  double yRadius = ellipsoidNode->GetParametricY();
+  double zRadius = ellipsoidNode->GetParametricZ();
+  
+  if (this->GetName() == std::string("radius-x"))
+  {
+    measurement = xRadius;
+  }
+  else
+  if (this->GetName() == std::string("radius-y"))
+  {
+    measurement = yRadius;
+  }
+  else
+  if (this->GetName() == std::string("radius-z"))
+  {
+    measurement = zRadius;
+  }
+  else
+  if (this->GetName() == std::string("n1"))
+  {
+    measurement = ellipsoidNode->GetParametricN1();
+  }
+  else
+  if (this->GetName() == std::string("n2"))
+  {
+    measurement = ellipsoidNode->GetParametricN2();
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    // Setting UVW values are not friendly to volume calculation.
+    measurement = massProperties->GetVolume();
+  }
+  else
+    if (this->GetName() == std::string("area"))
+    {
+      measurement = massProperties->GetSurfaceArea();
+    }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeToroid()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * toroidNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!toroidNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(toroidNode->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  double xRadius = toroidNode->GetParametricX();
+  double yRadius = toroidNode->GetParametricY();
+  double zRadius = toroidNode->GetParametricZ();
+  
+  if (this->GetName() == std::string("radius-x-scalefactor"))
+  {
+    measurement = xRadius;
+  }
+  else
+  if (this->GetName() == std::string("radius-y-scalefactor"))
+  {
+    measurement = yRadius;
+  }
+  else
+  if (this->GetName() == std::string("radius-z-scalefactor"))
+  {
+    measurement = zRadius;
+  }
+  else
+  if (this->GetName() == std::string("radius-ring"))
+  {
+    measurement = toroidNode->GetParametricRingRadius();
+  }
+  else
+  if (this->GetName() == std::string("radius-crosssection"))
+  {
+    measurement = toroidNode->GetParametricCrossSectionRadius();
+  }
+  else
+  if (this->GetName() == std::string("n1"))
+  {
+    measurement = toroidNode->GetParametricN1();
+  }
+  else
+  if (this->GetName() == std::string("n2"))
+  {
+    measurement = toroidNode->GetParametricN2();
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = massProperties->GetVolume();
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = massProperties->GetSurfaceArea();
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeBohemianDome()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * bohemianDomeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!bohemianDomeNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(bohemianDomeNode->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  if (this->GetName() == std::string("a"))
+  {
+    measurement = bohemianDomeNode->GetParametricX();
+  }
+  else
+  if (this->GetName() == std::string("b"))
+  {
+    measurement = bohemianDomeNode->GetParametricY();
+  }
+  else
+  if (this->GetName() == std::string("c"))
+  {
+    measurement = bohemianDomeNode->GetParametricZ();
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = massProperties->GetVolume(); // Fails; not called.
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = massProperties->GetSurfaceArea();
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeConicSpiral()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * conicSpiralNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!conicSpiralNode)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(conicSpiralNode->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  if (this->GetName() == std::string("x"))
+  {
+    measurement = conicSpiralNode->GetParametricX();
+  }
+  else
+  if (this->GetName() == std::string("y"))
+  {
+    measurement = conicSpiralNode->GetParametricY();
+  }
+  else
+  if (this->GetName() == std::string("z"))
+  {
+    measurement = conicSpiralNode->GetParametricZ();
+  }
+  else
+  if (this->GetName() == std::string("n"))
+  {
+    measurement = conicSpiralNode->GetParametricN();
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = massProperties->GetSurfaceArea();
+  }
+  else
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  this->SetValue(measurement, this->GetName().c_str());
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMeasurementShape::ComputeTransformScaledShape()
+{
+  double measurement = 0.0;
+  vtkMRMLMarkupsShapeNode * node = vtkMRMLMarkupsShapeNode::SafeDownCast(this->InputMRMLNode);
+  if (!node)
+  {
+    this->SetValue(measurement, "#ERR");
+    return;
+  }
+  vtkNew<vtkTriangleFilter> triangleFilter;
+  vtkNew<vtkMassProperties> massProperties;
+  triangleFilter->SetInputData(node->GetShapeWorld());
+  triangleFilter->Update();
+  massProperties->SetInputData(triangleFilter->GetOutput());
+  massProperties->Update();
+  
+  double xRadius = node->GetParametricX();
+  double yRadius = node->GetParametricY();
+  double zRadius = node->GetParametricZ();
+  
+  if (this->GetName() == std::string("x-scalefactor"))
+  {
+    measurement = xRadius;
+  }
+  else
+  if (this->GetName() == std::string("y-scalefactor"))
+  {
+    measurement = yRadius;
+  }
+  else
+  if (this->GetName() == std::string("z-scalefactor"))
+  {
+    measurement = zRadius;
+  }
+  else
+  if (this->GetName() == std::string("volume"))
+  {
+    measurement = massProperties->GetVolume();
+  }
+  else
+  if (this->GetName() == std::string("area"))
+  {
+    measurement = massProperties->GetSurfaceArea();
   }
   else
   {

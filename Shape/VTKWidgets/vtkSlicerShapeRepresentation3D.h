@@ -33,10 +33,23 @@
 #include <vtkSphereSource.h>
 #include <vtkTubeFilter.h>
 #include <vtkParametricSpline.h>
+#include <vtkParametricSuperEllipsoid.h>
+#include <vtkParametricSuperToroid.h>
+#include <vtkParametricBohemianDome.h>
+#include <vtkParametricBour.h>
+#include <vtkParametricBoy.h>
+#include <vtkParametricCrossCap.h>
+#include <vtkParametricConicSpiral.h>
+#include <vtkParametricKuen.h>
+#include <vtkParametricMobius.h>
+#include <vtkParametricPluckerConoid.h>
+#include <vtkParametricRoman.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkConeSource.h>
 #include <vtkArcSource.h>
 #include <vtkMRMLScene.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -78,8 +91,11 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper> MiddlePointMapper;
   vtkSmartPointer<vtkActor> MiddlePointActor;
   vtkSmartPointer<vtkSphereSource> MiddlePointSource;
-
   void BuildMiddlePoint();
+  
+  vtkSmartPointer<vtkPolyDataMapper> ParametricMiddlePointMapper;
+  vtkSmartPointer<vtkActor> ParametricMiddlePointActor;
+  vtkSmartPointer<vtkSphereSource> ParametricMiddlePointSource;
   
   vtkSmartPointer<vtkDiskSource> DiskSource;
   vtkSmartPointer<vtkDiskSource> RingSource;
@@ -98,6 +114,21 @@ protected:
   vtkSmartPointer<vtkTubeFilter> Tube; // Variable radius tube.
   vtkSmartPointer<vtkTubeFilter> CappedTube;
   
+  vtkSmartPointer<vtkParametricSuperEllipsoid> Ellipsoid;
+  vtkSmartPointer<vtkParametricSuperToroid> Toroid;
+  vtkSmartPointer<vtkParametricBohemianDome> BohemianDome;
+  vtkSmartPointer<vtkParametricBour> Bour;
+  vtkSmartPointer<vtkParametricBoy> Boy;
+  vtkSmartPointer<vtkParametricCrossCap> CrossCap;
+  vtkSmartPointer<vtkParametricConicSpiral> ConicSpiral;
+  vtkSmartPointer<vtkParametricKuen> Kuen;
+  vtkSmartPointer<vtkParametricMobius> Mobius;
+  vtkSmartPointer<vtkParametricPluckerConoid> PluckerConoid;
+  vtkSmartPointer<vtkParametricRoman> Roman;
+  vtkSmartPointer<vtkParametricFunctionSource> ParametricFunctionSource;
+  vtkSmartPointer<vtkTransform> ParametricTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> ParametricTransformer;
+  
   vtkSmartPointer<vtkPolyDataMapper> ShapeMapper;
   vtkSmartPointer<vtkActor> ShapeActor;
   vtkSmartPointer<vtkProperty> ShapeProperty;
@@ -109,6 +140,7 @@ protected:
   void UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   void UpdateArcFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdateParametricFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
   
   // Set shape, spline and closed tube pointers in markups node from the first view only.
   vtkObject * GetFirstViewNode(vtkMRMLScene * scene) const;

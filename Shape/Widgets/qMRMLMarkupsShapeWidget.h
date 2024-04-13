@@ -67,6 +67,32 @@ public slots:
   void onResliceNodeChanged(vtkMRMLNode * node);
   void onResliceButtonClicked();
   void onDisplayCappedTubeClicked(bool value);
+  
+  // Parametric shapes.
+  // Object parameters.
+  void onParametricIsotropicScalingButtonClicked();
+  void onParametricNSliderChanged(double value);
+  void onParametricN1SliderChanged(double value);
+  void onParametricN2SliderChanged(double value);
+  void onParametricRadiusSliderChanged(double value);
+  void onParametricRingRadiusSliderChanged(double value);
+  void onParametricCrossSectionRadiusSliderChanged(double value);
+  
+  // UVW parameters.
+  void onParametricsMinimumURangeChanged(double value);
+  void onParametricsMaximumURangeChanged(double value);
+  void onParametricsMinimumVRangeChanged(double value);
+  void onParametricsMaximumVRangeChanged(double value);
+  void onParametricsMinimumWRangeChanged(double value);
+  void onParametricsMaximumWRangeChanged(double value);
+  
+  void onParametricsJoinUToogled(bool value);
+  void onParametricsJoinVToogled(bool value);
+  void onParametricsJoinWToogled(bool value);
+  void onParametricsTwistUToogled(bool value);
+  void onParametricsTwistVToogled(bool value);
+  void onParametricsTwistWToogled(bool value);
+  void onParametricsClockwiseOrderingToogled(bool value);
 
 protected:
   void setup();

@@ -33,6 +33,12 @@ protected:
     void ComputeCone();
     void ComputeCylinder();
     void ComputeArc();
+    // Parametric geometries.
+    void ComputeEllipsoid();
+    void ComputeBohemianDome();
+    void ComputeToroid();
+    void ComputeConicSpiral();
+    void ComputeTransformScaledShape();
 };
 
 #endif // VTKMRMLMEASUREMENTSHAPE_H
