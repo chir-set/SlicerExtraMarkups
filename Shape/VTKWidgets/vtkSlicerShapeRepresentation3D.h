@@ -37,7 +37,6 @@
 #include <vtkConeSource.h>
 #include <vtkArcSource.h>
 #include <vtkMRMLScene.h>
-#include <vtkCallbackCommand.h>
 
 //------------------------------------------------------------------------------
 class vtkCutter;
@@ -114,11 +113,6 @@ protected:
   
   // Set shape, spline and closed tube pointers in markups node from the first view only.
   vtkObject * GetFirstViewNode(vtkMRMLScene * scene) const;
-  
-  vtkSmartPointer<vtkCallbackCommand> CameraModifiedCallbackCommand;
-  static void OnCameraModified(vtkObject *caller,
-                               unsigned long event, void *clientData, void *callData);
-  bool CameraIsBeingObserved = false;
 
 private:
   vtkSlicerShapeRepresentation3D(const vtkSlicerShapeRepresentation3D&) = delete;

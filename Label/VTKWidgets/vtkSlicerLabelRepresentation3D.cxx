@@ -58,19 +58,11 @@ vtkSlicerLabelRepresentation3D::vtkSlicerLabelRepresentation3D()
   
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(Unselected)->TextProperty);
   this->ConeSource->SetAngle(30.0);
-
-  this->CameraModifiedCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
-  this->CameraModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
-  this->CameraModifiedCallbackCommand->SetCallback( vtkSlicerLabelRepresentation3D::OnCameraModified );
 }
 
 //------------------------------------------------------------------------------
 vtkSlicerLabelRepresentation3D::~vtkSlicerLabelRepresentation3D()
 {
-  if (this->CameraIsBeingObserved)
-  {
-    this->GetRenderer()->GetActiveCamera()->RemoveObserver(this->CameraModifiedCallbackCommand);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -195,12 +187,7 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     return;
   }
   vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
-  if (!this->CameraIsBeingObserved)
-  {
-    this->GetRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, this->CameraModifiedCallbackCommand);
-    this->CameraIsBeingObserved = true;
-    //this->SetCameraObservationStatus(true);
-  }
+
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
   markupsNode->GetNthControlPointPositionWorld(0, p1);
@@ -265,18 +252,6 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
   // Shrink the control points on markups creation.
   this->UpdateViewScaleFactor();
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerLabelRepresentation3D::OnCameraModified(vtkObject *caller,
-                 unsigned long event, void *clientData, void *callData)
-{
-  vtkSlicerLabelRepresentation3D * client = reinterpret_cast<vtkSlicerLabelRepresentation3D*>(clientData);
-  if (!client)
-  {
-    return;
-  }
-  client->UpdateFromMRML(NULL, 0);
 }
 
 //----------------------------------------------------------------------

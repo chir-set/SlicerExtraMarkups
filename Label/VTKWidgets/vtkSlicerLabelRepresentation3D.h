@@ -30,7 +30,6 @@
 #include <vtkWeakPointer.h>
 #include <vtkConeSource.h>
 #include <vtkLineSource.h>
-#include <vtkCallbackCommand.h>
 
 //------------------------------------------------------------------------------
 /**
@@ -73,11 +72,6 @@ protected:
   vtkSmartPointer<vtkAppendPolyData> AppendedArrow;
   vtkSmartPointer<vtkPolyDataMapper> ArrowMapper;
   vtkSmartPointer<vtkActor> ArrowActor;
-  
-  vtkSmartPointer<vtkCallbackCommand> CameraModifiedCallbackCommand;
-  static void OnCameraModified(vtkObject *caller,
-                               unsigned long event, void *clientData, void *callData);
-  bool CameraIsBeingObserved = false;
   
 private:
   vtkSlicerLabelRepresentation3D(const vtkSlicerLabelRepresentation3D&) = delete;

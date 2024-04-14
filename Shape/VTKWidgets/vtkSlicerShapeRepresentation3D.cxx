@@ -94,19 +94,11 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->CylinderSource->SetNumberOfSides(20);
   this->CylinderSource->SetInputConnection(this->CylinderAxis->GetOutputPort());
   this->CylinderSource->SetCapping(true);
-  
-  this->CameraModifiedCallbackCommand = vtkSmartPointer<vtkCallbackCommand>::New();
-  this->CameraModifiedCallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
-  this->CameraModifiedCallbackCommand->SetCallback( vtkSlicerShapeRepresentation3D::OnCameraModified );
 }
 
 //------------------------------------------------------------------------------
 vtkSlicerShapeRepresentation3D::~vtkSlicerShapeRepresentation3D()
 {
-  if (this->CameraIsBeingObserved)
-  {
-    this->GetRenderer()->GetActiveCamera()->RemoveObserver(this->CameraModifiedCallbackCommand);
-  }
 }
 
 //------------------------------------------------------------------------------
@@ -238,11 +230,6 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   {
     return;
   }
-  if (!this->CameraIsBeingObserved)
-  {
-    this->GetRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, this->CameraModifiedCallbackCommand);
-    this->CameraIsBeingObserved = true;
-  }
   
   if (shapeNode->GetNumberOfControlPoints() < shapeNode->GetRequiredNumberOfControlPoints())
   {
@@ -322,18 +309,6 @@ vtkObject * vtkSlicerShapeRepresentation3D::GetFirstViewNode(vtkMRMLScene* scene
     return nullptr;
   }
   return allNodes->GetItemAsObject(0);
-}
-
-//---------------------------------------------------------------------------
-void vtkSlicerShapeRepresentation3D::OnCameraModified(vtkObject *caller,
-                                                      unsigned long event, void *clientData, void *callData)
-{
-  vtkSlicerShapeRepresentation3D * client = reinterpret_cast<vtkSlicerShapeRepresentation3D*>(clientData);
-  if (!client)
-  {
-    return;
-  }
-  client->UpdateFromMRML(NULL, 0);
 }
 
 //---------------------------- Disk ------------------------------------------
