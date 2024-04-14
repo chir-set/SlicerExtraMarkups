@@ -949,31 +949,31 @@ void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   
   if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
   {
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1);
-    shapeNode->GetNthControlPointPositionWorld(1, p2);
-    shapeNode->GetNthControlPointPositionWorld(2, p3);
+    double p1World[3] = { 0.0 };
+    double p2World[3] = { 0.0 };
+    double p3World[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(0, p1World);
+    shapeNode->GetNthControlPointPositionWorld(1, p2World);
+    shapeNode->GetNthControlPointPositionWorld(2, p3World);
     
     this->ShapeMapper->SetInputConnection(this->ConeSource->GetOutputPort());
     
-    double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p3));
-    double direction[3] = { 0.0 };
+    double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
+    double directionWorld[3] = { 0.0 };
     // Points towards p3
-    vtkMath::Subtract(p3, p1, direction);
+    vtkMath::Subtract(p3World, p1World, directionWorld);
     
-    double center[3] = {0.0};
-    center[0] = (p1[0] + p3[0]) / 2.0;
-    center[1] = (p1[1] + p3[1]) / 2.0;
-    center[2] = (p1[2] + p3[2]) / 2.0;
+    double centerWorld[3] = {0.0};
+    centerWorld[0] = (p1World[0] + p3World[0]) / 2.0;
+    centerWorld[1] = (p1World[1] + p3World[1]) / 2.0;
+    centerWorld[2] = (p1World[2] + p3World[2]) / 2.0;
     
-    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
     
-    this->ConeSource->SetCenter(center);
+    this->ConeSource->SetCenter(centerWorld);
     this->ConeSource->SetRadius(radius);
     this->ConeSource->SetHeight(height);
-    this->ConeSource->SetDirection(direction);
+    this->ConeSource->SetDirection(directionWorld);
     this->ConeSource->SetResolution(shapeNode->GetResolution());
     this->ConeSource->Update();
     
@@ -1052,17 +1052,17 @@ void vtkSlicerShapeRepresentation2D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
   
   if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
   {
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1);
-    shapeNode->GetNthControlPointPositionWorld(1, p2);
-    shapeNode->GetNthControlPointPositionWorld(2, p3);
+    double p1World[3] = { 0.0 };
+    double p2World[3] = { 0.0 };
+    double p3World[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(0, p1World);
+    shapeNode->GetNthControlPointPositionWorld(1, p2World);
+    shapeNode->GetNthControlPointPositionWorld(2, p3World);
     
-    this->CylinderAxis->SetPoint1(p1);
-    this->CylinderAxis->SetPoint2(p3);
+    this->CylinderAxis->SetPoint1(p1World);
+    this->CylinderAxis->SetPoint2(p3World);
     this->CylinderAxis->Update();
-    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
+    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
     
     this->CylinderSource->SetRadius(radius);
     this->CylinderSource->SetNumberOfSides(shapeNode->GetResolution());
@@ -1147,25 +1147,25 @@ void vtkSlicerShapeRepresentation2D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
   
   if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
   {
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1);
-    shapeNode->GetNthControlPointPositionWorld(1, p2);
-    shapeNode->GetNthControlPointPositionWorld(2, p3);
+    double p1World[3] = { 0.0 };
+    double p2World[3] = { 0.0 };
+    double p3World[3] = { 0.0 };
+    shapeNode->GetNthControlPointPositionWorld(0, p1World);
+    shapeNode->GetNthControlPointPositionWorld(1, p2World);
+    shapeNode->GetNthControlPointPositionWorld(2, p3World);
     
     this->ShapeMapper->SetInputConnection(this->ArcSource->GetOutputPort());
     
-    double polarVector1[3] = { 0.0 };
-    double polarVector2[3] = { 0.0 }; // Nor really, but will be when repositioned.
+    double polarVector1World[3] = { 0.0 };
+    double polarVector2World[3] = { 0.0 }; // Not really, but will be when repositioned.
     double normal[3] = { 0.0 }; // Normal to the plane.
-    vtkMath::Subtract(p2, p1, polarVector1);
-    vtkMath::Subtract(p3, p1, polarVector2);
-    vtkMath::Cross(polarVector1, polarVector2, normal);
-    const double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(polarVector1, polarVector2));
+    vtkMath::Subtract(p2World, p1World, polarVector1World);
+    vtkMath::Subtract(p3World, p1World, polarVector2World);
+    vtkMath::Cross(polarVector1World, polarVector2World, normal);
+    const double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(polarVector1World, polarVector2World));
     
-    this->ArcSource->SetCenter(p1);
-    this->ArcSource->SetPolarVector(polarVector1);
+    this->ArcSource->SetCenter(p1World);
+    this->ArcSource->SetPolarVector(polarVector1World);
     this->ArcSource->SetNormal(normal);
     this->ArcSource->SetAngle(angle);
     this->ArcSource->SetResolution(shapeNode->GetResolution());
@@ -1197,9 +1197,9 @@ void vtkSlicerShapeRepresentation2D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
     this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
     this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
     
-    double p1Display[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1Display);
-    this->TextActor->SetDisplayPosition(p1Display[0], p1Display[1]);
+    double p1[3] = { 0.0 };
+    this->GetNthControlPointDisplayPosition(0, p1);
+    this->TextActor->SetDisplayPosition(p1[0], p1[1]);
   }
   else
   {
