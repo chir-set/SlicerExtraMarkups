@@ -75,7 +75,6 @@ protected:
   vtkSlicerShapeRepresentation3D();
   ~vtkSlicerShapeRepresentation3D() override;
 
-  vtkSmartPointer<vtkPolyData> MiddlePoint;
   vtkSmartPointer<vtkPolyDataMapper> MiddlePointMapper;
   vtkSmartPointer<vtkActor> MiddlePointActor;
   vtkSmartPointer<vtkSphereSource> MiddlePointSource;
