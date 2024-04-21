@@ -293,7 +293,7 @@ void vtkSlicerShapeRepresentation3D::BuildMiddlePoint()
   center[2] = (p1[2] + p2[2]) / 2.0;
 
   this->MiddlePointSource->SetCenter(center);
-  this->MiddlePointSource->SetRadius(this->ControlPointSize);
+  this->MiddlePointSource->SetRadius(this->ControlPointSize / 2.0);
 }
 
 //----------------------------------------------------------------------------
@@ -419,7 +419,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   center[2] = (p1[2] + p2[2]) / 2.0;
   
   this->MiddlePointSource->SetCenter(center);
-  this->MiddlePointSource->SetRadius(this->ControlPointSize);
+  this->MiddlePointSource->SetRadius(this->ControlPointSize / 2.0);
   this->ShapeMapper->SetInputConnection(this->RingSource->GetOutputPort());
   
   double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
