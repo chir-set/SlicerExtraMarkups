@@ -60,7 +60,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
 
   this->Ui_qMRMLMarkupsShapeWidget::setupUi(widget);
   this->shapeCollapsibleButton->setVisible(false);
-  this->shapeCollapsibleButton->setCollapsed(true);
+  this->shapeCollapsibleButton->setCollapsed(false);
   this->shapeNameComboBox->addItem("Sphere");
   this->shapeNameComboBox->addItem("Ring");
   this->shapeNameComboBox->addItem("Disk");
