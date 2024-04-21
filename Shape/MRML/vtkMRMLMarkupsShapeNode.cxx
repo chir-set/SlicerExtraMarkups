@@ -788,6 +788,11 @@ double vtkMRMLMarkupsShapeNode::GetNthControlPointRadius(int n)
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::SetNthControlPointRadius(int n, double radius)
 {
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Current Shape node is not a Tube.");
+    return;
+  }
   if (radius <= 0.0)
   {
     vtkErrorMacro("Requested radius must be greater than 0.0.");
