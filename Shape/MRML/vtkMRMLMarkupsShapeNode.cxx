@@ -1168,8 +1168,14 @@ void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
 {
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  measurement->SetUnits(units);
-  measurement->SetPrintFormat(format);
+  if (units)
+  {
+    measurement->SetUnits(units);
+  }
+  if (format)
+  {
+    measurement->SetPrintFormat(format);
+  }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
   this->Measurements->AddItem(measurement);
@@ -1181,9 +1187,15 @@ void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
 {
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  measurement->SetUnits(units);
+  if (units)
+  {
+    measurement->SetUnits(units);
+  }
   measurement->SetDisplayCoefficient(coefficient);
-  measurement->SetPrintFormat(format);
+  if (format)
+  {
+    measurement->SetPrintFormat(format);
+  }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
   this->Measurements->AddItem(measurement);
@@ -1194,9 +1206,15 @@ void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enable
 {
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  measurement->SetUnits(units);
+  if (units)
+  {
+    measurement->SetUnits(units);
+  }
   measurement->SetDisplayCoefficient(coefficient);
-  measurement->SetPrintFormat(format);
+  if (format)
+  {
+    measurement->SetPrintFormat(format);
+  }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
   this->Measurements->AddItem(measurement);
