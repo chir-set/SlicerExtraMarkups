@@ -123,6 +123,18 @@ void qMRMLMarkupsShapeWidget::updateWidgetFromMRML()
     }
 
   d->shapeCollapsibleButton->setVisible(true);
+  
+  vtkMRMLMarkupsShapeNode* shapeNode= vtkMRMLMarkupsShapeNode::SafeDownCast(d->MarkupsShapeNode);
+  if (!shapeNode)
+  {
+    return;
+  }
+  d->shapeNameComboBox->setCurrentIndex( shapeNode->GetShapeName());
+  d->radiusModeComboBox->setCurrentIndex(shapeNode->GetRadiusMode());
+  d->drawModeComboBox->setCurrentIndex(shapeNode->GetDrawMode2D());
+  d->resolutionSliderWidget->setValue(shapeNode->GetResolution());
+  d->resliceInputSelector->setCurrentNode(shapeNode->GetResliceNode());
+  d->displayCappedTubeToolButton->setChecked(shapeNode->GetDisplayCappedTube());
 }
 
 
@@ -149,12 +161,7 @@ void qMRMLMarkupsShapeWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
   this->setEnabled(markupsNode != nullptr);
   if (d->MarkupsShapeNode)
   {
-    d->shapeNameComboBox->setCurrentIndex( d->MarkupsShapeNode->GetShapeName());
-    d->radiusModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetRadiusMode());
-    d->drawModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetDrawMode2D());
-    d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
-    d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
-    d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
+    this->updateWidgetFromMRML();
   }
 }
 
