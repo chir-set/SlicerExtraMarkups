@@ -26,6 +26,7 @@
 
 // VTK includes
 #include <vtkWeakPointer.h>
+#include <vtkParametricFunctionSource.h>
 
 #include <qSlicerCoreApplication.h>
 
@@ -85,6 +86,20 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->drawModeComboBox->addItem("Projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
+  this->parametricScalarModeComboBox->addItem("None", vtkParametricFunctionSource::SCALAR_NONE);
+  this->parametricScalarModeComboBox->addItem("U", vtkParametricFunctionSource::SCALAR_U);
+  this->parametricScalarModeComboBox->addItem("V", vtkParametricFunctionSource::SCALAR_V);
+  this->parametricScalarModeComboBox->addItem("U0", vtkParametricFunctionSource::SCALAR_U0);
+  this->parametricScalarModeComboBox->addItem("V0", vtkParametricFunctionSource::SCALAR_V0);
+  this->parametricScalarModeComboBox->addItem("U0V0", vtkParametricFunctionSource::SCALAR_U0V0);
+  this->parametricScalarModeComboBox->addItem("Modulus", vtkParametricFunctionSource::SCALAR_MODULUS);
+  this->parametricScalarModeComboBox->addItem("Phase", vtkParametricFunctionSource::SCALAR_PHASE);
+  this->parametricScalarModeComboBox->addItem("Quadrant", vtkParametricFunctionSource::SCALAR_QUADRANT);
+  this->parametricScalarModeComboBox->addItem("X", vtkParametricFunctionSource::SCALAR_X);
+  this->parametricScalarModeComboBox->addItem("Y", vtkParametricFunctionSource::SCALAR_Y);
+  this->parametricScalarModeComboBox->addItem("Z", vtkParametricFunctionSource::SCALAR_Z);
+  this->parametricScalarModeComboBox->addItem("Distance", vtkParametricFunctionSource::SCALAR_DISTANCE);
+  
   this->displayCappedTubeToolButton->setVisible(false);
   this->scalarVisibilityToolButton->setVisible(false);
   this->parametricIsotropicScalingToolButton->setVisible(false);
@@ -137,6 +152,8 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
                    q, SLOT(onParametricRingRadiusSliderChanged(double)));
   QObject::connect(this->parametricCrossSectionRadiusSliderWidget, SIGNAL(valueChanged(double)),
                    q, SLOT(onParametricCrossSectionRadiusSliderChanged(double)));
+  QObject::connect(this->parametricScalarModeComboBox, SIGNAL(currentIndexChanged(int)),
+                   q, SLOT(onParametricScalarModeChanged(int)));
   
   // UVW parameters.
   QObject::connect(this->parametricsURangeWidget, SIGNAL(minimumValueChanged(double)),
@@ -214,6 +231,7 @@ void qMRMLMarkupsShapeWidget::updateWidgetFromMRML()
   }
   
   // Object parameters.
+  d->parametricScalarModeComboBox->setCurrentIndex(d->parametricScalarModeComboBox->findData(d->MarkupsShapeNode->GetParametricScalarMode()));
   d->parametricNSliderWidget->setValue(d->MarkupsShapeNode->GetParametricN());
   d->parametricN1SliderWidget->setValue(d->MarkupsShapeNode->GetParametricN1());
   d->parametricN2SliderWidget->setValue(d->MarkupsShapeNode->GetParametricN2());
@@ -298,7 +316,8 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->displayCappedTubeToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
-  d->scalarVisibilityToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
+  d->scalarVisibilityToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube
+                                          || d->MarkupsShapeNode->IsParametric());
   
   // Object parameters.
   d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric());
@@ -494,6 +513,19 @@ void qMRMLMarkupsShapeWidget::onParametricCrossSectionRadiusSliderChanged(double
   }
   d->MarkupsShapeNode->SetParametricCrossSectionRadius(value);
 }
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onParametricScalarModeChanged(int value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetParametricScalarMode(d->parametricScalarModeComboBox->itemData(value).toInt());
+}
+
 
 // --------------------------------------------------------------------------
 void qMRMLMarkupsShapeWidget::onParametricsMinimumURangeChanged(double value)

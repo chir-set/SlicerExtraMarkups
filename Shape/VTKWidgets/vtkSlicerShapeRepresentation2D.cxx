@@ -1397,6 +1397,7 @@ void vtkSlicerShapeRepresentation2D::UpdateParametricFromMRML(vtkMRMLNode* calle
   double zRadius = std::sqrt(vtkMath::Distance2BetweenPoints(centerWorld, p4World));
   
   this->ParametricTransformer->SetInputConnection(this->ParametricFunctionSource->GetOutputPort());
+  this->ParametricFunctionSource->SetScalarMode(shapeNode->GetParametricScalarMode());
   this->ParametricTransformer->Update();
   
   switch (shapeNode->GetShapeName())

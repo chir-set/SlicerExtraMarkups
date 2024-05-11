@@ -22,6 +22,7 @@
 #define __vtkmrmlmarkupsshapenode_h_
 
 #include <vtkMRMLMarkupsNode.h>
+#include <vtkParametricFunctionSource.h>
 
 #include "vtkSlicerShapeModuleMRMLExport.h"
 
@@ -168,6 +169,22 @@ public:
   {
     return ParametricRangeW;
   }
+  
+  vtkSetClampMacro(ParametricScalarMode, int, vtkParametricFunctionSource::SCALAR_NONE, vtkParametricFunctionSource::SCALAR_DISTANCE);
+  vtkGetMacro(ParametricScalarMode, int);
+  void SetParametricScalarModeToNone() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_NONE); }
+  void SetParametricScalarModeToU() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_U); }
+  void SetParametricScalarModeToV() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_V); }
+  void SetParametricScalarModeToU0() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_U0); }
+  void SetParametricScalarModeToV0() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_V0); }
+  void SetParametricScalarModeToU0V0() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_U0V0); }
+  void SetParametricScalarModeToModulus() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_MODULUS); }
+  void SetParametricScalarModeToPhase() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_PHASE); }
+  void SetParametricScalarModeToQuadrant() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_QUADRANT); }
+  void SetParametricScalarModeToX() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_X); }
+  void SetParametricScalarModeToY() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_Y); }
+  void SetParametricScalarModeToZ() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_Z); }
+  void SetParametricScalarModeToDistance() { this->SetParametricScalarMode(vtkParametricFunctionSource::SCALAR_DISTANCE); }
   
   bool SetParametricN(double value);
   bool SetParametricN1(double value);
@@ -317,6 +334,7 @@ protected:
   bool ParametricTwistV = false;
   bool ParametricTwistW = false;
   bool ParametricClockwiseOrdering = false;
+  int ParametricScalarMode = vtkParametricFunctionSource::SCALAR_NONE;
   
   // For UI control.
   std::pair<double, double> ParametricRangeU;

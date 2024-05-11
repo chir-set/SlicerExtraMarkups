@@ -78,6 +78,7 @@ public slots:
   void onParametricRadiusSliderChanged(double value);
   void onParametricRingRadiusSliderChanged(double value);
   void onParametricCrossSectionRadiusSliderChanged(double value);
+  void onParametricScalarModeChanged(int value);
   
   // UVW parameters.
   void onParametricsMinimumURangeChanged(double value);

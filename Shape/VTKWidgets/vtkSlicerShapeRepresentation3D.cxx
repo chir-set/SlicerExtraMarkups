@@ -1101,6 +1101,7 @@ void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* calle
     return;
   }
   this->ShapeMapper->SetInputConnection(this->ParametricFunctionSource->GetOutputPort());
+  this->ParametricFunctionSource->SetScalarMode(shapeNode->GetParametricScalarMode());
   
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };

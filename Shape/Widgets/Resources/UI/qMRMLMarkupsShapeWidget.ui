@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>508</width>
-    <height>787</height>
+    <height>818</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -392,33 +392,43 @@ The distance of the active control point from the centre is used as reference. C
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
           <layout class="QFormLayout" name="parametricsMainFormLayout">
-           <item row="0" column="0">
+           <item row="1" column="0">
             <widget class="QLabel" name="parametricsULabel">
              <property name="text">
               <string>U:</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item row="2" column="0">
             <widget class="QLabel" name="parametricsVLabel">
              <property name="text">
               <string>V:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="1" column="1">
             <widget class="ctkRangeWidget" name="parametricsURangeWidget">
              <property name="singleStep">
               <double>0.200000000000000</double>
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
+           <item row="2" column="1">
             <widget class="ctkRangeWidget" name="parametricsVRangeWidget">
              <property name="singleStep">
               <double>0.200000000000000</double>
              </property>
             </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="parametricScalarModeLabel">
+             <property name="text">
+              <string>Scalar mode:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="parametricScalarModeComboBox"/>
            </item>
           </layout>
          </item>
