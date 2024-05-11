@@ -134,18 +134,25 @@ public:
   vtkGetMacro(ParametricMaximumW, double);
   vtkSetClampMacro(ParametricJoinU, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricJoinU, vtkTypeBool);
+  vtkBooleanMacro(ParametricJoinU, vtkTypeBool);
   vtkSetClampMacro(ParametricJoinV, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricJoinV, vtkTypeBool);
+  vtkBooleanMacro(ParametricJoinV, vtkTypeBool);
   vtkSetClampMacro(ParametricJoinW, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricJoinW, vtkTypeBool);
+  vtkBooleanMacro(ParametricJoinW, vtkTypeBool);
   vtkSetClampMacro(ParametricTwistU, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricTwistU, vtkTypeBool);
+  vtkBooleanMacro(ParametricTwistU, vtkTypeBool);
   vtkSetClampMacro(ParametricTwistV, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricTwistV, vtkTypeBool);
+  vtkBooleanMacro(ParametricTwistV, vtkTypeBool);
   vtkSetClampMacro(ParametricTwistW, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricTwistW, vtkTypeBool);
+  vtkBooleanMacro(ParametricTwistW, vtkTypeBool);
   vtkSetClampMacro(ParametricClockwiseOrdering, vtkTypeBool, 0, 1);
   vtkGetMacro(ParametricClockwiseOrdering, vtkTypeBool);
+  vtkBooleanMacro(ParametricClockwiseOrdering, vtkTypeBool);
   std::pair<double, double> GetParametricRangeU()
   {
     return ParametricRangeU;
