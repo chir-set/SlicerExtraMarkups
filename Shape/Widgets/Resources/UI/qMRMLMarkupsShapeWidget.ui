@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>508</width>
-    <height>785</height>
+    <height>787</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -338,22 +338,45 @@ radius:</string>
        </layout>
       </item>
       <item>
-       <widget class="QToolButton" name="parametricIsotropicScalingToolButton">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="toolTip">
-         <string>Resize the parametric shape such that each control point is at equidistance from rhe centre.
+       <layout class="QHBoxLayout" name="scalarVisibilityAndRescalingHorizontalLayout">
+        <item>
+         <widget class="QToolButton" name="scalarVisibilityToolButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Show the scalar distribution as a color gradient, if any.</string>
+          </property>
+          <property name="text">
+           <string>Scalar visibility</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="parametricIsotropicScalingToolButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="toolTip">
+           <string>Resize the parametric shape such that each control point is at equidistance from rhe centre.
 
 The distance of the active control point from the centre is used as reference. Click on a axis control point to make it the active control point.</string>
-        </property>
-        <property name="text">
-         <string>Isotropic rescaling</string>
-        </property>
-       </widget>
+          </property>
+          <property name="text">
+           <string>Isotropic rescaling</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="ctkCollapsibleButton" name="parametricsMainCollapsibleButton">

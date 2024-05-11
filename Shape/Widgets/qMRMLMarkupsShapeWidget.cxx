@@ -86,6 +86,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
   
   this->displayCappedTubeToolButton->setVisible(false);
+  this->scalarVisibilityToolButton->setVisible(false);
   this->parametricIsotropicScalingToolButton->setVisible(false);
   this->parametricNLabel->setVisible(false);
   this->parametricNSliderWidget->setVisible(false);
@@ -118,6 +119,8 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
                    q, SLOT(onResliceButtonClicked()));
   QObject::connect(this->displayCappedTubeToolButton, SIGNAL(clicked(bool)),
                    q, SLOT(onDisplayCappedTubeClicked(bool)));
+  QObject::connect(this->scalarVisibilityToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onScalarVisibilityClicked(bool)));
   
   // Object parameters.
   QObject::connect(this->parametricIsotropicScalingToolButton, SIGNAL(clicked()),
@@ -203,6 +206,7 @@ void qMRMLMarkupsShapeWidget::updateWidgetFromMRML()
   d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
   d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
   d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
+  d->scalarVisibilityToolButton->setChecked(d->MarkupsShapeNode->GetScalarVisibility());
   
   if (!d->MarkupsShapeNode->IsParametric())
   {
@@ -294,6 +298,7 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
   d->displayCappedTubeToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
+  d->scalarVisibilityToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
   
   // Object parameters.
   d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric());
@@ -392,6 +397,18 @@ void qMRMLMarkupsShapeWidget::onDisplayCappedTubeClicked(bool value)
     return;
   }
   d->MarkupsShapeNode->SetDisplayCappedTube(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onScalarVisibilityClicked(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  d->MarkupsShapeNode->SetScalarVisibility(value);
 }
 
 // --------------------------------------------------------------------------

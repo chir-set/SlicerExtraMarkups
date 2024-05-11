@@ -52,7 +52,6 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->ArcSource->UseNormalAndAngleOn();
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty>::New();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Selected)->Property);
   this->ShapeActor = vtkSmartPointer<vtkActor>::New();
@@ -67,7 +66,6 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   
   this->RadiusMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->RadiusMapper->SetInputConnection(this->RadiusSource->GetOutputPort());
-  this->RadiusMapper->SetScalarVisibility(true);
   this->RadiusActor = vtkSmartPointer<vtkActor>::New();
   this->RadiusActor->SetMapper(this->RadiusMapper);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
@@ -284,6 +282,9 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     this->TextActor->SetVisibility(false);
     return;
   }
+  
+  this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   
   if (!shapeNode->IsParametric())
   {

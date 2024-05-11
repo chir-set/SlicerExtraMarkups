@@ -72,13 +72,11 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->RadiusSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   this->RadiusMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->RadiusMapper->SetInputConnection(this->RadiusSource->GetOutputPort());
-  this->RadiusMapper->SetScalarVisibility(true);
   this->RadiusActor = vtkSmartPointer<vtkActor2D>::New();
   this->RadiusActor->SetMapper(this->RadiusMapper);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(Unselected)->Property);
   
   this->ShapeMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-  this->ShapeMapper->SetScalarVisibility(false);
   this->ShapeProperty = vtkSmartPointer<vtkProperty2D>::New();
   
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(Unselected)->Property);
@@ -118,7 +116,6 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->WorldCutter->SetCutFunction(this->WorldPlane);
   this->WorldCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->WorldCutMapper->SetInputConnection(this->WorldCutter->GetOutputPort());
-  this->WorldCutMapper->SetScalarVisibility(false);
   this->WorldCutActor = vtkSmartPointer<vtkActor2D>::New();
   this->WorldCutActor->SetMapper(this->WorldCutMapper);
   
@@ -190,6 +187,10 @@ void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
     this->MiddlePointActor->SetVisibility(false);
   }
   this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+  
+  this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->WorldCutMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   
   if (!shapeNode->IsParametric())
   {

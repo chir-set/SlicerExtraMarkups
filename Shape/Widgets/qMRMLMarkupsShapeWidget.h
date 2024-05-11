@@ -67,6 +67,7 @@ public slots:
   void onResliceNodeChanged(vtkMRMLNode * node);
   void onResliceButtonClicked();
   void onDisplayCappedTubeClicked(bool value);
+  void onScalarVisibilityClicked(bool value);
   
   // Parametric shapes.
   // Object parameters.

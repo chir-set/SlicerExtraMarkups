@@ -110,6 +110,9 @@ public:
   vtkGetMacro(DrawMode2D, int);
   vtkSetMacro(Resolution, double);
   vtkGetMacro(Resolution, double);
+  vtkGetMacro(ScalarVisibility, bool);
+  vtkSetMacro(ScalarVisibility, bool);
+  vtkBooleanMacro(ScalarVisibility, bool);
   // Parametrics.
   vtkGetMacro(ParametricN1, double);
   vtkGetMacro(ParametricN2, double);
@@ -132,27 +135,27 @@ public:
   vtkGetMacro(ParametricMinimumW, double);
   vtkSetMacro(ParametricMaximumW, double);
   vtkGetMacro(ParametricMaximumW, double);
-  vtkSetClampMacro(ParametricJoinU, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricJoinU, vtkTypeBool);
-  vtkBooleanMacro(ParametricJoinU, vtkTypeBool);
-  vtkSetClampMacro(ParametricJoinV, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricJoinV, vtkTypeBool);
-  vtkBooleanMacro(ParametricJoinV, vtkTypeBool);
-  vtkSetClampMacro(ParametricJoinW, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricJoinW, vtkTypeBool);
-  vtkBooleanMacro(ParametricJoinW, vtkTypeBool);
-  vtkSetClampMacro(ParametricTwistU, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricTwistU, vtkTypeBool);
-  vtkBooleanMacro(ParametricTwistU, vtkTypeBool);
-  vtkSetClampMacro(ParametricTwistV, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricTwistV, vtkTypeBool);
-  vtkBooleanMacro(ParametricTwistV, vtkTypeBool);
-  vtkSetClampMacro(ParametricTwistW, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricTwistW, vtkTypeBool);
-  vtkBooleanMacro(ParametricTwistW, vtkTypeBool);
-  vtkSetClampMacro(ParametricClockwiseOrdering, vtkTypeBool, 0, 1);
-  vtkGetMacro(ParametricClockwiseOrdering, vtkTypeBool);
-  vtkBooleanMacro(ParametricClockwiseOrdering, vtkTypeBool);
+  vtkSetMacro(ParametricJoinU, bool);
+  vtkGetMacro(ParametricJoinU, bool);
+  vtkBooleanMacro(ParametricJoinU, bool);
+  vtkSetMacro(ParametricJoinV, bool);
+  vtkGetMacro(ParametricJoinV, bool);
+  vtkBooleanMacro(ParametricJoinV, bool);
+  vtkSetMacro(ParametricJoinW, bool);
+  vtkGetMacro(ParametricJoinW, bool);
+  vtkBooleanMacro(ParametricJoinW, bool);
+  vtkSetMacro(ParametricTwistU, bool);
+  vtkGetMacro(ParametricTwistU, bool);
+  vtkBooleanMacro(ParametricTwistU, bool);
+  vtkSetMacro(ParametricTwistV, bool);
+  vtkGetMacro(ParametricTwistV, bool);
+  vtkBooleanMacro(ParametricTwistV, bool);
+  vtkSetMacro(ParametricTwistW, bool);
+  vtkGetMacro(ParametricTwistW, bool);
+  vtkBooleanMacro(ParametricTwistW, bool);
+  vtkSetMacro(ParametricClockwiseOrdering, bool);
+  vtkGetMacro(ParametricClockwiseOrdering, bool);
+  vtkBooleanMacro(ParametricClockwiseOrdering, bool);
   std::pair<double, double> GetParametricRangeU()
   {
     return ParametricRangeU;
@@ -280,6 +283,7 @@ protected:
   bool DisplayNodeObserved = false;
   int ActiveControlPoint = 0;
   bool DisplayCappedTube = false;
+  bool ScalarVisibility = false;
   
   bool ShapeIsParametric = false;
   // SuperEllipsoid, SuperToroid.
