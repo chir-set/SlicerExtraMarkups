@@ -429,7 +429,6 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->VisibilityOn();
   bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
@@ -566,7 +565,6 @@ void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->VisibilityOn();
   bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->MiddlePointActor->SetVisibility(visibility);
   this->ShapeActor->SetVisibility(visibility);
@@ -991,7 +989,6 @@ void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->VisibilityOn();
   bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
@@ -1094,7 +1091,6 @@ void vtkSlicerShapeRepresentation2D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
   
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->VisibilityOn();
   bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
@@ -1189,7 +1185,6 @@ void vtkSlicerShapeRepresentation2D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
   
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->VisibilityOn();
   bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
@@ -1338,9 +1333,6 @@ void vtkSlicerShapeRepresentation2D::UpdateParametricFromMRML(vtkMRMLNode* calle
       vtkErrorMacro("Unfit shape.");
       return;
   }
-  
-  // The control points and actors remain visible when the visibility of the markups node is set to false here.
-  // this->VisibilityOn();
   
   double p1World[3] = { 0.0 };
   double p2World[3] = { 0.0 };
