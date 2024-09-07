@@ -320,7 +320,8 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                           || d->MarkupsShapeNode->IsParametric());
   
   // Object parameters.
-  d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric());
+  d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric()
+                              && d->MarkupsShapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered);
   d->parametricN1Label->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
                                   || shapeName == vtkMRMLMarkupsShapeNode::Toroid);
   d->parametricN1SliderWidget->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Ellipsoid
@@ -356,6 +357,8 @@ void qMRMLMarkupsShapeWidget::onRadiusModeChanged()
     return;
   }
   d->MarkupsShapeNode->SetRadiusMode(d->radiusModeComboBox->currentIndex());
+  d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric()
+                && d->MarkupsShapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered);
 }
 
 // --------------------------------------------------------------------------

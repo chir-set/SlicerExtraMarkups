@@ -1496,6 +1496,11 @@ bool vtkMRMLMarkupsShapeNode::SetParametricAxisValue(const char axis, double dis
 //----------------------------------------------------------------------------
 int vtkMRMLMarkupsShapeNode::SetParametricXYZ(double value) // Isotropic
 {
+  if (this->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Circumferential)
+  {
+    vtkErrorMacro("Aborting: isotropic radii cannot be set in circumferential mode.");
+    return -1;
+  }
   int axes[3] = {'x', 'y', 'z'};
   for (int i = 0; i < 3; i++)
   {
@@ -1511,6 +1516,10 @@ int vtkMRMLMarkupsShapeNode::SetParametricXYZ(double value) // Isotropic
 //----------------------------------------------------------------------------
 int vtkMRMLMarkupsShapeNode::SetParametricXYZ(double xvalue, double yvalue, double zvalue)
 {
+  if (this->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Circumferential)
+  {
+    vtkWarningMacro("The requested radii may not be exactly set in circumferential mode on a single call.");
+  }
   int axes[3] = {'x', 'y', 'z'};
   double values[3] = {xvalue, yvalue, zvalue};
   for (int i = 0; i < 3; i++)
