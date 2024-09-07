@@ -1347,7 +1347,7 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
     case Ellipsoid:
       if (this->GetNumberOfDefinedControlPoints() != 4)
       {
-        vtkErrorMacro("Shape::Ellipsoid node does not have 4 defined control points.");
+        vtkErrorMacro("Parametric Shape node does not have 4 defined control points.");
         return false;
       }
       this->GetNthControlPointPositionWorld(0, p1);
