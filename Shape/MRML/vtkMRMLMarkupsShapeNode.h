@@ -292,7 +292,7 @@ protected:
   // Set Parametric{X,Y,Z} and optionally move a point at 'distance' from p1.
   bool SetParametricAxisValue(const char axis, double distance, bool moveControlPoint);
 
-  int ShapeName { Sphere };
+  int ShapeName { ShapeName_Last };
   int RadiusMode { Centered };
   int DrawMode2D { Intersection };
   double Resolution { 45.0 };

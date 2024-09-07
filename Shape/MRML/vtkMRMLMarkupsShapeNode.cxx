@@ -252,6 +252,10 @@ int vtkMRMLMarkupsShapeNode::GetDrawMode2DFromString(const char* mode)
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
 {
+  if (this->ShapeName == shapeName)
+  {
+    return;
+  }
   this->ShapeName = shapeName;
   switch (shapeName)
   {
