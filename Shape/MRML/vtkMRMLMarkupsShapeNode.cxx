@@ -1478,13 +1478,16 @@ bool vtkMRMLMarkupsShapeNode::SetParametricAxisValue(const char axis, double dis
     return false;
   }
   
-  double p1[3] = { 0.0 };
+  double center[3] = { 0.0 };
   double px[3] = { 0.0 };
   double pNew[3] = { 0.0 };
-  this->GetNthControlPointPositionWorld(0, p1);
+  if (!this->GetCenterWorld(center))
+  {
+    return false;
+  }
   this->GetNthControlPointPositionWorld(pointIndex, px);
-  double currentDistance = std::sqrt(vtkMath::Distance2BetweenPoints(p1, px));
-  vtkMath::GetPointAlongLine(pNew, p1, px, distance - currentDistance);
+  double currentDistance = std::sqrt(vtkMath::Distance2BetweenPoints(center, px));
+  vtkMath::GetPointAlongLine(pNew, center, px, distance - currentDistance);
   this->SetNthControlPointPositionWorld(pointIndex, pNew);
 
   return true;
@@ -1539,11 +1542,14 @@ bool vtkMRMLMarkupsShapeNode::SetParametricXYZToActiveControlPoint()
   {
     return false;
   }
-  double p1[3] = { 0.0 };
+  double center[3] = { 0.0 };
   double px[3] = { 0.0 };
-  this->GetNthControlPointPositionWorld(0, p1);
+  if (!this->GetCenterWorld(center))
+  {
+    return false;
+  }
   this->GetNthControlPointPositionWorld(this->ActiveControlPoint , px);
-  double distance = std::sqrt(vtkMath::Distance2BetweenPoints(p1, px));
+  double distance = std::sqrt(vtkMath::Distance2BetweenPoints(center, px));
   return (this->SetParametricXYZ(distance) == 0);
 }
 
