@@ -68,6 +68,7 @@ vtkMRMLMarkupsShapeNode::vtkMRMLMarkupsShapeNode()
 //--------------------------------------------------------------------------------
 vtkMRMLMarkupsShapeNode::~vtkMRMLMarkupsShapeNode()
 {
+  this->RemoveAllMeasurements();
   this->RemoveObserver(this->OnPointPositionUndefinedCallback);
 }
 

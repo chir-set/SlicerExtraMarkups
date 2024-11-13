@@ -44,7 +44,6 @@ vtkSlicerLabelRepresentation2D::vtkSlicerLabelRepresentation2D()
   this->WorldToSliceTransformer->SetInputConnection(this->SliceDistance->GetOutputPort());
   
   this->LineSource = vtkSmartPointer<vtkLineSource>::New();
-  this->LineSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   
   this->LineMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->LineMapper->SetInputConnection(this->LineSource->GetOutputPort());

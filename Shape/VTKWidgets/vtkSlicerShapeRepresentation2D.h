@@ -126,7 +126,6 @@ protected:
   vtkSmartPointer<vtkActor2D> ParametricMiddlePointActor;
   vtkSmartPointer<vtkGlyphSource2D> ParametricMiddlePointSource;
   
-  vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
   vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;
   vtkSmartPointer<vtkPlane> WorldPlane;
   vtkSmartPointer<vtkCutter> WorldCutter;

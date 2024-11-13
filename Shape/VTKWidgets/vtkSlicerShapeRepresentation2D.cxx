@@ -41,10 +41,6 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->SliceDistance = vtkSmartPointer<vtkSampleImplicitFunctionFilter>::New();
   this->SliceDistance->SetImplicitFunction(this->SlicePlane);
   
-  this->WorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  this->WorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
-  this->WorldToSliceTransformer->SetInputConnection(this->SliceDistance->GetOutputPort());
-  
   this->ShapeWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   this->ShapeWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
   this->ShapeCutWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
@@ -59,17 +55,12 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->MiddlePointActor->SetMapper(this->MiddlePointDataMapper);
   
   this->DiskSource = vtkSmartPointer<vtkDiskSource>::New();
-  this->DiskSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   this->RingSource = vtkSmartPointer<vtkDiskSource>::New();
-  this->RingSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   this->SphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  this->SphereSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   this->ConeSource = vtkSmartPointer<vtkConeSource>::New();
   this->ConeSource->CappingOn();
-  this->ConeSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   
   this->RadiusSource = vtkSmartPointer<vtkLineSource>::New();
-  this->RadiusSource->SetInputConnection(this->WorldToSliceTransformer->GetOutputPort());
   this->RadiusMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->RadiusMapper->SetInputConnection(this->RadiusSource->GetOutputPort());
   this->RadiusActor = vtkSmartPointer<vtkActor2D>::New();
