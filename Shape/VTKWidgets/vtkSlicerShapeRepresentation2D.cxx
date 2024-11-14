@@ -146,6 +146,7 @@ void vtkSlicerShapeRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 // -----------------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData /*=nullptr*/)
 {
+  // NOTE: the WorldCutter is a determinant in many functions.
   Superclass::UpdateFromMRML(caller, event, callData);
 
   this->NeedToRenderOn();
@@ -156,33 +157,16 @@ void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
     return;
   }
 
-  this->MiddlePointActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) >= 2);
-  // Hide the middle point actor if it doesn't intersect the current slice
-  this->SliceDistance->Update();
-  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
-  {
-    this->MiddlePointActor->SetVisibility(false);
-  }
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) >= 2)
-  {
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->GetNthControlPointDisplayPosition(1, p2);
-    double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
-    this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
-    this->MiddlePointSource->Update();
-  }
-  else
-  {
-    this->MiddlePointActor->SetVisibility(false);
-  }
-  this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-  
   this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->WorldCutMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
-  
+
+  this->MiddlePointActor->SetVisibility(false);
+  this->RadiusActor->SetVisibility(false);
+  this->ShapeActor->SetVisibility(false);
+  this->TextActor->SetVisibility(false);
+  this->WorldCutActor->SetVisibility(false);
+
   if (!shapeNode->IsParametric())
   {
     switch (shapeNode->GetShapeName())
@@ -239,10 +223,6 @@ void vtkSlicerShapeRepresentation2D::SetMarkupsNode(vtkMRMLMarkupsNode *markupsN
 //----------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return;
-  }
   this->MiddlePointActor->GetActors(pc);
   this->ParametricMiddlePointActor->GetActors(pc);
   this->ShapeActor->GetActors(pc);
@@ -255,10 +235,6 @@ void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
 //----------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return;
-  }
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->ParametricMiddlePointActor->ReleaseGraphicsResources(win);
   this->ShapeActor->ReleaseGraphicsResources(win);
@@ -271,10 +247,6 @@ void vtkSlicerShapeRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
 //----------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return 0;
-  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -307,10 +279,6 @@ int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
 //-----------------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return 0;
-  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -343,10 +311,6 @@ int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
 //-----------------------------------------------------------------------------
 int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewport *viewport)
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return 0;
-  }
   int count=0;
   if (this->MiddlePointActor->GetVisibility())
   {
@@ -379,10 +343,6 @@ int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpo
 //-----------------------------------------------------------------------------
 vtkTypeBool vtkSlicerShapeRepresentation2D::HasTranslucentPolygonalGeometry()
 {
-  if (!this->WorldCutter->GetNumberOfInputConnections(0))
-  {
-    return false;
-  }
   if (this->Superclass::HasTranslucentPolygonalGeometry())
   {
     return true;
@@ -419,12 +379,14 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
                                                         void* callData)
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(false);
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
   
   double closestPoint[3] = { 0.0 };
   double farthestPoint[3] = { 0.0 };
@@ -438,67 +400,58 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
   }
   this->MiddlePointActor->SetVisibility(false);
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
+  // Display coordinates.
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(0, p1);
+  this->GetNthControlPointDisplayPosition(1, p2);
+  this->GetNthControlPointDisplayPosition(2, p3);
+  
+  // World coordinates.
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  double p3World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
+  shapeNode->GetNthControlPointPositionWorld(2, p3World);
+        
+  // Calculate normal relative to p1World
+  double normalWorld[3] = { 0.0 };
+  double rp2World[3] = { 0.0 };
+  double rp3World[3] = { 0.0 };
+  vtkMath::Subtract(p2World, p1World, rp2World);
+  vtkMath::Subtract(p3World, p1World, rp3World);
+  vtkMath::Cross(rp2World, rp3World, normalWorld);
+        
+  // Calculate inner and outer radii. Account for point proximities to center.
+  double innerRadius = 0.0;
+  double outerRadius = 0.0;
+  if (closestPoint[0] == p2World[0] && closestPoint[1] == p2World[1] && closestPoint[2] == p2World[2])
   {
-    // Display coordinates.
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->GetNthControlPointDisplayPosition(1, p2);
-    this->GetNthControlPointDisplayPosition(2, p3);
-    
-    // World coordinates.
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    double p3World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-    shapeNode->GetNthControlPointPositionWorld(2, p3World);
-          
-    // Calculate normal relative to p1World
-    double normalWorld[3] = { 0.0 };
-    double rp2World[3] = { 0.0 };
-    double rp3World[3] = { 0.0 };
-    vtkMath::Subtract(p2World, p1World, rp2World);
-    vtkMath::Subtract(p3World, p1World, rp3World);
-    vtkMath::Cross(rp2World, rp3World, normalWorld);
-          
-    // Calculate inner and outer radii. Account for point proximities to center.
-    double innerRadius = 0.0;
-    double outerRadius = 0.0;
-    if (closestPoint[0] == p2World[0] && closestPoint[1] == p2World[1] && closestPoint[2] == p2World[2])
-    {
-      innerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
-      outerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
-      farthestDisplayPoint[0] = p3[0];
-      farthestDisplayPoint[1] = p3[1];
-      farthestDisplayPoint[2] = p3[2];
-    }
-    else
-    {
-      innerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
-      outerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
-      farthestDisplayPoint[0] = p2[0];
-      farthestDisplayPoint[1] = p2[1];
-      farthestDisplayPoint[2] = p2[2];
-    }
-            
-    this->DiskSource->SetCenter(p1World);
-    this->DiskSource->SetNormal(normalWorld);
-    this->DiskSource->SetOuterRadius(outerRadius);
-    this->DiskSource->SetInnerRadius(innerRadius);
-    // Show projections on demand.
-    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+    innerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+    outerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
+    farthestDisplayPoint[0] = p3[0];
+    farthestDisplayPoint[1] = p3[1];
+    farthestDisplayPoint[2] = p3[2];
   }
   else
   {
-    this->ShapeActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
+    innerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
+    outerRadius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+    farthestDisplayPoint[0] = p2[0];
+    farthestDisplayPoint[1] = p2[1];
+    farthestDisplayPoint[2] = p2[2];
   }
-  
+          
+  this->DiskSource->SetCenter(p1World);
+  this->DiskSource->SetNormal(normalWorld);
+  this->DiskSource->SetOuterRadius(outerRadius);
+  this->DiskSource->SetInnerRadius(innerRadius);
+  // Show projections on demand.
+  this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+
   this->DiskSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
   this->DiskSource->Update();
   
@@ -555,124 +508,116 @@ void vtkSlicerShapeRepresentation2D::UpdateDiskFromMRML(vtkMRMLNode* caller, uns
 void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->MiddlePointActor->SetVisibility(visibility);
-  this->ShapeActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
+  this->MiddlePointActor->SetVisibility(true);
+  this->ShapeActor->SetVisibility(true);
+  this->RadiusActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
   
   this->ShapeMapper->SetInputConnection(this->RingSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
-  {
-    // Display coordinates.
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->GetNthControlPointDisplayPosition(1, p2);
-    this->GetNthControlPointDisplayPosition(2, p3);
-    
-    // World coordinates.
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    double p3World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-    shapeNode->GetNthControlPointPositionWorld(2, p3World);
-    
-    // Normal relative to p1
-    double normalWorld[3] = { 0.0 };
-    double rp2World[3] = { 0.0 };
-    double rp3World[3] = { 0.0 };
-    vtkMath::Subtract(p2World, p1World, rp2World);
-    vtkMath::Subtract(p3World, p1World, rp3World);
-    vtkMath::Cross(rp2World, rp3World, normalWorld);
-    
-    double lineLengthWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World)); 
-          
-    // Centered mode.
-    if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
-    {       
-      this->RingSource->SetCenter(p1World);
-      this->RingSource->SetNormal(normalWorld);
-      this->RingSource->SetOuterRadius(lineLengthWorld);
-      this->RingSource->SetInnerRadius((lineLengthWorld - this->ViewScaleFactorMmPerPixel) );
-      
-      this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
-      this->MiddlePointSource->Update();
-      // The middle point's properties are distinct.
-      this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-      
-      this->RadiusSource->SetPoint1(p1);
-    }
-    // Circumferential mode : center is half way between p1 and p2.
-    else
-    {
-      double radiusWorld = lineLengthWorld / 2.0;
-      double centerWorld[3] = { (p1World[0] + p2World[0]) / 2.0,
-                          (p1World[1] + p2World[1]) / 2.0,
-                          (p1World[2] + p2World[2]) / 2.0 };
+  // Display coordinates.
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(0, p1);
+  this->GetNthControlPointDisplayPosition(1, p2);
+  this->GetNthControlPointDisplayPosition(2, p3);
+  
+  // World coordinates.
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  double p3World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
+  shapeNode->GetNthControlPointPositionWorld(2, p3World);
+  
+  // Normal relative to p1
+  double normalWorld[3] = { 0.0 };
+  double rp2World[3] = { 0.0 };
+  double rp3World[3] = { 0.0 };
+  vtkMath::Subtract(p2World, p1World, rp2World);
+  vtkMath::Subtract(p3World, p1World, rp3World);
+  vtkMath::Cross(rp2World, rp3World, normalWorld);
+  
+  double lineLengthWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World)); 
         
-      this->RingSource->SetCenter(centerWorld);
-      this->RingSource->SetNormal(normalWorld);
-      this->RingSource->SetOuterRadius(radiusWorld);
-      this->RingSource->SetInnerRadius(radiusWorld - this->ViewScaleFactorMmPerPixel);
-      
-      double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
-      this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
-      this->MiddlePointSource->Update();
-      this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-      
-      this->RadiusSource->SetPoint1(middlePointPos);
-    }
-    // Showing the radius here is confusing in UI.
-    this->RadiusActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
-    // Show the projection. SliceViewCutActor is also visible, but will blend with the projection. 
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  // Centered mode.
+  if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+  {       
+    this->RingSource->SetCenter(p1World);
+    this->RingSource->SetNormal(normalWorld);
+    this->RingSource->SetOuterRadius(lineLengthWorld);
+    this->RingSource->SetInnerRadius((lineLengthWorld - this->ViewScaleFactorMmPerPixel) );
     
-    this->RingSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
-    this->RingSource->Update();
+    this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
+    this->MiddlePointSource->Update();
+    // The middle point's properties are distinct.
+    this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
     
-    // Update shape and map from world to slice.
-    this->ShapeWorldToSliceTransformer->SetInputConnection(this->RingSource->GetOutputPort());
-    this->ShapeWorldToSliceTransformer->Update();
-    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
-    this->ShapeMapper->Update();
-    
-    // Update intersection and map from world to slice.
-    double origin[3] = { 0.0 };
-    double normal[3] = { 0.0 };
-    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 3; i++)
-    {
-      origin[i] = sliceToRAS->GetElement(i, 3);
-      normal[i] = sliceToRAS->GetElement(i, 2);
-    }
-    this->WorldPlane->SetOrigin(origin);
-    this->WorldPlane->SetNormal(normal);
-    this->WorldCutter->SetInputConnection(this->RingSource->GetOutputPort());
-    this->WorldCutter->Update();
-    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
-    this->ShapeCutWorldToSliceTransformer->Update();
-    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
-    this->WorldCutMapper->Update();
-    
-    this->RadiusSource->SetPoint2(p2);
-    this->RadiusSource->Update();
-    this->TextActor->SetDisplayPosition(p3[0], p3[1]);
+    this->RadiusSource->SetPoint1(p1);
   }
+  // Circumferential mode : center is half way between p1 and p2.
   else
   {
-    this->MiddlePointActor->SetVisibility(false);
-    this->ShapeActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
+    double radiusWorld = lineLengthWorld / 2.0;
+    double centerWorld[3] = { (p1World[0] + p2World[0]) / 2.0,
+                        (p1World[1] + p2World[1]) / 2.0,
+                        (p1World[2] + p2World[2]) / 2.0 };
+      
+    this->RingSource->SetCenter(centerWorld);
+    this->RingSource->SetNormal(normalWorld);
+    this->RingSource->SetOuterRadius(radiusWorld);
+    this->RingSource->SetInnerRadius(radiusWorld - this->ViewScaleFactorMmPerPixel);
+    
+    double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
+    this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
+    this->MiddlePointSource->Update();
+    this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+    
+    this->RadiusSource->SetPoint1(middlePointPos);
   }
+  // Showing the radius here is confusing in UI.
+  this->RadiusActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  // Show the projection. SliceViewCutActor is also visible, but will blend with the projection. 
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
   
+  this->RingSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
+  this->RingSource->Update();
+  
+  // Update shape and map from world to slice.
+  this->ShapeWorldToSliceTransformer->SetInputConnection(this->RingSource->GetOutputPort());
+  this->ShapeWorldToSliceTransformer->Update();
+  this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+  this->ShapeMapper->Update();
+  
+  // Update intersection and map from world to slice.
+  double origin[3] = { 0.0 };
+  double normal[3] = { 0.0 };
+  vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+  for (int i = 0; i < 3; i++)
+  {
+    origin[i] = sliceToRAS->GetElement(i, 3);
+    normal[i] = sliceToRAS->GetElement(i, 2);
+  }
+  this->WorldPlane->SetOrigin(origin);
+  this->WorldPlane->SetNormal(normal);
+  this->WorldCutter->SetInputConnection(this->RingSource->GetOutputPort());
+  this->WorldCutter->Update();
+  this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->ShapeCutWorldToSliceTransformer->Update();
+  this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+  this->WorldCutMapper->Update();
+  
+  this->RadiusSource->SetPoint2(p2);
+  this->RadiusSource->Update();
+  this->TextActor->SetDisplayPosition(p3[0], p3[1]);
+
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();
   if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
@@ -695,109 +640,101 @@ void vtkSlicerShapeRepresentation2D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
 void vtkSlicerShapeRepresentation2D::UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
-  bool visibility = (shapeNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->ShapeActor->SetVisibility(visibility);
-  this->MiddlePointActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
+  this->ShapeActor->SetVisibility(true);
+  this->MiddlePointActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
+  this->RadiusActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
   
   this->ShapeMapper->SetInputConnection(this->SphereSource->GetOutputPort());
   this->WorldCutter->SetInputConnection(this->SphereSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 2)
-  {
-    // Display coordinates.
-    double p1[3] = { 0.0 };
-    double p2[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->GetNthControlPointDisplayPosition(1, p2);
+  // Display coordinates.
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(0, p1);
+  this->GetNthControlPointDisplayPosition(1, p2);
+  
+  // World coordinates.
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
     
-    // World coordinates.
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-      
-    double lineLengthWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+  double lineLengthWorld = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+  
+  // Centered mode.
+  if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
+  { 
+    this->SphereSource->SetCenter(p1World);
+    this->SphereSource->SetRadius(lineLengthWorld);
     
-    // Centered mode.
-    if (shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Centered)
-    { 
-      this->SphereSource->SetCenter(p1World);
-      this->SphereSource->SetRadius(lineLengthWorld);
-      
-      this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
-      this->MiddlePointSource->Update();
-      // The middle point's properties are distinct.
-      this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-      
-      this->RadiusSource->SetPoint1(p1);
-    }
-    // Circumferential mode : center is half way between p1 and p2.
-    else
-    {
-      double radiusWorld = lineLengthWorld / 2.0;
-      double centerWorld[3] = { (p1World[0] + p2World[0]) / 2.0,
-                          (p1World[1] + p2World[1]) / 2.0,
-                          (p1World[2] + p2World[2]) / 2.0 };
-        
-      this->SphereSource->SetCenter(centerWorld);
-      this->SphereSource->SetRadius(radiusWorld);
-      
-      double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
-      this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
-      this->MiddlePointSource->Update();
-      this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
-      
-      this->RadiusSource->SetPoint1(middlePointPos);
-    }
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
-    this->RadiusActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
-    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+    this->MiddlePointSource->SetCenter(p1[0], p1[1], 0.0);
+    this->MiddlePointSource->Update();
+    // The middle point's properties are distinct.
+    this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
     
-    this->SphereSource->SetPhiResolution(shapeNode->GetResolution());
-    this->SphereSource->SetThetaResolution(shapeNode->GetResolution());
-    this->SphereSource->Update();
-    
-    // Update shape and map from world to slice.
-    this->ShapeWorldToSliceTransformer->SetInputConnection(this->SphereSource->GetOutputPort());
-    this->ShapeWorldToSliceTransformer->Update();
-    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
-    this->ShapeMapper->Update();
-    
-    // Update intersection and map from world to slice.
-    double origin[3] = { 0.0 };
-    double normal[3] = { 0.0 };
-    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 3; i++)
-    {
-      origin[i] = sliceToRAS->GetElement(i, 3);
-      normal[i] = sliceToRAS->GetElement(i, 2);
-    }
-    this->WorldPlane->SetOrigin(origin);
-    this->WorldPlane->SetNormal(normal);
-    this->WorldCutter->SetInputConnection(this->SphereSource->GetOutputPort());
-    this->WorldCutter->Update();
-    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
-    this->ShapeCutWorldToSliceTransformer->Update();
-    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
-    this->WorldCutMapper->Update();
-    
-    this->RadiusSource->SetPoint2(p2);
-    this->RadiusSource->Update();
-    this->TextActor->SetDisplayPosition(p2[0], p2[1]);
+    this->RadiusSource->SetPoint1(p1);
   }
+  // Circumferential mode : center is half way between p1 and p2.
   else
   {
-    this->ShapeActor->SetVisibility(false);
-    this->MiddlePointActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
+    double radiusWorld = lineLengthWorld / 2.0;
+    double centerWorld[3] = { (p1World[0] + p2World[0]) / 2.0,
+                        (p1World[1] + p2World[1]) / 2.0,
+                        (p1World[2] + p2World[2]) / 2.0 };
+      
+    this->SphereSource->SetCenter(centerWorld);
+    this->SphereSource->SetRadius(radiusWorld);
+    
+    double middlePointPos[2] = { (p1[0] + p2[0]) / 2.0, (p1[1] + p2[1]) / 2.0 };
+    this->MiddlePointSource->SetCenter(middlePointPos[0], middlePointPos[1], 0.0);
+    this->MiddlePointSource->Update();
+    this->MiddlePointActor->SetProperty(this->GetControlPointsPipeline(Active)->Property);
+    
+    this->RadiusSource->SetPoint1(middlePointPos);
   }
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  this->RadiusActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
   
+  this->SphereSource->SetPhiResolution(shapeNode->GetResolution());
+  this->SphereSource->SetThetaResolution(shapeNode->GetResolution());
+  this->SphereSource->Update();
+  
+  // Update shape and map from world to slice.
+  this->ShapeWorldToSliceTransformer->SetInputConnection(this->SphereSource->GetOutputPort());
+  this->ShapeWorldToSliceTransformer->Update();
+  this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+  this->ShapeMapper->Update();
+  
+  // Update intersection and map from world to slice.
+  double origin[3] = { 0.0 };
+  double normal[3] = { 0.0 };
+  vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+  for (int i = 0; i < 3; i++)
+  {
+    origin[i] = sliceToRAS->GetElement(i, 3);
+    normal[i] = sliceToRAS->GetElement(i, 2);
+  }
+  this->WorldPlane->SetOrigin(origin);
+  this->WorldPlane->SetNormal(normal);
+  this->WorldCutter->SetInputConnection(this->SphereSource->GetOutputPort());
+  this->WorldCutter->Update();
+  this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->ShapeCutWorldToSliceTransformer->Update();
+  this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+  this->WorldCutMapper->Update();
+  
+  this->RadiusSource->SetPoint2(p2);
+  this->RadiusSource->Update();
+  this->TextActor->SetDisplayPosition(p2[0], p2[1]);
+
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();
   if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
@@ -833,9 +770,17 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
 
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
+  bool visibility = true;
   if (!shapeNode || shapeNode->GetNumberOfControlPoints() < 4
     || shapeNode->GetNumberOfUndefinedControlPoints() > 0
     || (shapeNode->GetNumberOfControlPoints() % 2) != 0) // Complete point pairs required.
+  {
+    visibility = false;
+  }
+  this->ShapeActor->SetVisibility(visibility);
+  this->WorldCutActor->SetVisibility(visibility);
+  this->TextActor->SetVisibility(visibility);
+  if (!visibility)
   {
     return;
   }
@@ -975,88 +920,77 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
 //-----------------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
-  this->MiddlePointActor->SetVisibility(false);
-  this->RadiusActor->SetVisibility(false);
-  
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
-  
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
   
   this->ShapeMapper->SetInputConnection(this->ConeSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
-  {
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    double p3World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-    shapeNode->GetNthControlPointPositionWorld(2, p3World);
-    
-    this->ShapeMapper->SetInputConnection(this->ConeSource->GetOutputPort());
-    
-    double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
-    double directionWorld[3] = { 0.0 };
-    // Points towards p3
-    vtkMath::Subtract(p3World, p1World, directionWorld);
-    
-    double centerWorld[3] = {0.0};
-    centerWorld[0] = (p1World[0] + p3World[0]) / 2.0;
-    centerWorld[1] = (p1World[1] + p3World[1]) / 2.0;
-    centerWorld[2] = (p1World[2] + p3World[2]) / 2.0;
-    
-    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
-    
-    this->ConeSource->SetCenter(centerWorld);
-    this->ConeSource->SetRadius(radius);
-    this->ConeSource->SetHeight(height);
-    this->ConeSource->SetDirection(directionWorld);
-    this->ConeSource->SetResolution(shapeNode->GetResolution());
-    this->ConeSource->Update();
-    
-    // Update shape and map from world to slice.
-    this->ShapeWorldToSliceTransformer->SetInputConnection(this->ConeSource->GetOutputPort());
-    this->ShapeWorldToSliceTransformer->Update();
-    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
-    this->ShapeMapper->Update();
-    
-    // Update intersection and map from world to slice.
-    double origin[3] = { 0.0 };
-    double normal[3] = { 0.0 };
-    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 3; i++)
-    {
-      origin[i] = sliceToRAS->GetElement(i, 3);
-      normal[i] = sliceToRAS->GetElement(i, 2);
-    }
-    this->WorldPlane->SetOrigin(origin);
-    this->WorldPlane->SetNormal(normal);
-    this->WorldCutter->SetInputConnection(this->ConeSource->GetOutputPort());
-    this->WorldCutter->Update();
-    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
-    this->ShapeCutWorldToSliceTransformer->Update();
-    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
-    this->WorldCutMapper->Update();
-    
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
-    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
-    
-    double p3Display[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(2, p3Display);
-    this->TextActor->SetDisplayPosition(p3Display[0], p3Display[1]);
-  }
-  else
-  {
-    this->MiddlePointActor->SetVisibility(false);
-    this->ShapeActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
-  }
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  double p3World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
+  shapeNode->GetNthControlPointPositionWorld(2, p3World);
   
+  this->ShapeMapper->SetInputConnection(this->ConeSource->GetOutputPort());
+  
+  double height = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p3World));
+  double directionWorld[3] = { 0.0 };
+  // Points towards p3
+  vtkMath::Subtract(p3World, p1World, directionWorld);
+  
+  double centerWorld[3] = {0.0};
+  centerWorld[0] = (p1World[0] + p3World[0]) / 2.0;
+  centerWorld[1] = (p1World[1] + p3World[1]) / 2.0;
+  centerWorld[2] = (p1World[2] + p3World[2]) / 2.0;
+  
+  double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+  
+  this->ConeSource->SetCenter(centerWorld);
+  this->ConeSource->SetRadius(radius);
+  this->ConeSource->SetHeight(height);
+  this->ConeSource->SetDirection(directionWorld);
+  this->ConeSource->SetResolution(shapeNode->GetResolution());
+  this->ConeSource->Update();
+  
+  // Update shape and map from world to slice.
+  this->ShapeWorldToSliceTransformer->SetInputConnection(this->ConeSource->GetOutputPort());
+  this->ShapeWorldToSliceTransformer->Update();
+  this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+  this->ShapeMapper->Update();
+  
+  // Update intersection and map from world to slice.
+  double origin[3] = { 0.0 };
+  double normal[3] = { 0.0 };
+  vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+  for (int i = 0; i < 3; i++)
+  {
+    origin[i] = sliceToRAS->GetElement(i, 3);
+    normal[i] = sliceToRAS->GetElement(i, 2);
+  }
+  this->WorldPlane->SetOrigin(origin);
+  this->WorldPlane->SetNormal(normal);
+  this->WorldCutter->SetInputConnection(this->ConeSource->GetOutputPort());
+  this->WorldCutter->Update();
+  this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->ShapeCutWorldToSliceTransformer->Update();
+  this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+  this->WorldCutMapper->Update();
+  
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  
+  double p3Display[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(2, p3Display);
+  this->TextActor->SetDisplayPosition(p3Display[0], p3Display[1]);
+
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();
   if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
@@ -1077,76 +1011,65 @@ void vtkSlicerShapeRepresentation2D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
 //-----------------------------------------------------------------------------
 void vtkSlicerShapeRepresentation2D::UpdateCylinderFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
-  this->MiddlePointActor->SetVisibility(false);
-  this->RadiusActor->SetVisibility(false);
-  
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
   
   this->ShapeMapper->SetInputConnection(this->CylinderSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
-  {
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    double p3World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-    shapeNode->GetNthControlPointPositionWorld(2, p3World);
-    
-    this->CylinderAxis->SetPoint1(p1World);
-    this->CylinderAxis->SetPoint2(p3World);
-    this->CylinderAxis->Update();
-    double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
-    
-    this->CylinderSource->SetRadius(radius);
-    this->CylinderSource->SetNumberOfSides(shapeNode->GetResolution());
-    this->CylinderSource->Update();
-    
-    // Update shape and map from world to slice.
-    this->ShapeWorldToSliceTransformer->SetInputConnection(this->CylinderSource->GetOutputPort());
-    this->ShapeWorldToSliceTransformer->Update();
-    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
-    this->ShapeMapper->Update();
-    
-    // Update intersection and map from world to slice.
-    double origin[3] = { 0.0 };
-    double normal[3] = { 0.0 };
-    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 3; i++)
-    {
-      origin[i] = sliceToRAS->GetElement(i, 3);
-      normal[i] = sliceToRAS->GetElement(i, 2);
-    }
-    this->WorldPlane->SetOrigin(origin);
-    this->WorldPlane->SetNormal(normal);
-    this->WorldCutter->SetInputConnection(this->CylinderSource->GetOutputPort());
-    this->WorldCutter->Update();
-    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
-    this->ShapeCutWorldToSliceTransformer->Update();
-    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
-    this->WorldCutMapper->Update();
-    
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
-    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
-    
-    double p3Display[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(2, p3Display);
-    this->TextActor->SetDisplayPosition(p3Display[0], p3Display[1]);
-  }
-  else
-  {
-    this->MiddlePointActor->SetVisibility(false);
-    this->ShapeActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
-  }
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  double p3World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
+  shapeNode->GetNthControlPointPositionWorld(2, p3World);
   
+  this->CylinderAxis->SetPoint1(p1World);
+  this->CylinderAxis->SetPoint2(p3World);
+  this->CylinderAxis->Update();
+  double radius = std::sqrt(vtkMath::Distance2BetweenPoints(p1World, p2World));
+  
+  this->CylinderSource->SetRadius(radius);
+  this->CylinderSource->SetNumberOfSides(shapeNode->GetResolution());
+  this->CylinderSource->Update();
+  
+  // Update shape and map from world to slice.
+  this->ShapeWorldToSliceTransformer->SetInputConnection(this->CylinderSource->GetOutputPort());
+  this->ShapeWorldToSliceTransformer->Update();
+  this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+  this->ShapeMapper->Update();
+  
+  // Update intersection and map from world to slice.
+  double origin[3] = { 0.0 };
+  double normal[3] = { 0.0 };
+  vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+  for (int i = 0; i < 3; i++)
+  {
+    origin[i] = sliceToRAS->GetElement(i, 3);
+    normal[i] = sliceToRAS->GetElement(i, 2);
+  }
+  this->WorldPlane->SetOrigin(origin);
+  this->WorldPlane->SetNormal(normal);
+  this->WorldCutter->SetInputConnection(this->CylinderSource->GetOutputPort());
+  this->WorldCutter->Update();
+  this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->ShapeCutWorldToSliceTransformer->Update();
+  this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+  this->WorldCutMapper->Update();
+  
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  
+  double p3Display[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(2, p3Display);
+  this->TextActor->SetDisplayPosition(p3Display[0], p3Display[1]);
+
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();
   if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
@@ -1171,83 +1094,72 @@ void vtkSlicerShapeRepresentation2D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
    * If all 3 points are coplanar in a slice view, the arc is visible in
    * ::Projection mode only.
    */
-  this->MiddlePointActor->SetVisibility(false);
-  this->RadiusActor->SetVisibility(false);
-  
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  this->WorldCutActor->SetVisibility(true);
   
   this->ShapeMapper->SetInputConnection(this->ArcSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
-  {
-    double p1World[3] = { 0.0 };
-    double p2World[3] = { 0.0 };
-    double p3World[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1World);
-    shapeNode->GetNthControlPointPositionWorld(1, p2World);
-    shapeNode->GetNthControlPointPositionWorld(2, p3World);
-    
-    this->ShapeMapper->SetInputConnection(this->ArcSource->GetOutputPort());
-    
-    double polarVector1World[3] = { 0.0 };
-    double polarVector2World[3] = { 0.0 }; // Not really, but will be when repositioned.
-    double normal[3] = { 0.0 }; // Normal to the plane.
-    vtkMath::Subtract(p2World, p1World, polarVector1World);
-    vtkMath::Subtract(p3World, p1World, polarVector2World);
-    vtkMath::Cross(polarVector1World, polarVector2World, normal);
-    const double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(polarVector1World, polarVector2World));
-    
-    this->ArcSource->SetCenter(p1World);
-    this->ArcSource->SetPolarVector(polarVector1World);
-    this->ArcSource->SetNormal(normal);
-    this->ArcSource->SetAngle(angle);
-    this->ArcSource->SetResolution(shapeNode->GetResolution());
-    this->ArcSource->Update();
-    
-    // Update shape and map from world to slice.
-    this->ShapeWorldToSliceTransformer->SetInputConnection(this->ArcSource->GetOutputPort());
-    this->ShapeWorldToSliceTransformer->Update();
-    this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
-    this->ShapeMapper->Update();
-    
-    // Update intersection and map from world to slice.
-    double origin[3] = { 0.0 };
-    vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
-    for (int i = 0; i < 3; i++)
-    {
-      origin[i] = sliceToRAS->GetElement(i, 3);
-      normal[i] = sliceToRAS->GetElement(i, 2);
-    }
-    this->WorldPlane->SetOrigin(origin);
-    this->WorldPlane->SetNormal(normal);
-    this->WorldCutter->SetInputConnection(this->ArcSource->GetOutputPort());
-    this->WorldCutter->Update();
-    this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
-    this->ShapeCutWorldToSliceTransformer->Update();
-    this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
-    this->WorldCutMapper->Update();
-    
-    this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
-    this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
-    
-    double p1[3] = { 0.0 };
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->TextActor->SetDisplayPosition(p1[0], p1[1]);
-  }
-  else
-  {
-    this->MiddlePointActor->SetVisibility(false);
-    this->ShapeActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    this->WorldCutActor->SetVisibility(false);
-  }
+  double p1World[3] = { 0.0 };
+  double p2World[3] = { 0.0 };
+  double p3World[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1World);
+  shapeNode->GetNthControlPointPositionWorld(1, p2World);
+  shapeNode->GetNthControlPointPositionWorld(2, p3World);
   
+  this->ShapeMapper->SetInputConnection(this->ArcSource->GetOutputPort());
+  
+  double polarVector1World[3] = { 0.0 };
+  double polarVector2World[3] = { 0.0 }; // Not really, but will be when repositioned.
+  double normal[3] = { 0.0 }; // Normal to the plane.
+  vtkMath::Subtract(p2World, p1World, polarVector1World);
+  vtkMath::Subtract(p3World, p1World, polarVector2World);
+  vtkMath::Cross(polarVector1World, polarVector2World, normal);
+  const double angle = vtkMath::DegreesFromRadians(vtkMath::AngleBetweenVectors(polarVector1World, polarVector2World));
+  
+  this->ArcSource->SetCenter(p1World);
+  this->ArcSource->SetPolarVector(polarVector1World);
+  this->ArcSource->SetNormal(normal);
+  this->ArcSource->SetAngle(angle);
+  this->ArcSource->SetResolution(shapeNode->GetResolution());
+  this->ArcSource->Update();
+  
+  // Update shape and map from world to slice.
+  this->ShapeWorldToSliceTransformer->SetInputConnection(this->ArcSource->GetOutputPort());
+  this->ShapeWorldToSliceTransformer->Update();
+  this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
+  this->ShapeMapper->Update();
+  
+  // Update intersection and map from world to slice.
+  double origin[3] = { 0.0 };
+  vtkMatrix4x4 * sliceToRAS = this->GetSliceNode()->GetSliceToRAS();
+  for (int i = 0; i < 3; i++)
+  {
+    origin[i] = sliceToRAS->GetElement(i, 3);
+    normal[i] = sliceToRAS->GetElement(i, 2);
+  }
+  this->WorldPlane->SetOrigin(origin);
+  this->WorldPlane->SetNormal(normal);
+  this->WorldCutter->SetInputConnection(this->ArcSource->GetOutputPort());
+  this->WorldCutter->Update();
+  this->ShapeCutWorldToSliceTransformer->SetInputConnection(this->WorldCutter->GetOutputPort());
+  this->ShapeCutWorldToSliceTransformer->Update();
+  this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
+  this->WorldCutMapper->Update();
+  
+  this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  
+  double p1[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(0, p1);
+  this->TextActor->SetDisplayPosition(p1[0], p1[1]);
+
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();
   if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
@@ -1269,18 +1181,8 @@ void vtkSlicerShapeRepresentation2D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
 void vtkSlicerShapeRepresentation2D::UpdateParametricFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   // See notes in vtkSlicerShapeRepresentation3D.cxx.
-  this->MiddlePointActor->SetVisibility(false);
-  this->RadiusActor->SetVisibility(false);
-  this->ShapeActor->SetVisibility(false);
-  this->TextActor->SetVisibility(false);
-  this->WorldCutActor->SetVisibility(false);
-  
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
-  if (!shapeNode)
-  {
-    return;
-  }
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
   {
     return;
   }

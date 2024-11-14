@@ -273,19 +273,15 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
     return;
   }
   
-  if (shapeNode->GetNumberOfControlPoints() < shapeNode->GetRequiredNumberOfControlPoints())
-  {
-    this->ShapeActor->SetVisibility(false);
-    this->MiddlePointActor->SetVisibility(false);
-    this->ParametricMiddlePointActor->SetVisibility(false);
-    this->RadiusActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    return;
-  }
-  
   this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
-  
+
+  this->ShapeActor->SetVisibility(false);
+  this->MiddlePointActor->SetVisibility(false);
+  this->ParametricMiddlePointActor->SetVisibility(false);
+  this->RadiusActor->SetVisibility(false);
+  this->TextActor->SetVisibility(false);
+
   if (!shapeNode->IsParametric())
   {
     // A ShapeActor's transform is applied in UpdateParametricFromMRML; restore it.
@@ -373,10 +369,12 @@ void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
   this->RadiusActor->SetVisibility(false);
   this->MiddlePointActor->SetVisibility(false);
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
   double closestPoint[3] = { 0.0 }; // Unused here
   double farthestPoint[3] = { 0.0 };
@@ -388,43 +386,35 @@ void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
   }
   this->ShapeMapper->SetInputConnection(this->DiskSource->GetOutputPort());
   
-  if (shapeNode->GetNumberOfDefinedControlPoints(true) == 3)
+  double p1[3] = { 0.0 }; // center
+  double p2[3] = { 0.0 };
+  double p3[3] = { 0.0 };
+  shapeNode->GetNthControlPointPositionWorld(0, p1);
+  shapeNode->GetNthControlPointPositionWorld(1, p2);
+  shapeNode->GetNthControlPointPositionWorld(2, p3);
+  
+  // Relative to center
+  double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
+  double rp3[3] = { p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2] };
+  
+  double normal[3] = { 0.0 };
+  vtkMath::Cross(rp2, rp3, normal);
+  if (normal[0] == 0.0 && normal[1] == 0.0 && normal[2] == 0.0)
   {
-    double p1[3] = { 0.0 }; // center
-    double p2[3] = { 0.0 };
-    double p3[3] = { 0.0 };
-    shapeNode->GetNthControlPointPositionWorld(0, p1);
-    shapeNode->GetNthControlPointPositionWorld(1, p2);
-    shapeNode->GetNthControlPointPositionWorld(2, p3);
-    
-    // Relative to center
-    double rp2[3] = { p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2] };
-    double rp3[3] = { p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2] };
-    
-    double normal[3] = { 0.0 };
-    vtkMath::Cross(rp2, rp3, normal);
-    if (normal[0] == 0.0 && normal[1] == 0.0 && normal[2] == 0.0)
-    {
-      vtkDebugMacro("Got zero normal.");
-      return;
-    }
-    
-    this->DiskSource->SetCenter(p1);
-    this->DiskSource->SetNormal(normal);
-    this->DiskSource->SetOuterRadius(innerRadius);
-    this->DiskSource->SetInnerRadius(outerRadius);
+    vtkDebugMacro("Got zero normal.");
+    return;
   }
-  else
-  {
-    this->ShapeActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-  }
+  
+  this->DiskSource->SetCenter(p1);
+  this->DiskSource->SetNormal(normal);
+  this->DiskSource->SetOuterRadius(innerRadius);
+  this->DiskSource->SetInnerRadius(outerRadius);
   
   this->DiskSource->SetCircumferentialResolution((int) shapeNode->GetResolution());
   this->DiskSource->Update();
   
-  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
-  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == 3);
+  this->ShapeActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints());
+  this->TextActor->SetVisibility(shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints());
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -444,6 +434,9 @@ void vtkSlicerShapeRepresentation3D::UpdateDiskFromMRML(vtkMRMLNode* caller,
   {
     shapeNode->SetShapeWorld(this->DiskSource->GetOutput());
   }
+  
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 //---------------------------- Ring ------------------------------------------
@@ -455,12 +448,10 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   }
   
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
-  
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(visibility);
-  this->MiddlePointActor->SetVisibility(visibility);
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
@@ -473,8 +464,6 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   center[1] = (p1[1] + p2[1]) / 2.0;
   center[2] = (p1[2] + p2[2]) / 2.0;
   
-  this->MiddlePointSource->SetCenter(center);
-  this->MiddlePointSource->SetRadius(this->ControlPointSize / 2.0);
   this->ShapeMapper->SetInputConnection(this->RingSource->GetOutputPort());
   
   double lineLength = std::sqrt(vtkMath::Distance2BetweenPoints(p1, p2));
@@ -530,11 +519,6 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
   
-  visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
-  this->ShapeActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -549,7 +533,7 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
     double * closestPointOnRing = this->RingSource->GetOutput()->GetPoint(closestIdOnRing);
     if (p3[0] != closestPointOnRing[0] || p3[1] != closestPointOnRing[1] || p3[2] != closestPointOnRing[2])
     {
-      if (shapeNode->GetNumberOfDefinedControlPoints() == 3 && shapeNode->GetModifiedSinceRead())
+      if (shapeNode->GetNumberOfDefinedControlPoints() == shapeNode->GetRequiredNumberOfControlPoints() && shapeNode->GetModifiedSinceRead())
       {
         shapeNode->SetNthControlPointPositionWorld(2, closestPointOnRing);
       }
@@ -560,12 +544,20 @@ void vtkSlicerShapeRepresentation3D::UpdateRingFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
+  
+  this->ShapeActor->SetVisibility(true);
+  this->RadiusActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 //---------------------------- Sphere ------------------------------------------
 void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
@@ -607,12 +599,7 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   
   this->RadiusSource->SetPoint2(p2);
   this->RadiusSource->Update();
-  
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 2;
-  this->ShapeActor->SetVisibility(visibility);
-  this->RadiusActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  
+    
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->RadiusActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
@@ -627,6 +614,10 @@ void vtkSlicerShapeRepresentation3D::UpdateSphereFromMRML(vtkMRMLNode* caller, u
   this->TextActorPositionWorld[0] = p2[0];
   this->TextActorPositionWorld[1] = p2[1];
   this->TextActorPositionWorld[2] = p2[2];
+
+  this->ShapeActor->SetVisibility(true);
+  this->RadiusActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 //---------------------------- Tube ------------------------------------------
@@ -647,7 +638,6 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     return;
   }
   
-  this->TextActor->SetVisibility(true);
   if (!shapeNode->GetDisplayCappedTube())
   {
     this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
@@ -710,7 +700,7 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->Tube->Update();
   this->CappedTube->SetNumberOfSides(shapeNode->GetResolution());
   this->CappedTube->Update();
-  this->ShapeActor->SetVisibility(true);
+  
   if (this->GetViewNode() == this->GetFirstViewNode(shapeNode->GetScene()))
   {
     shapeNode->SetShapeWorld(this->Tube->GetOutput());
@@ -734,6 +724,9 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];
   this->TextActor->SetVisibility(true);
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 
@@ -747,7 +740,7 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   this->RadiusActor->SetVisibility(false);
   this->MiddlePointActor->SetVisibility(false);
-  if (!(shapeNode->GetNumberOfDefinedControlPoints(true) == 3))
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
   {
     return;
   }
@@ -785,7 +778,7 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
     shapeNode->SetShapeWorld(this->ConeSource->GetOutput());
   }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints();
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   
@@ -820,7 +813,7 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
     double * closestPointOnRim = baseCutter->GetOutput()->GetPoint(closestIdOnRim);
     if (p2[0] != closestPointOnRim[0] || p2[1] != closestPointOnRim[1] || p2[2] != closestPointOnRim[2])
     {
-      if (shapeNode->GetNumberOfDefinedControlPoints() == 3 && shapeNode->GetModifiedSinceRead())
+      if (shapeNode->GetNumberOfDefinedControlPoints() == shapeNode->GetRequiredNumberOfControlPoints() && shapeNode->GetModifiedSinceRead())
       {
         shapeNode->SetNthControlPointPositionWorld(1, closestPointOnRim);
       }
@@ -831,6 +824,9 @@ void vtkSlicerShapeRepresentation3D::UpdateConeFromMRML(vtkMRMLNode* caller, uns
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 //---------------------------- Cylinder -------------------------------------------
@@ -843,7 +839,7 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   this->RadiusActor->SetVisibility(false);
   this->MiddlePointActor->SetVisibility(false);
-  if (!(shapeNode->GetNumberOfDefinedControlPoints(true) == 3))
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
   {
     return;
   }
@@ -871,7 +867,7 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
     shapeNode->SetShapeWorld(this->CylinderSource->GetOutput());
   }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints();
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   
@@ -908,7 +904,7 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
     double * closestPointOnRim = baseCutter->GetOutput()->GetPoint(closestIdOnRim);
     if (p2[0] != closestPointOnRim[0] || p2[1] != closestPointOnRim[1] || p2[2] != closestPointOnRim[2])
     {
-      if (shapeNode->GetNumberOfDefinedControlPoints() == 3 && shapeNode->GetModifiedSinceRead())
+      if (shapeNode->GetNumberOfDefinedControlPoints() == shapeNode->GetRequiredNumberOfControlPoints() && shapeNode->GetModifiedSinceRead())
       {
         shapeNode->SetNthControlPointPositionWorld(1, closestPointOnRim);
       }
@@ -919,6 +915,9 @@ void vtkSlicerShapeRepresentation3D::UpdateCylinderFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[0] = p3[0];
   this->TextActorPositionWorld[1] = p3[1];
   this->TextActorPositionWorld[2] = p3[2];
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
 //---------------------------- Arc -------------------------------------------
@@ -937,7 +936,7 @@ void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
    * p3 being very close to p2. When p3 is moved subsequently, no unexpected
    * behaviour is seen.
    */
-  if (!(shapeNode->GetNumberOfDefinedControlPoints(shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Circumferential) == 3))
+  if (!(shapeNode->GetNumberOfDefinedControlPoints(shapeNode->GetRadiusMode() == vtkMRMLMarkupsShapeNode::Circumferential) == shapeNode->GetRequiredNumberOfControlPoints()))
   {
     return;
   }
@@ -971,7 +970,7 @@ void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
     shapeNode->SetShapeWorld(this->ArcSource->GetOutput());
   }
   
-  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == 3;
+  bool visibility = shapeNode->GetNumberOfDefinedControlPoints(true) == shapeNode->GetRequiredNumberOfControlPoints();
   this->ShapeActor->SetVisibility(visibility);
   this->TextActor->SetVisibility(visibility);
   
@@ -1031,9 +1030,12 @@ void vtkSlicerShapeRepresentation3D::UpdateArcFromMRML(vtkMRMLNode* caller, unsi
   this->TextActorPositionWorld[0] = p1[0];
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
 
-//--------------------- Ellipsoid, Toroid, BohemianDome ------------------------
+//--------------------- Ellipsoid, Toroid, and more ------------------------
 void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   if (!this->DoUpdateFromMRML)
@@ -1052,6 +1054,10 @@ void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* calle
    * The same approach is used in slice views, followed by mapping in each view.
    */
   vtkMRMLMarkupsShapeNode * shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
+  if (!shapeNode || shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
+  {
+    return;
+  }
   // Set the respective parametric function in the function source.
   switch (shapeNode->GetShapeName())
   {
@@ -1093,9 +1099,6 @@ void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* calle
       return;
   }
     
-  this->RadiusActor->SetVisibility(false);
-  this->MiddlePointActor->SetVisibility(false);
-  
   if (shapeNode->GetNumberOfDefinedControlPoints(true) != shapeNode->GetRequiredNumberOfControlPoints())
   {
     return;
@@ -1127,9 +1130,9 @@ void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* calle
     center[2] = (p1[2] + p4[2]) / 2.0;
     // The middle point.
     this->ParametricMiddlePointSource->SetCenter(center);
-    this->ParametricMiddlePointSource->SetRadius(this->ControlPointSize);
+    this->ParametricMiddlePointSource->SetRadius(this->ControlPointSize / 2.0);
     this->ParametricMiddlePointSource->Update();
-    this->ParametricMiddlePointActor->SetVisibility(true);
+    this->ParametricMiddlePointActor->SetVisibility(true); // Is never shown!
   }
   vtkMath::Subtract(p4, center, direction);
   vtkMath::Normalize(direction);
@@ -1295,4 +1298,7 @@ void vtkSlicerShapeRepresentation3D::UpdateParametricFromMRML(vtkMRMLNode* calle
   this->TextActorPositionWorld[0] = center[0];
   this->TextActorPositionWorld[1] = center[1];
   this->TextActorPositionWorld[2] = center[2];
+
+  this->ShapeActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
 }
