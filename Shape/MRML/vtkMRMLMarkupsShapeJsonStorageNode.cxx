@@ -44,6 +44,7 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::WriteBasicProperties(
   writer->WriteStringProperty("drawMode2D", shapeNode->GetDrawMode2DAsString(shapeNode->GetDrawMode2D()));
   writer->WriteDoubleProperty("resolution", shapeNode->GetResolution());
   writer->WriteBoolProperty("displayCappedTube", shapeNode->GetDisplayCappedTube());
+  writer->WriteBoolProperty("scalarVisibility", shapeNode->GetScalarVisibility());
   // Ignoring shapeNode->ResliceNode.
   
   writer->WriteDoubleProperty("parametricN", shapeNode->GetParametricN());
@@ -82,27 +83,32 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
   MRMLNodeModifyBlocker blocker(shapeNode);
 
   if (markupsObject->HasMember("shapeName"))
-    {
+  {
     shapeNode->SetShapeName(shapeNode->GetShapeNameFromString(markupsObject->GetStringProperty("shapeName").c_str()));
-    }
+  }
   if (markupsObject->HasMember("radiusMode"))
-    {
+  {
     shapeNode->SetRadiusMode(shapeNode->GetRadiusModeFromString(markupsObject->GetStringProperty("radiusMode").c_str()));
-    }
+  }
   if (markupsObject->HasMember("drawMode2D"))
-    {
+  {
     shapeNode->SetDrawMode2D(shapeNode->GetDrawMode2DFromString(markupsObject->GetStringProperty("drawMode2D").c_str()));
-    }
+  }
   double resolution = 0.0;
   if (markupsObject->GetDoubleProperty("resolution", resolution))
-    {
+  {
     shapeNode->SetResolution(resolution);
-    }
+  }
   if (markupsObject->HasMember("displayCappedTube"))
-    {
-      bool displayCappedTube = markupsObject->GetBoolProperty("displayCappedTube");
-      shapeNode->SetDisplayCappedTube(displayCappedTube);
-    }
+  {
+    bool displayCappedTube = markupsObject->GetBoolProperty("displayCappedTube");
+    shapeNode->SetDisplayCappedTube(displayCappedTube);
+  }
+  if (markupsObject->HasMember("scalarVisibility"))
+  {
+    bool scalarVisibility = markupsObject->GetBoolProperty("scalarVisibility");
+    shapeNode->SetScalarVisibility(scalarVisibility);
+  }
 
   double parametricN = 2.0;
   if (markupsObject->GetDoubleProperty("parametricN", parametricN))
