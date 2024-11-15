@@ -94,6 +94,13 @@ int vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DFromString(const char* name)
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLMarkupsLabelNode::SetUseAlternateColors(bool useAlternateColors)
+{
+  vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  this->UseAlternateColors = useAlternateColors;
+}
+
+//----------------------------------------------------------------------------
 void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
@@ -101,6 +108,7 @@ void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBeginMacro(os, indent);
   vtkMRMLPrintStringMacro(Label);
   vtkMRMLPrintEnumMacro(TipDimensionMode3D);
+  vtkMRMLPrintBooleanMacro(UseAlternateColors);
   vtkMRMLPrintEndMacro();
 }
 
@@ -113,5 +121,6 @@ void vtkMRMLMarkupsLabelNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=tr
   vtkMRMLCopyBeginMacro(anode);
   vtkMRMLCopyStringMacro(Label);
   vtkMRMLCopyEnumMacro(TipDimensionMode3D);
+  vtkMRMLCopyBooleanMacro(UseAlternateColors);
   vtkMRMLCopyEndMacro();
 }

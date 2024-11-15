@@ -38,6 +38,7 @@
 
 // VTK includes
 #include <vtkObjectFactory.h>
+#include <vtkMRMLColorTableNode.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkSlicerLabelLogic);
@@ -111,9 +112,61 @@ void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label node");
     return;
   }
+  
+  // Label.
   const char * defaultConstructorLabel = "Label";
   if (std::string(labelNode->GetLabel()) == std::string(defaultConstructorLabel)) // Default constructor value.
   {
     labelNode->SetLabel(scene->GenerateUniqueName(defaultConstructorLabel).c_str());
   }
+  
+  // Alternate colours.
+  vtkMRMLNode * mrmlNode = scene->GetDefaultNodeByClass("vtkMRMLMarkupsLabelNode");
+  if (mrmlNode)
+  {
+    vtkMRMLMarkupsLabelNode * defaultLabelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(mrmlNode);
+    if (!defaultLabelNode)
+    {
+      vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid default markups label node");
+      return;
+    }
+    if (defaultLabelNode->GetUseAlternateColors())
+    {
+      if (!labelNode->GetDisplayNode())
+      {
+        vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label display node");
+        return;
+      }
+      double selectedColour[3] = { 1.0, 0.5, 0.5};
+      this->GenerateUniqueColor(selectedColour);
+      double colour[3] = { 1.0 - selectedColour[0], 1.0 - selectedColour[1], 1.0 - selectedColour[2]};
+      labelNode->GetDisplayNode()->SetSelectedColor(selectedColour);
+      labelNode->GetDisplayNode()->SetColor(colour);
+    }
+  }
+}
+
+//------------------------------------------------------------------------------
+// Poked from vtkSlicerMarkupsLogic.cxx .
+void vtkSlicerLabelLogic::GenerateUniqueColor(double color[3])
+{
+  double rgba[4] = { 1.0, 0.5, 0.5, 1.0 };
+  vtkMRMLColorTableNode* colorTable = nullptr;
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  {
+    colorTable = vtkMRMLColorTableNode::SafeDownCast(
+      scene->GetNodeByID("vtkMRMLColorTableNodeFileGenericColors.txt"));
+  }
+  if (colorTable)
+  {
+    colorTable->GetColor(this->NextColorIndex, rgba);
+    this->NextColorIndex++;
+    if (this->NextColorIndex >= colorTable->GetNumberOfColors())
+    {
+      this->NextColorIndex = 1; // 0 is black
+    }
+  }
+  color[0] = rgba[0];
+  color[1] = rgba[1];
+  color[2] = rgba[2];
 }

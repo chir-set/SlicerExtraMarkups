@@ -66,14 +66,19 @@ public:
 
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentMacro(vtkMRMLMarkupsLabelNode);
-  
+
   vtkMRMLStorageNode* CreateDefaultStorageNode() override;
-  
+
   vtkGetStringMacro(Label);
   vtkSetStringMacro(Label);
 
   vtkSetClampMacro(TipDimensionMode3D, int, ViewScaleFactor, Fixed);
   vtkGetMacro(TipDimensionMode3D, int);
+  // Handled in logic; is ignored in the storage node.
+  vtkGetMacro(UseAlternateColors, bool);
+  void SetUseAlternateColors(bool useAlternateColors);
+  vtkBooleanMacro(UseAlternateColors, bool);
+
   static const char* GetTipDimensionMode3DAsString(int mode);
   static int GetTipDimensionMode3DFromString(const char* name);
 
@@ -84,7 +89,8 @@ protected:
   void operator=(const vtkMRMLMarkupsLabelNode&);
   
   char* Label{ nullptr };
-  int TipDimensionMode3D{ ViewScaleFactor };  
+  int TipDimensionMode3D{ ViewScaleFactor };
+  bool UseAlternateColors = false;
 };
 
 #endif //vtkmrmlmarkupsLabelnode_h_

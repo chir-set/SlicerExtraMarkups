@@ -39,10 +39,12 @@ protected:
 
   void RegisterNodes() override;
   void OnMRMLSceneNodeAdded(vtkMRMLNode * node) override;
+  void GenerateUniqueColor(double color[3]);
 
 private:
   vtkSlicerLabelLogic(const vtkSlicerLabelLogic&) = delete;
   void operator=(const vtkSlicerLabelLogic&) = delete;
+  int NextColorIndex = 1;
 };
 
 #endif // __vtkSlicerLabelMarkupslogic_h_
