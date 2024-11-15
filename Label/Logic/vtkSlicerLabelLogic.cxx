@@ -62,21 +62,58 @@ void vtkSlicerLabelLogic::RegisterNodes()
 {
   vtkMRMLScene *scene = this->GetMRMLScene();
   if (!scene)
-    {
-    vtkErrorMacro("RegisterNodes failed: invalid scene");
-    return;
-    }
+  {
+  vtkErrorMacro("RegisterNodes failed: invalid scene");
+  return;
+  }
 
   vtkSlicerMarkupsLogic* markupsLogic = vtkSlicerMarkupsLogic::SafeDownCast(this->GetModuleLogic("Markups"));
   if (!markupsLogic)
-    {
-    vtkErrorMacro("RegisterNodes failed: invalid markups module logic");
-    return;
-    }
+  {
+  vtkErrorMacro("RegisterNodes failed: invalid markups module logic");
+  return;
+  }
 
   vtkNew<vtkMRMLMarkupsLabelNode> markupsLabelNode;
   vtkNew<vtkSlicerLabelWidget> LabelWidget;
   markupsLogic->RegisterMarkupsNode(markupsLabelNode, LabelWidget);
   
   scene->RegisterNodeClass(vtkSmartPointer<vtkMRMLMarkupsLabelJsonStorageNode>::New());
+}
+
+//-----------------------------------------------------------------------------
+void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
+{
+  if (!node)
+  {
+    return;
+  }
+  vtkMRMLScene *scene = this->GetMRMLScene();
+  if (!scene)
+  {
+    vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid scene");
+    return;
+  }
+  
+  vtkSlicerMarkupsLogic* markupsLogic = vtkSlicerMarkupsLogic::SafeDownCast(this->GetModuleLogic("Markups"));
+  if (!markupsLogic)
+  {
+    vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups module logic");
+    return;
+  }
+  if (!node->IsA("vtkMRMLMarkupsLabelNode"))
+  {
+    return;
+  }
+  vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(node);
+  if (!labelNode)
+  {
+    vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label node");
+    return;
+  }
+  const char * defaultConstructorLabel = "Label";
+  if (std::string(labelNode->GetLabel()) == std::string(defaultConstructorLabel)) // Default constructor value.
+  {
+    labelNode->SetLabel(scene->GenerateUniqueName(defaultConstructorLabel).c_str());
+  }
 }

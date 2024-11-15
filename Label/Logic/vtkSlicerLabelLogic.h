@@ -38,6 +38,7 @@ protected:
   ~vtkSlicerLabelLogic() override;
 
   void RegisterNodes() override;
+  void OnMRMLSceneNodeAdded(vtkMRMLNode * node) override;
 
 private:
   vtkSlicerLabelLogic(const vtkSlicerLabelLogic&) = delete;
