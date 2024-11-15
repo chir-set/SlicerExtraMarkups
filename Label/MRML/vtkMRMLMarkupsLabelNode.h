@@ -65,7 +65,7 @@ public:
   const char* GetDefaultNodeNamePrefix() override {return "LL";}
 
   /// \sa vtkMRMLNode::CopyContent
-  vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsLabelNode);
+  vtkMRMLCopyContentMacro(vtkMRMLMarkupsLabelNode);
   
   vtkMRMLStorageNode* CreateDefaultStorageNode() override;
   

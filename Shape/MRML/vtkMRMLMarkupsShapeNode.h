@@ -91,7 +91,7 @@ public:
   const char* GetDefaultNodeNamePrefix() override {return "SH";}
 
   /// \sa vtkMRMLNode::CopyContent
-  vtkMRMLCopyContentDefaultMacro(vtkMRMLMarkupsShapeNode);
+  vtkMRMLCopyContentMacro(vtkMRMLMarkupsShapeNode);
   
   vtkMRMLStorageNode* CreateDefaultStorageNode() override;
   void CreateDefaultDisplayNodes() override;

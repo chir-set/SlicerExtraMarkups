@@ -103,3 +103,15 @@ void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintEnumMacro(TipDimensionMode3D);
   vtkMRMLPrintEndMacro();
 }
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsLabelNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=true*/)
+{
+  MRMLNodeModifyBlocker blocker(this);
+  Superclass::CopyContent(anode, deepCopy);
+  
+  vtkMRMLCopyBeginMacro(anode);
+  vtkMRMLCopyStringMacro(Label);
+  vtkMRMLCopyEnumMacro(TipDimensionMode3D);
+  vtkMRMLCopyEndMacro();
+}
