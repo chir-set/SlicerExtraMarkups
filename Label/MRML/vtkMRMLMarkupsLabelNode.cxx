@@ -44,12 +44,6 @@ vtkMRMLMarkupsLabelNode::vtkMRMLMarkupsLabelNode()
 vtkMRMLMarkupsLabelNode::~vtkMRMLMarkupsLabelNode()=default;
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
-{
-  Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLMarkupsLabelNode::CreateDefaultStorageNode()
 {
   vtkMRMLScene* scene = this->GetScene();
@@ -99,3 +93,13 @@ int vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DFromString(const char* name)
   return -1;
 }
 
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
+{
+  Superclass::PrintSelf(os,indent);
+
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintStringMacro(Label);
+  vtkMRMLPrintEnumMacro(TipDimensionMode3D);
+  vtkMRMLPrintEndMacro();
+}

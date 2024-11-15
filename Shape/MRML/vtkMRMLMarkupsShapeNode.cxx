@@ -73,12 +73,6 @@ vtkMRMLMarkupsShapeNode::~vtkMRMLMarkupsShapeNode()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
-{
-  Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
 vtkMRMLStorageNode* vtkMRMLMarkupsShapeNode::CreateDefaultStorageNode()
 {
   vtkMRMLScene* scene = this->GetScene();
@@ -1674,4 +1668,43 @@ void vtkMRMLMarkupsShapeNode::ApplyDefaultParametrics()
   this->ParametricTwistV = std::get<TwistV>(tuple);
   this->ParametricTwistW = std::get<TwistW>(tuple);
   this->ParametricClockwiseOrdering = std::get<ClockwiseOrdering>(tuple);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
+{
+  Superclass::PrintSelf(os,indent);
+
+  vtkMRMLPrintBeginMacro(os, indent);
+  vtkMRMLPrintEnumMacro(ShapeName);
+  vtkMRMLPrintEnumMacro(RadiusMode);
+  vtkMRMLPrintEnumMacro(DrawMode2D);
+  vtkMRMLPrintFloatMacro(Resolution);
+  vtkMRMLPrintBooleanMacro(ScalarVisibility);
+  vtkMRMLPrintObjectMacro(ResliceNode);
+  vtkMRMLPrintBooleanMacro(DisplayCappedTube);
+  vtkMRMLPrintFloatMacro(ParametricN1);
+  vtkMRMLPrintFloatMacro(ParametricN2);
+  vtkMRMLPrintFloatMacro(ParametricN);
+  vtkMRMLPrintFloatMacro(ParametricRingRadius);
+  vtkMRMLPrintFloatMacro(ParametricRingRadius);
+  vtkMRMLPrintFloatMacro(ParametricRadius);
+  vtkMRMLPrintFloatMacro(ParametricX);
+  vtkMRMLPrintFloatMacro(ParametricY);
+  vtkMRMLPrintFloatMacro(ParametricZ);
+  vtkMRMLPrintFloatMacro(ParametricMinimumU);
+  vtkMRMLPrintFloatMacro(ParametricMaximumU);
+  vtkMRMLPrintFloatMacro(ParametricMinimumV);
+  vtkMRMLPrintFloatMacro(ParametricMaximumV);
+  vtkMRMLPrintFloatMacro(ParametricMinimumW);
+  vtkMRMLPrintFloatMacro(ParametricMaximumW);
+  vtkMRMLPrintBooleanMacro(ParametricJoinU);
+  vtkMRMLPrintBooleanMacro(ParametricJoinV);
+  vtkMRMLPrintBooleanMacro(ParametricJoinW);
+  vtkMRMLPrintBooleanMacro(ParametricTwistU);
+  vtkMRMLPrintBooleanMacro(ParametricTwistV);
+  vtkMRMLPrintBooleanMacro(ParametricTwistW);
+  vtkMRMLPrintBooleanMacro(ParametricClockwiseOrdering);
+  vtkMRMLPrintIntMacro(ParametricScalarMode);
+  vtkMRMLPrintEndMacro();
 }
