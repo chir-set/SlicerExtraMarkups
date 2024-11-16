@@ -770,21 +770,12 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
 
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
-  bool visibility = true;
   if (!shapeNode || shapeNode->GetNumberOfControlPoints() < 4
-    || shapeNode->GetNumberOfUndefinedControlPoints() > 0
-    || (shapeNode->GetNumberOfControlPoints() % 2) != 0) // Complete point pairs required.
-  {
-    visibility = false;
-  }
-  this->ShapeActor->SetVisibility(visibility);
-  this->WorldCutActor->SetVisibility(visibility);
-  this->TextActor->SetVisibility(visibility);
-  if (!visibility)
+    || shapeNode->GetNumberOfUndefinedControlPoints() > 0)
   {
     return;
   }
-  
+
   if (!shapeNode->GetDisplayCappedTube())
   {
     this->ShapeMapper->SetInputConnection(this->Tube->GetOutputPort());
@@ -796,14 +787,16 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     this->WorldCutter->SetInputConnection(this->CappedTube->GetOutputPort());
   }
   
-  this->TextActor->SetVisibility(true);
+  int numberOfPairedControlPoints = (shapeNode->GetNumberOfControlPoints() % 2)
+                            ? shapeNode->GetNumberOfControlPoints() - 1
+                            : shapeNode->GetNumberOfControlPoints();
   
   vtkNew<vtkPoints> splinePoints;
   vtkNew<vtkTupleInterpolator> interpolatedRadius;
   interpolatedRadius->SetInterpolationTypeToLinear();
   interpolatedRadius->SetNumberOfComponents(1);
   int interpolatorIndex = 0;
-  for (int i = 0; i < shapeNode->GetNumberOfControlPoints(); i = i + 2)
+  for (int i = 0; i < numberOfPairedControlPoints; i = i + 2)
   {
     double middlePoint[3] = { 0.0 };
     double p1[3] = { 0.0 };
@@ -894,6 +887,7 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   double p1[3] = { 0.0 };
   this->GetNthControlPointDisplayPosition(0, p1);
   this->TextActor->SetDisplayPosition(p1[0], p1[1]);
+  this->TextActor->SetVisibility(true);
   
   // Hide actors if they don't intersect the current slice
   this->SliceDistance->Update();

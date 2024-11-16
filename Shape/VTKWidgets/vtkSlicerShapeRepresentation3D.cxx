@@ -632,8 +632,7 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(this->GetMarkupsNode());
   
   if (!shapeNode || shapeNode->GetNumberOfControlPoints() < 4
-    || shapeNode->GetNumberOfUndefinedControlPoints() > 0
-    || (shapeNode->GetNumberOfControlPoints() % 2) != 0) // Complete point pairs required.
+    || shapeNode->GetNumberOfUndefinedControlPoints() > 0)
   {
     return;
   }
@@ -646,13 +645,17 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   {
     this->ShapeMapper->SetInputConnection(this->CappedTube->GetOutputPort());
   }
-  
+
+  int numberOfPairedControlPoints = (shapeNode->GetNumberOfControlPoints() % 2)
+                            ? shapeNode->GetNumberOfControlPoints() - 1
+                            : shapeNode->GetNumberOfControlPoints();
+
   vtkNew<vtkPoints> splinePoints;
   vtkNew<vtkTupleInterpolator> interpolatedRadius;
   interpolatedRadius->SetInterpolationTypeToLinear();
   interpolatedRadius->SetNumberOfComponents(1);
   int interpolatorIndex = 0;
-  for (int i = 0; i < shapeNode->GetNumberOfControlPoints(); i = i + 2)
+  for (int i = 0; i < numberOfPairedControlPoints; i = i + 2)
   {
     double middlePoint[3] = { 0.0 };
     double p1[3] = { 0.0 };
@@ -726,7 +729,6 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->TextActor->SetVisibility(true);
 
   this->ShapeActor->SetVisibility(true);
-  this->TextActor->SetVisibility(true);
 }
 
 
