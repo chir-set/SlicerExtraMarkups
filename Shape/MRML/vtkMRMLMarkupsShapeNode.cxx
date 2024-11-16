@@ -1251,9 +1251,13 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
     vtkErrorMacro("GetCenterWorld is not implemented for Tube and Cylinder shapes.");
     return false;
   }
-  if (this->GetNumberOfUndefinedControlPoints() || this->GetNumberOfUndefinedControlPoints(true))
+  if ((this->GetNumberOfUndefinedControlPoints() || this->GetNumberOfUndefinedControlPoints(true)))
   {
-    vtkErrorMacro("Aborting because Shape node has undefined points.");
+    // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
+    if (!this->GetDisableModifiedEvent())
+    {
+      vtkErrorMacro("Aborting because Shape node has undefined points.");
+    }
     return false;
   }
   
@@ -1346,7 +1350,11 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
     case Ellipsoid:
       if (this->GetNumberOfDefinedControlPoints() != 4)
       {
-        vtkErrorMacro("Parametric Shape node does not have 4 defined control points.");
+        // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
+        if (!this->GetDisableModifiedEvent())
+        {
+          vtkErrorMacro("Parametric Shape node does not have 4 defined control points.");
+        }
         return false;
       }
       this->GetNthControlPointPositionWorld(0, p1);
@@ -1473,7 +1481,11 @@ bool vtkMRMLMarkupsShapeNode::SetParametricAxisValue(const char axis, double dis
   
   if (this->GetNumberOfDefinedControlPoints(false) < 4)
   {
-    vtkErrorMacro("4 defined control points are required.");
+    // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
+    if (!this->GetDisableModifiedEvent())
+    {
+      vtkErrorMacro("4 defined control points are required.");
+    }
     return false;
   }
   
@@ -1673,7 +1685,11 @@ void vtkMRMLMarkupsShapeNode::ApplyDefaultParametrics()
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::SetUseAlternateColors(bool useAlternateColors)
 {
-  vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
+  if (!this->GetDisableModifiedEvent())
+  {
+    vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  }
   this->UseAlternateColors = useAlternateColors;
 }
 

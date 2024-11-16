@@ -96,7 +96,11 @@ int vtkMRMLMarkupsLabelNode::GetTipDimensionMode3DFromString(const char* name)
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsLabelNode::SetUseAlternateColors(bool useAlternateColors)
 {
-  vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
+  if (!this->GetDisableModifiedEvent())
+  {
+    vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  }
   this->UseAlternateColors = useAlternateColors;
 }
 
