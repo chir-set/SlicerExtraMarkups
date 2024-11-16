@@ -1671,6 +1671,14 @@ void vtkMRMLMarkupsShapeNode::ApplyDefaultParametrics()
 }
 
 //----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::SetUseAlternateColors(bool useAlternateColors)
+{
+  vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
+  this->UseAlternateColors = useAlternateColors;
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
@@ -1683,6 +1691,7 @@ void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(ScalarVisibility);
   vtkMRMLPrintObjectMacro(ResliceNode);
   vtkMRMLPrintBooleanMacro(DisplayCappedTube);
+  vtkMRMLPrintBooleanMacro(UseAlternateColors);
   vtkMRMLPrintFloatMacro(ParametricN1);
   vtkMRMLPrintFloatMacro(ParametricN2);
   vtkMRMLPrintFloatMacro(ParametricN);
@@ -1721,29 +1730,33 @@ void vtkMRMLMarkupsShapeNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=tr
   vtkMRMLCopyEnumMacro(DrawMode2D);
   vtkMRMLCopyFloatMacro(Resolution);
   vtkMRMLCopyBooleanMacro(ScalarVisibility);
-  vtkMRMLCopyFloatMacro(ParametricN1);
-  vtkMRMLCopyFloatMacro(ParametricN2);
-  vtkMRMLCopyFloatMacro(ParametricN);
-  vtkMRMLCopyFloatMacro(ParametricRingRadius);
-  vtkMRMLCopyFloatMacro(ParametricRingRadius);
-  vtkMRMLCopyFloatMacro(ParametricRadius);
-  vtkMRMLCopyFloatMacro(ParametricX);
-  vtkMRMLCopyFloatMacro(ParametricY);
-  vtkMRMLCopyFloatMacro(ParametricZ);
-  vtkMRMLCopyFloatMacro(ParametricMinimumU);
-  vtkMRMLCopyFloatMacro(ParametricMaximumU);
-  vtkMRMLCopyFloatMacro(ParametricMinimumV);
-  vtkMRMLCopyFloatMacro(ParametricMaximumV);
-  vtkMRMLCopyFloatMacro(ParametricMinimumW);
-  vtkMRMLCopyFloatMacro(ParametricMaximumW);
-  vtkMRMLCopyBooleanMacro(ParametricJoinU);
-  vtkMRMLCopyBooleanMacro(ParametricJoinV);
-  vtkMRMLCopyBooleanMacro(ParametricJoinW);
-  vtkMRMLCopyBooleanMacro(ParametricTwistU);
-  vtkMRMLCopyBooleanMacro(ParametricTwistV);
-  vtkMRMLCopyBooleanMacro(ParametricTwistW);
-  vtkMRMLCopyBooleanMacro(ParametricClockwiseOrdering);
-  vtkMRMLCopyIntMacro(ParametricScalarMode);
   vtkMRMLCopyBooleanMacro(DisplayCappedTube);
+  vtkMRMLCopyBooleanMacro(UseAlternateColors);
+  if (this->ShapeIsParametric)
+  {
+    vtkMRMLCopyFloatMacro(ParametricN1);
+    vtkMRMLCopyFloatMacro(ParametricN2);
+    vtkMRMLCopyFloatMacro(ParametricN);
+    vtkMRMLCopyFloatMacro(ParametricRingRadius);
+    vtkMRMLCopyFloatMacro(ParametricRingRadius);
+    vtkMRMLCopyFloatMacro(ParametricRadius);
+    vtkMRMLCopyFloatMacro(ParametricX);
+    vtkMRMLCopyFloatMacro(ParametricY);
+    vtkMRMLCopyFloatMacro(ParametricZ);
+    vtkMRMLCopyFloatMacro(ParametricMinimumU);
+    vtkMRMLCopyFloatMacro(ParametricMaximumU);
+    vtkMRMLCopyFloatMacro(ParametricMinimumV);
+    vtkMRMLCopyFloatMacro(ParametricMaximumV);
+    vtkMRMLCopyFloatMacro(ParametricMinimumW);
+    vtkMRMLCopyFloatMacro(ParametricMaximumW);
+    vtkMRMLCopyBooleanMacro(ParametricJoinU);
+    vtkMRMLCopyBooleanMacro(ParametricJoinV);
+    vtkMRMLCopyBooleanMacro(ParametricJoinW);
+    vtkMRMLCopyBooleanMacro(ParametricTwistU);
+    vtkMRMLCopyBooleanMacro(ParametricTwistV);
+    vtkMRMLCopyBooleanMacro(ParametricTwistW);
+    vtkMRMLCopyBooleanMacro(ParametricClockwiseOrdering);
+    vtkMRMLCopyIntMacro(ParametricScalarMode);
+  }
   vtkMRMLCopyEndMacro();
 }

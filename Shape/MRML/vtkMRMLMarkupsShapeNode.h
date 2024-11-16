@@ -247,6 +247,11 @@ public:
   
   bool SetParametricXYZToActiveControlPoint();
 
+  // Handled in logic; is ignored in the storage node.
+  vtkGetMacro(UseAlternateColors, bool);
+  void SetUseAlternateColors(bool useAlternateColors);
+  vtkBooleanMacro(UseAlternateColors, bool);
+
 protected:
   vtkMRMLMarkupsShapeNode();
   ~vtkMRMLMarkupsShapeNode() override;
@@ -335,7 +340,9 @@ protected:
   bool ParametricTwistW = false;
   bool ParametricClockwiseOrdering = false;
   int ParametricScalarMode = vtkParametricFunctionSource::SCALAR_NONE;
-  
+
+  bool UseAlternateColors = false;
+
   // For UI control.
   std::pair<double, double> ParametricRangeU;
   std::pair<double, double> ParametricRangeV;
@@ -362,7 +369,6 @@ protected:
 
 private:
   bool RemovingPairControlPoint = false; // Tube
-  
 };
 
 #endif //vtkmrmlmarkupsshapenode_h_

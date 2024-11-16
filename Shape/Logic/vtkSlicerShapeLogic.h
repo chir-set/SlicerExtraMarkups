@@ -38,10 +38,13 @@ protected:
   ~vtkSlicerShapeLogic() override;
 
   void RegisterNodes() override;
+  void OnMRMLSceneNodeAdded(vtkMRMLNode * node) override;
+  void GenerateUniqueColor(double color[3]);
 
 private:
   vtkSlicerShapeLogic(const vtkSlicerShapeLogic&) = delete;
   void operator=(const vtkSlicerShapeLogic&) = delete;
+  int NextColorIndex = 1;
 };
 
 #endif // __vtkSlicerShapeMarkupslogic_h_
