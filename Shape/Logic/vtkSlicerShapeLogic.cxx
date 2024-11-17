@@ -130,9 +130,9 @@ void vtkSlicerShapeLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
         vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups shape display node");
         return;
       }
-      double selectedColour[3] = { 1.0, 0.5, 0.5};
-      this->GenerateUniqueColor(selectedColour);
-      double colour[3] = { 1.0 - selectedColour[0], 1.0 - selectedColour[1], 1.0 - selectedColour[2]};
+      double colour[3] = { 1.0, 0.5, 0.5};
+      this->GenerateUniqueColor(colour);
+      double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
       shapeNode->GetDisplayNode()->SetSelectedColor(selectedColour);
       shapeNode->GetDisplayNode()->SetColor(colour);
     }

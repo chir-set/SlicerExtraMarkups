@@ -137,9 +137,9 @@ void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
         vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label display node");
         return;
       }
-      double selectedColour[3] = { 1.0, 0.5, 0.5};
-      this->GenerateUniqueColor(selectedColour);
-      double colour[3] = { 1.0 - selectedColour[0], 1.0 - selectedColour[1], 1.0 - selectedColour[2]};
+      double colour[3] = { 1.0, 0.5, 0.5};
+      this->GenerateUniqueColor(colour);
+      double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
       labelNode->GetDisplayNode()->SetSelectedColor(selectedColour);
       labelNode->GetDisplayNode()->SetColor(colour);
     }
