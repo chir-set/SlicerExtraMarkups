@@ -173,16 +173,70 @@ vtkTypeBool vtkSlicerLabelRepresentation3D::HasTranslucentPolygonalGeometry()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
-                                                           unsigned long event,
-                                                           void *callData /*=nullptr*/)
+void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
   this->Superclass::UpdateFromMRML(caller, event, callData);
-
   this->NeedToRenderOn();
 
   vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
-  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints() != 2)
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints(true) == 0)
+  {
+    return;
+  }
+  
+  this->ArrowActor->SetVisibility(false);
+  this->TextActor->SetVisibility(false);
+  switch (markupsNode->GetNumberOfDefinedControlPoints(true))
+  {
+    case 1:
+      this->UpdateTagFromMRML(caller, event, callData);
+      break;
+    case 2:
+      this->UpdatePointerFromMRML(caller, event, callData);
+      break;
+    default:
+      vtkErrorMacro("Number of control points out of range.");
+  }
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLabelRepresentation3D::UpdateTagFromMRML(vtkMRMLNode* caller,
+                                                    unsigned long event,
+                                                    void *callData /*=nullptr*/)
+{
+  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints() != 1)
+  {
+    return;
+  }
+  vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
+  
+  double p1[3] = { 0.0 };
+  markupsNode->GetNthControlPointPositionWorld(0, p1);
+
+  this->TextActor->SetInput(labelNode->GetLabel());
+  this->TextActorPositionWorld[0] = p1[0];
+  this->TextActorPositionWorld[1] = p1[1];
+  this->TextActorPositionWorld[2] = p1[2];
+  
+  this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 1);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  //Hide a control point by decreasing its size.
+  this->GetControlPointsPipeline(controlPointType)->GlyphMapper->SetScaleFactor(0.01);
+  // Shrink the control points on markups creation.
+  this->UpdateViewScaleFactor();
+}
+
+//----------------------------------------------------------------------
+void vtkSlicerLabelRepresentation3D::UpdatePointerFromMRML(vtkMRMLNode* caller,
+                                                           unsigned long event,
+                                                           void *callData /*=nullptr*/)
+{
+  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints(true) != 2)
   {
     return;
   }
@@ -241,8 +295,8 @@ void vtkSlicerLabelRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   this->TextActorPositionWorld[1] = p1[1];
   this->TextActorPositionWorld[2] = p1[2];
   
-  this->ArrowActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
+  this->ArrowActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ArrowActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);

@@ -64,62 +64,98 @@ void vtkSlicerLabelRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 }
-// -----------------------------------------------------------------------------
-void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData /*=nullptr*/)
+
+//----------------------------------------------------------------------
+void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData)
 {
-  Superclass::UpdateFromMRML(caller, event, callData);
-
+  this->Superclass::UpdateFromMRML(caller, event, callData);
   this->NeedToRenderOn();
-
+  
   vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
-  if (!markupsNode || !this->IsDisplayable())
-    {
-    this->VisibilityOff();
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints(true) == 0)
+  {
     return;
-    }
+  }
+  
+  this->LineActor->SetVisibility(false);
+  this->TextActor->SetVisibility(false);
+  switch (markupsNode->GetNumberOfDefinedControlPoints(true))
+  {
+    case 1:
+      this->UpdateTagFromMRML(caller, event, callData);
+      break;
+    case 2:
+      this->UpdatePointerFromMRML(caller, event, callData);
+      break;
+    default:
+      vtkErrorMacro("Number of control points out of range.");
+  }
+}
 
-  this->VisibilityOn();
+// -----------------------------------------------------------------------------
+void vtkSlicerLabelRepresentation2D::UpdateTagFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData /*=nullptr*/)
+{
+  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints(true) != 1)
+  {
+    return;
+  }
+
   vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
+  
+  double p1[3] = { 0.0 };
+  this->GetNthControlPointDisplayPosition(0, p1);
 
-  this->LineActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-  this->TextActor->SetVisibility(markupsNode->GetNumberOfDefinedControlPoints(true) == 2);
-
-  // Hide the line actor if it doesn't intersect the current slice
+  // Hide the text actor if the single control point is not on the current slice.
   this->SliceDistance->Update();
-  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
-    {
-    this->LineActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-    }
+  this->TextActor->SetVisibility(this->IsControlPointDisplayableOnSlice(labelNode, 0));
+  
+  this->TextActor->SetInput(labelNode->GetLabel());
+  this->TextActor->SetPosition(p1[0], p1[1]);
+  
+  int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
+  this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
+  
+  vtkMarkupsGlyphSource2D * glyphSource2D = this->GetControlPointsPipeline(controlPointType)->GlyphSource2D;
+  glyphSource2D->SetGlyphTypeToNone();
+  glyphSource2D->Update();
+}
+
+// -----------------------------------------------------------------------------
+void vtkSlicerLabelRepresentation2D::UpdatePointerFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData /*=nullptr*/)
+{
+  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  if (!markupsNode || markupsNode->GetNumberOfDefinedControlPoints(true) != 2)
+  {
+    return;
+  }
+
+  vtkMRMLMarkupsLabelNode * labelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(markupsNode);
 
   // The control point arrow glyph is used instead of the default sphere.
   double glyphRotationAngle = 0.0;
   double p1[3] = { 0.0 };
   double p2[3] = { 0.0 };
-  if (markupsNode->GetNumberOfDefinedControlPoints(true) == 2)
+
+  this->GetNthControlPointDisplayPosition(0, p1);
+  this->GetNthControlPointDisplayPosition(1, p2);
+
+  glyphRotationAngle = vtkMath::DegreesFromRadians(std::atan((p2[1] - p1[1]) / (p2[0] - p1[0])));
+  // On negative x
+  if ((p2[0] >= p1[0]))
   {
-    this->GetNthControlPointDisplayPosition(0, p1);
-    this->GetNthControlPointDisplayPosition(1, p2);
-  
-    glyphRotationAngle = vtkMath::DegreesFromRadians(std::atan((p2[1] - p1[1]) / (p2[0] - p1[0])));
-    // On negative x
-    if ((p2[0] >= p1[0]))
-    {
-      glyphRotationAngle += 180.0;
-    }
-    this->LineSource->SetPoint1(p1);
-    this->LineSource->SetPoint2(p2);
-    this->LineSource->Update();
+    glyphRotationAngle += 180.0;
   }
-  else
-  {
-    this->LineActor->SetVisibility(false);
-    this->TextActor->SetVisibility(false);
-  }
+  this->LineSource->SetPoint1(p1);
+  this->LineSource->SetPoint2(p2);
+  this->LineSource->Update();
   
-  // Hide the line actor if it doesn't intersect the current slice
+  this->LineActor->SetVisibility(true);
+  this->TextActor->SetVisibility(true);
+  
+  // Hide the actors if the line doesn't intersect the current slice
   this->SliceDistance->Update();
-  if (!Superclass::IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
+  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
   {
     this->LineActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
@@ -140,6 +176,7 @@ void vtkSlicerLabelRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
   glyphSource2D->SetGlyphTypeToArrow();
   glyphSource2D->SetRotationAngle(glyphRotationAngle);
   glyphSource2D->SetScale(2.0);
+  glyphSource2D->Update();
 }
 
 //-----------------------------------------------------------------------------

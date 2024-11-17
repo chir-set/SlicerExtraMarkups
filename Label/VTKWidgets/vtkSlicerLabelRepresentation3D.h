@@ -67,6 +67,9 @@ protected:
   vtkSlicerLabelRepresentation3D();
   ~vtkSlicerLabelRepresentation3D() override;
 
+  void UpdateTagFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+  void UpdatePointerFromMRML(vtkMRMLNode* caller, unsigned long event, void* callData=nullptr);
+
   vtkSmartPointer<vtkLineSource> LineSource;
   vtkSmartPointer<vtkConeSource> ConeSource;
   vtkSmartPointer<vtkAppendPolyData> AppendedArrow;

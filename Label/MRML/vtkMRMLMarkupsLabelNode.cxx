@@ -34,7 +34,7 @@ vtkMRMLMarkupsLabelNode::vtkMRMLMarkupsLabelNode()
   this->SetLabel("Label");
   /*
    * p1 : near the label
-   * p2 : near what we want to label
+   * p2 : near what we want to label; is optional.
    */
   this->MaximumNumberOfControlPoints = 2;
   this->RequiredNumberOfControlPoints = 2;

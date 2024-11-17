@@ -86,7 +86,10 @@ public:
 protected:
   vtkSlicerLabelRepresentation2D();
   ~vtkSlicerLabelRepresentation2D() override;
-  
+
+  void UpdateTagFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+  void UpdatePointerFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData=nullptr);
+
   void SetMarkupsNode(vtkMRMLMarkupsNode * markupsNode) override;
   vtkSmartPointer<vtkTransformPolyDataFilter> WorldToSliceTransformer;
   vtkSmartPointer<vtkSampleImplicitFunctionFilter> SliceDistance;

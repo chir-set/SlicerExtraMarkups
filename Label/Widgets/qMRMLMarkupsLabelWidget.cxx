@@ -97,6 +97,9 @@ void qMRMLMarkupsLabelWidget::updateWidgetFromMRML()
     return;
     }
 
+  int numberOfDefinedControlPoints = d->MarkupsLabelNode->GetNumberOfDefinedControlPoints(false);
+  d->ThreeDTipDimensionModeLabel->setVisible(numberOfDefinedControlPoints == 2);
+  d->ThreeDTipDimensionModeComboBox->setVisible(numberOfDefinedControlPoints == 2);
   d->labelCollapsibleButton->setVisible(true);
 }
 
