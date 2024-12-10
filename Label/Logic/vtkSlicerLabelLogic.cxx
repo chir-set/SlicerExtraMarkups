@@ -120,29 +120,18 @@ void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     labelNode->SetLabel(scene->GenerateUniqueName(defaultConstructorLabel).c_str());
   }
   
-  // Alternate colours.
-  vtkMRMLNode * mrmlNode = scene->GetDefaultNodeByClass("vtkMRMLMarkupsLabelNode");
-  if (mrmlNode)
+  if (labelNode->GetUseAlternateColors())
   {
-    vtkMRMLMarkupsLabelNode * defaultLabelNode = vtkMRMLMarkupsLabelNode::SafeDownCast(mrmlNode);
-    if (!defaultLabelNode)
+    if (!labelNode->GetDisplayNode())
     {
-      vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid default markups label node");
+      vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label display node");
       return;
     }
-    if (defaultLabelNode->GetUseAlternateColors())
-    {
-      if (!labelNode->GetDisplayNode())
-      {
-        vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label display node");
-        return;
-      }
-      double colour[3] = { 1.0, 0.5, 0.5};
-      this->GenerateUniqueColor(colour);
-      double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
-      labelNode->GetDisplayNode()->SetSelectedColor(selectedColour);
-      labelNode->GetDisplayNode()->SetColor(colour);
-    }
+    double colour[3] = { 1.0, 0.5, 0.5};
+    this->GenerateUniqueColor(colour);
+    double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
+    labelNode->GetDisplayNode()->SetSelectedColor(selectedColour);
+    labelNode->GetDisplayNode()->SetColor(colour);
   }
 }
 

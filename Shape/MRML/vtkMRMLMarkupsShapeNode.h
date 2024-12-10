@@ -341,7 +341,7 @@ protected:
   bool ParametricClockwiseOrdering = false;
   int ParametricScalarMode = vtkParametricFunctionSource::SCALAR_NONE;
 
-  bool UseAlternateColors = false;
+  bool UseAlternateColors = true;
 
   // For UI control.
   std::pair<double, double> ParametricRangeU;

@@ -113,29 +113,18 @@ void vtkSlicerShapeLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     return;
   }
 
-  // Alternate colours.
-  vtkMRMLNode * mrmlNode = scene->GetDefaultNodeByClass("vtkMRMLMarkupsShapeNode");
-  if (mrmlNode)
+  if (shapeNode->GetUseAlternateColors())
   {
-    vtkMRMLMarkupsShapeNode * defaultShapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(mrmlNode);
-    if (!defaultShapeNode)
+    if (!shapeNode->GetDisplayNode())
     {
-      vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid default markups shape node");
+      vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups shape display node");
       return;
     }
-    if (defaultShapeNode->GetUseAlternateColors())
-    {
-      if (!shapeNode->GetDisplayNode())
-      {
-        vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups shape display node");
-        return;
-      }
-      double colour[3] = { 1.0, 0.5, 0.5};
-      this->GenerateUniqueColor(colour);
-      double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
-      shapeNode->GetDisplayNode()->SetSelectedColor(selectedColour);
-      shapeNode->GetDisplayNode()->SetColor(colour);
-    }
+    double colour[3] = { 1.0, 0.5, 0.5};
+    this->GenerateUniqueColor(colour);
+    double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
+    shapeNode->GetDisplayNode()->SetSelectedColor(selectedColour);
+    shapeNode->GetDisplayNode()->SetColor(colour);
   }
 }
 

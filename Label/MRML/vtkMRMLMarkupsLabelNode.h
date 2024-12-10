@@ -90,7 +90,7 @@ protected:
   
   char* Label{ nullptr };
   int TipDimensionMode3D{ ViewScaleFactor };
-  bool UseAlternateColors = false;
+  bool UseAlternateColors = true;
 };
 
 #endif //vtkmrmlmarkupsLabelnode_h_
