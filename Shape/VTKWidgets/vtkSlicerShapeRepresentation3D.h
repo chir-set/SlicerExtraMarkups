@@ -111,6 +111,8 @@ protected:
   
   vtkSmartPointer<vtkParametricSpline> Spline;
   vtkSmartPointer<vtkParametricFunctionSource> SplineFunctionSource;
+  vtkSmartPointer<vtkPolyDataMapper> SplineMapper;
+  vtkSmartPointer<vtkActor> SplineActor;
   vtkSmartPointer<vtkTubeFilter> Tube; // Variable radius tube.
   vtkSmartPointer<vtkTubeFilter> CappedTube;
   

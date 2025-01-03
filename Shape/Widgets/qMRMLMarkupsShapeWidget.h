@@ -59,16 +59,20 @@ public:
 public slots:
 /// Set the MRML node of interest
   void setMRMLMarkupsNode(vtkMRMLMarkupsNode* node) override;
-  
+
+protected slots:
   void onShapeChanged(int shapeName);
   void onRadiusModeChanged();
   void onDrawModeChanged();
   void onResolutionChanged(double value);
   void onResliceNodeChanged(vtkMRMLNode * node);
   void onResliceButtonClicked();
-  void onDisplayCappedTubeClicked(bool value);
-  void onScalarVisibilityClicked(bool value);
-  
+  void onTubeMenuOptionButtonClicked();
+
+  void onDisplayCappedTubeToggled(bool value);
+  void onScalarVisibilityToggled(bool value); // Shared between Tube and Parametric shapes.
+  void onSplineVisivilityTogggled(bool value);
+
   // Parametric shapes.
   // Object parameters.
   void onParametricIsotropicScalingButtonClicked();

@@ -77,6 +77,11 @@ vtkSlicerShapeRepresentation3D::vtkSlicerShapeRepresentation3D()
   this->Spline->SetPoints(points);
   this->SplineFunctionSource = vtkSmartPointer<vtkParametricFunctionSource>::New();
   this->SplineFunctionSource->SetParametricFunction(this->Spline);
+  this->SplineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->SplineMapper->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  this->SplineActor = vtkSmartPointer<vtkActor>::New();
+  this->SplineActor->SetMapper(this->SplineMapper);
+  this->SplineActor->SetProperty(this->ShapeProperty);
   // This is for display. Viewing a closed tube is not natural while dealing with arteries.
   this->Tube = vtkSmartPointer<vtkTubeFilter>::New();
   this->Tube->SetNumberOfSides(20);
@@ -137,6 +142,7 @@ void vtkSlicerShapeRepresentation3D::GetActors(vtkPropCollection* pc)
   this->MiddlePointActor->GetActors(pc);
   this->ParametricMiddlePointActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
+  this->SplineActor->GetActors(pc);
 }
 
 //------------------------------------------------------------------------------
@@ -147,6 +153,7 @@ void vtkSlicerShapeRepresentation3D::ReleaseGraphicsResources(vtkWindow* win)
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->ParametricMiddlePointActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
+  this->SplineActor->ReleaseGraphicsResources(win);
 }
 
 //------------------------------------------------------------------------------
@@ -168,6 +175,10 @@ int vtkSlicerShapeRepresentation3D::RenderOverlay(vtkViewport* viewport)
   if (this->RadiusActor->GetVisibility())
   {
     count += this->RadiusActor->RenderOverlay(viewport);
+  }
+  if (this->SplineActor->GetVisibility())
+  {
+    count += this->SplineActor->RenderOverlay(viewport);
   }
   return count;
 }
@@ -191,6 +202,10 @@ int vtkSlicerShapeRepresentation3D::RenderOpaqueGeometry(vtkViewport* viewport)
   if (this->RadiusActor->GetVisibility())
   {
     count += this->RadiusActor->RenderOpaqueGeometry(viewport);
+  }
+  if (this->SplineActor->GetVisibility())
+  {
+    count += this->SplineActor->RenderOpaqueGeometry(viewport);
   }
 
   return count;
@@ -219,6 +234,11 @@ int vtkSlicerShapeRepresentation3D::RenderTranslucentPolygonalGeometry(vtkViewpo
   {
     this->RadiusActor->SetPropertyKeys(this->GetPropertyKeys());
     count += this->RadiusActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+  if (this->SplineActor->GetVisibility())
+  {
+    this->SplineActor->SetPropertyKeys(this->GetPropertyKeys());
+    count += this->SplineActor->RenderTranslucentPolygonalGeometry(viewport);
   }
 
   return count;
@@ -251,6 +271,11 @@ vtkTypeBool vtkSlicerShapeRepresentation3D::HasTranslucentPolygonalGeometry()
   {
     return true;
   }
+  if (this->SplineActor->GetVisibility() &&
+    this->SplineActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
 
   return false;
 }
@@ -275,12 +300,14 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   
   this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->SplineMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
 
   this->ShapeActor->SetVisibility(false);
   this->MiddlePointActor->SetVisibility(false);
   this->ParametricMiddlePointActor->SetVisibility(false);
   this->RadiusActor->SetVisibility(false);
   this->TextActor->SetVisibility(false);
+  this->SplineActor->SetVisibility(false);
 
   if (!shapeNode->IsParametric())
   {
@@ -645,6 +672,7 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   {
     this->ShapeMapper->SetInputConnection(this->CappedTube->GetOutputPort());
   }
+  this->SplineActor->SetVisibility(shapeNode->GetSplineVisibility());
 
   int numberOfPairedControlPoints = (shapeNode->GetNumberOfControlPoints() % 2)
                             ? shapeNode->GetNumberOfControlPoints() - 1

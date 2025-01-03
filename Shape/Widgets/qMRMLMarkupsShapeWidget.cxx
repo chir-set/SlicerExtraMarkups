@@ -29,6 +29,8 @@
 #include <vtkParametricFunctionSource.h>
 
 #include <qSlicerCoreApplication.h>
+#include <QMenu>
+#include <QAction>
 
 // --------------------------------------------------------------------------
 class qMRMLMarkupsShapeWidgetPrivate:
@@ -41,9 +43,18 @@ protected:
 
 public:
   qMRMLMarkupsShapeWidgetPrivate(qMRMLMarkupsShapeWidget* object);
+  ~qMRMLMarkupsShapeWidgetPrivate();
   void setupUi(qMRMLMarkupsShapeWidget*);
 
   vtkWeakPointer<vtkMRMLMarkupsShapeNode> MarkupsShapeNode;
+  QMenu * TubeOptionMenu = nullptr;
+
+  enum TubeMenuAction
+  {
+    ActionCapTube = 0,
+    ActionScalarVisivility,
+    ActionSplineVisibility
+  };
 };
 
 // --------------------------------------------------------------------------
@@ -52,6 +63,12 @@ qMRMLMarkupsShapeWidgetPrivate(qMRMLMarkupsShapeWidget* object)
   : q_ptr(object)
 {
 
+}
+
+// --------------------------------------------------------------------------
+qMRMLMarkupsShapeWidgetPrivate::~qMRMLMarkupsShapeWidgetPrivate()
+{
+  delete this->TubeOptionMenu;
 }
 
 // --------------------------------------------------------------------------
@@ -85,6 +102,10 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->drawModeComboBox->addItem("Intersection");
   this->drawModeComboBox->addItem("Projection");
   this->resliceInputSelector->setMRMLScene(widget->mrmlScene());
+
+  this->tubeMenuOptionButton->setVisible(false);
+  this->TubeOptionMenu = new QMenu(this->tubeMenuOptionButton);
+  this->tubeMenuOptionButton->setMenu(this->TubeOptionMenu);
   
   this->parametricScalarModeComboBox->addItem("None", vtkParametricFunctionSource::SCALAR_NONE);
   this->parametricScalarModeComboBox->addItem("U", vtkParametricFunctionSource::SCALAR_U);
@@ -100,8 +121,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->parametricScalarModeComboBox->addItem("Z", vtkParametricFunctionSource::SCALAR_Z);
   this->parametricScalarModeComboBox->addItem("Distance", vtkParametricFunctionSource::SCALAR_DISTANCE);
   
-  this->displayCappedTubeToolButton->setVisible(false);
-  this->scalarVisibilityToolButton->setVisible(false);
+  this->parametricScalarVisibilityToolButton->setVisible(false);
   this->parametricIsotropicScalingToolButton->setVisible(false);
   this->parametricNLabel->setVisible(false);
   this->parametricNSliderWidget->setVisible(false);
@@ -119,7 +139,7 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
   this->parametricsMainCollapsibleButton->setCollapsed(true);
   this->parametricsMainCollapsibleButton->setVisible(false);
   this->parametricsMoreCollapsibleButton->setCollapsed(true);
-  
+
   QObject::connect(this->shapeNameComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onShapeChanged(int)));
   QObject::connect(this->radiusModeComboBox, SIGNAL(currentIndexChanged(int)),
@@ -132,10 +152,10 @@ void qMRMLMarkupsShapeWidgetPrivate::setupUi(qMRMLMarkupsShapeWidget* widget)
                    q, SLOT(onResliceNodeChanged(vtkMRMLNode*)));
   QObject::connect(this->reslicePushButton, SIGNAL(clicked()),
                    q, SLOT(onResliceButtonClicked()));
-  QObject::connect(this->displayCappedTubeToolButton, SIGNAL(clicked(bool)),
-                   q, SLOT(onDisplayCappedTubeClicked(bool)));
-  QObject::connect(this->scalarVisibilityToolButton, SIGNAL(clicked(bool)),
-                   q, SLOT(onScalarVisibilityClicked(bool)));
+  QObject::connect(this->tubeMenuOptionButton, SIGNAL(clicked()),
+                   q, SLOT(onTubeMenuOptionButtonClicked()));
+  QObject::connect(this->parametricScalarVisibilityToolButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onScalarVisibilityToggled(bool)));
   
   // Object parameters.
   QObject::connect(this->parametricIsotropicScalingToolButton, SIGNAL(clicked()),
@@ -222,8 +242,9 @@ void qMRMLMarkupsShapeWidget::updateWidgetFromMRML()
   d->drawModeComboBox->setCurrentIndex(d->MarkupsShapeNode->GetDrawMode2D());
   d->resolutionSliderWidget->setValue(d->MarkupsShapeNode->GetResolution());
   d->resliceInputSelector->setCurrentNode(d->MarkupsShapeNode->GetResliceNode());
-  d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
-  d->scalarVisibilityToolButton->setChecked(d->MarkupsShapeNode->GetScalarVisibility());
+  // Set tube checkable menu item status here.
+  // d->displayCappedTubeToolButton->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
+  d->parametricScalarVisibilityToolButton->setChecked(d->MarkupsShapeNode->GetScalarVisibility());
   
   if (!d->MarkupsShapeNode->IsParametric())
   {
@@ -315,9 +336,8 @@ void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
                                 && shapeName != vtkMRMLMarkupsShapeNode::Tube
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cone
                                 && shapeName != vtkMRMLMarkupsShapeNode::Cylinder);
-  d->displayCappedTubeToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
-  d->scalarVisibilityToolButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube
-                                          || d->MarkupsShapeNode->IsParametric());
+  d->tubeMenuOptionButton->setVisible(shapeName == vtkMRMLMarkupsShapeNode::Tube);
+  d->parametricScalarVisibilityToolButton->setVisible(d->MarkupsShapeNode->IsParametric());
   
   // Object parameters.
   d->parametricIsotropicScalingToolButton->setVisible(d->MarkupsShapeNode->IsParametric()
@@ -410,7 +430,7 @@ void qMRMLMarkupsShapeWidget::onResliceButtonClicked()
 }
 
 // --------------------------------------------------------------------------
-void qMRMLMarkupsShapeWidget::onDisplayCappedTubeClicked(bool value)
+void qMRMLMarkupsShapeWidget::onDisplayCappedTubeToggled(bool value)
 {
   Q_D(qMRMLMarkupsShapeWidget);
   
@@ -422,7 +442,7 @@ void qMRMLMarkupsShapeWidget::onDisplayCappedTubeClicked(bool value)
 }
 
 // --------------------------------------------------------------------------
-void qMRMLMarkupsShapeWidget::onScalarVisibilityClicked(bool value)
+void qMRMLMarkupsShapeWidget::onScalarVisibilityToggled(bool value)
 {
   Q_D(qMRMLMarkupsShapeWidget);
   
@@ -684,4 +704,54 @@ void qMRMLMarkupsShapeWidget::onParametricsClockwiseOrderingToogled(bool value)
     return;
   }
   d->MarkupsShapeNode->SetParametricClockwiseOrdering(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+
+  d->TubeOptionMenu->clear();
+
+  QAction * actionShowCappedTube = d->TubeOptionMenu->addAction("Cap ends");
+  QAction * actionShowScalar = d->TubeOptionMenu->addAction("Scalar mapping");
+  QAction * actionShowSpline = d->TubeOptionMenu->addAction("Show spline");
+  actionShowCappedTube->setToolTip("Close each end of the tube");
+
+  actionShowCappedTube->setData(d->ActionCapTube);
+  actionShowScalar->setData(d->ActionScalarVisivility);
+  actionShowSpline->setData(d->ActionSplineVisibility);
+
+  actionShowCappedTube->setCheckable(true);
+  actionShowScalar->setCheckable(true);
+  actionShowSpline->setCheckable(true);
+
+  actionShowCappedTube->setChecked(d->MarkupsShapeNode->GetDisplayCappedTube());
+  actionShowScalar->setChecked(d->MarkupsShapeNode->GetScalarVisibility());
+  actionShowSpline->setChecked(d->MarkupsShapeNode->GetSplineVisibility());
+
+  QObject::connect(actionShowCappedTube, SIGNAL(triggered(bool)),
+                   this, SLOT(onDisplayCappedTubeToggled(bool)));
+  QObject::connect(actionShowScalar, SIGNAL(triggered(bool)),
+                   this, SLOT(onScalarVisibilityToggled(bool)));
+  QObject::connect(actionShowSpline, SIGNAL(triggered(bool)),
+                   this, SLOT(onSplineVisivilityTogggled(bool)));
+
+  d->tubeMenuOptionButton->showMenu();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onSplineVisivilityTogggled(bool value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+
+  d->MarkupsShapeNode->SetSplineVisibility(value);
 }

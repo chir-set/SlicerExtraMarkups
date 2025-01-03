@@ -45,7 +45,12 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->ShapeWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
   this->ShapeCutWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   this->ShapeCutWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
-  
+
+  this->SplineWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->SplineWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
+  this->SplineCutWorldToSliceTransformer = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->SplineCutWorldToSliceTransformer->SetTransform(this->WorldToSliceTransform);
+
   this->MiddlePointSource = vtkSmartPointer<vtkGlyphSource2D>::New();
   this->MiddlePointSource->SetCenter(0.0, 0.0, 0.0);
   this->MiddlePointSource->SetScale(5);
@@ -92,7 +97,12 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->CappedTube->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
   this->CappedTube->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
   this->CappedTube->SetCapping(true);
-  
+
+  this->SplineMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  this->SplineActor = vtkSmartPointer<vtkActor2D>::New();
+  this->SplineActor->SetMapper(this->SplineMapper);
+  this->SplineActor->SetProperty(this->ShapeProperty);
+
   this->CylinderAxis = vtkSmartPointer<vtkLineSource>::New();
   this->CylinderSource = vtkSmartPointer<vtkTubeFilter>::New();
   this->CylinderSource->SetNumberOfSides(20);
@@ -106,9 +116,14 @@ vtkSlicerShapeRepresentation2D::vtkSlicerShapeRepresentation2D()
   this->WorldCutter = vtkSmartPointer<vtkCutter>::New();
   this->WorldCutter->SetCutFunction(this->WorldPlane);
   this->WorldCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-  this->WorldCutMapper->SetInputConnection(this->WorldCutter->GetOutputPort());
   this->WorldCutActor = vtkSmartPointer<vtkActor2D>::New();
   this->WorldCutActor->SetMapper(this->WorldCutMapper);
+
+  this->SplineWorldCutter = vtkSmartPointer<vtkCutter>::New();
+  this->SplineWorldCutter->SetCutFunction(this->WorldPlane);
+  this->SplineWorldCutMapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+  this->SplineWorldCutActor = vtkSmartPointer<vtkActor2D>::New();
+  this->SplineWorldCutActor->SetMapper(this->SplineWorldCutMapper);
   
   this->Ellipsoid = vtkSmartPointer<vtkParametricSuperEllipsoid>::New();
   this->Toroid = vtkSmartPointer<vtkParametricSuperToroid>::New();
@@ -160,12 +175,16 @@ void vtkSlicerShapeRepresentation2D::UpdateFromMRML(vtkMRMLNode* caller, unsigne
   this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->WorldCutMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->SplineMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
+  this->SplineWorldCutMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
 
   this->MiddlePointActor->SetVisibility(false);
   this->RadiusActor->SetVisibility(false);
   this->ShapeActor->SetVisibility(false);
   this->TextActor->SetVisibility(false);
   this->WorldCutActor->SetVisibility(false);
+  this->SplineActor->SetVisibility(false);
+  this->SplineWorldCutActor->SetVisibility(false);
 
   if (!shapeNode->IsParametric())
   {
@@ -226,9 +245,11 @@ void vtkSlicerShapeRepresentation2D::GetActors(vtkPropCollection *pc)
   this->MiddlePointActor->GetActors(pc);
   this->ParametricMiddlePointActor->GetActors(pc);
   this->ShapeActor->GetActors(pc);
+  this->SplineActor->GetActors(pc);
   this->RadiusActor->GetActors(pc);
   this->TextActor->GetActors(pc);
   this->WorldCutActor->GetActors(pc);
+  this->SplineWorldCutActor->GetActors(pc);
   this->Superclass::GetActors(pc);
 }
 
@@ -238,9 +259,11 @@ void vtkSlicerShapeRepresentation2D::ReleaseGraphicsResources(vtkWindow *win)
   this->MiddlePointActor->ReleaseGraphicsResources(win);
   this->ParametricMiddlePointActor->ReleaseGraphicsResources(win);
   this->ShapeActor->ReleaseGraphicsResources(win);
+  this->SplineActor->ReleaseGraphicsResources(win);
   this->RadiusActor->ReleaseGraphicsResources(win);
   this->TextActor->ReleaseGraphicsResources(win);
   this->WorldCutActor->ReleaseGraphicsResources(win);
+  this->SplineWorldCutActor->ReleaseGraphicsResources(win);
   this->Superclass::ReleaseGraphicsResources(win);
 }
 
@@ -260,6 +283,10 @@ int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
   {
     count +=  this->ShapeActor->RenderOverlay(viewport);
   }
+  if (this->SplineActor->GetVisibility())
+  {
+    count +=  this->SplineActor->RenderOverlay(viewport);
+  }
   if (this->RadiusActor->GetVisibility())
   {
     count +=  this->RadiusActor->RenderOverlay(viewport);
@@ -271,6 +298,10 @@ int vtkSlicerShapeRepresentation2D::RenderOverlay(vtkViewport *viewport)
   if (this->WorldCutActor->GetVisibility())
   {
     count +=  this->WorldCutActor->RenderOverlay(viewport);
+  }
+  if (this->SplineWorldCutActor->GetVisibility())
+  {
+    count +=  this->SplineWorldCutActor->RenderOverlay(viewport);
   }
   count += this->Superclass::RenderOverlay(viewport);
   return count;
@@ -292,6 +323,10 @@ int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
   {
     count +=  this->ShapeActor->RenderOverlay(viewport);
   }
+  if (this->SplineActor->GetVisibility())
+  {
+    count +=  this->SplineActor->RenderOverlay(viewport);
+  }
   if (this->RadiusActor->GetVisibility())
   {
     count +=  this->RadiusActor->RenderOverlay(viewport);
@@ -303,6 +338,10 @@ int vtkSlicerShapeRepresentation2D::RenderOpaqueGeometry(vtkViewport *viewport)
   if (this->WorldCutActor->GetVisibility())
   {
     count +=  this->WorldCutActor->RenderOverlay(viewport);
+  }
+  if (this->SplineWorldCutActor->GetVisibility())
+  {
+    count +=  this->SplineWorldCutActor->RenderOverlay(viewport);
   }
   count = this->Superclass::RenderOpaqueGeometry(viewport);
   return count;
@@ -324,6 +363,10 @@ int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpo
   {
     count += this->ShapeActor->RenderTranslucentPolygonalGeometry(viewport);
   }
+  if (this->SplineActor->GetVisibility())
+  {
+    count += this->SplineActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
   if (this->RadiusActor->GetVisibility())
   {
     count += this->RadiusActor->RenderTranslucentPolygonalGeometry(viewport);
@@ -335,6 +378,10 @@ int vtkSlicerShapeRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpo
   if (this->WorldCutActor->GetVisibility())
   {
     count += this->WorldCutActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+  if (this->SplineWorldCutActor->GetVisibility())
+  {
+    count += this->SplineWorldCutActor->RenderTranslucentPolygonalGeometry(viewport);
   }
   count = this->Superclass::RenderTranslucentPolygonalGeometry(viewport);
   return count;
@@ -359,6 +406,10 @@ vtkTypeBool vtkSlicerShapeRepresentation2D::HasTranslucentPolygonalGeometry()
   {
     return true;
   }
+  if (this->SplineActor->GetVisibility() && this->SplineActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
   if (this->RadiusActor->GetVisibility() && this->RadiusActor->HasTranslucentPolygonalGeometry())
   {
     return true;
@@ -368,6 +419,10 @@ vtkTypeBool vtkSlicerShapeRepresentation2D::HasTranslucentPolygonalGeometry()
     return true;
   }
   if (this->WorldCutActor->GetVisibility() && this->WorldCutActor->HasTranslucentPolygonalGeometry())
+  {
+    return true;
+  }
+  if (this->SplineWorldCutActor->GetVisibility() && this->SplineWorldCutActor->HasTranslucentPolygonalGeometry())
   {
     return true;
   }
@@ -853,6 +908,10 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   
   this->ShapeActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
   this->WorldCutActor->SetVisibility(shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
+  this->SplineActor->SetVisibility(shapeNode->GetSplineVisibility()
+                            && shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Projection);
+  this->SplineWorldCutActor->SetVisibility(shapeNode->GetSplineVisibility()
+                            && shapeNode->GetDrawMode2D() == vtkMRMLMarkupsShapeNode::Intersection);
   
   // Update shape and map from world to slice.
   if (!shapeNode->GetDisplayCappedTube())
@@ -866,7 +925,12 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->ShapeWorldToSliceTransformer->Update();
   this->ShapeMapper->SetInputConnection(this->ShapeWorldToSliceTransformer->GetOutputPort());
   this->ShapeMapper->Update();
-  
+
+  this->SplineWorldToSliceTransformer->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  this->SplineWorldToSliceTransformer->Update();
+  this->SplineMapper->SetInputConnection(this->SplineWorldToSliceTransformer->GetOutputPort());
+  this->SplineMapper->Update();
+
   // Update intersection and map from world to slice.
   double origin[3] = { 0.0 };
   double normal[3] = { 0.0 };
@@ -883,6 +947,13 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
   this->ShapeCutWorldToSliceTransformer->Update();
   this->WorldCutMapper->SetInputConnection(this->ShapeCutWorldToSliceTransformer->GetOutputPort());
   this->WorldCutMapper->Update();
+
+  this->SplineWorldCutter->SetInputConnection(this->SplineFunctionSource->GetOutputPort());
+  this->SplineWorldCutter->Update();
+  this->SplineCutWorldToSliceTransformer->SetInputConnection(this->SplineWorldCutter->GetOutputPort());
+  this->SplineCutWorldToSliceTransformer->Update();
+  this->SplineWorldCutMapper->SetInputConnection(this->SplineCutWorldToSliceTransformer->GetOutputPort());
+  this->SplineWorldCutMapper->Update();
   
   double p1[3] = { 0.0 };
   this->GetNthControlPointDisplayPosition(0, p1);
@@ -896,19 +967,25 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     this->ShapeActor->SetVisibility(false);
     this->WorldCutActor->SetVisibility(false);
     this->TextActor->SetVisibility(false);
+    this->SplineActor->SetVisibility(false);
+    this->SplineWorldCutActor->SetVisibility(false);
   }
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->ShapeActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->WorldCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->SplineActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
+  this->SplineWorldCutActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);
   this->TextActor->SetTextProperty(this->GetControlPointsPipeline(controlPointType)->TextProperty);
   
   double opacity = this->MarkupsDisplayNode->GetOpacity();
   double fillOpacity = opacity * this->MarkupsDisplayNode->GetFillOpacity();
   this->ShapeProperty->DeepCopy(this->GetControlPointsPipeline(controlPointType)->Property);
   this->ShapeProperty->SetOpacity(fillOpacity);
-  this->ShapeActor->SetProperty(this->ShapeProperty); // Doesnt't work.
+  this->ShapeActor->SetProperty(this->ShapeProperty);
   this->WorldCutActor->SetProperty(this->ShapeProperty);
+  this->SplineActor->SetProperty(this->ShapeProperty);
+  this->SplineWorldCutActor->SetProperty(this->ShapeProperty);
 }
 
 //-----------------------------------------------------------------------------

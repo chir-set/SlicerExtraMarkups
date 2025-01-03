@@ -128,15 +128,15 @@ mode:</string>
            <widget class="QComboBox" name="shapeNameComboBox"/>
           </item>
           <item>
-           <widget class="QToolButton" name="displayCappedTubeToolButton">
+           <widget class="QToolButton" name="tubeMenuOptionButton">
             <property name="toolTip">
-             <string>Cap the ends of the Tube node in 3D views.</string>
+             <string>Menu</string>
             </property>
             <property name="text">
-             <string>Display capped tube</string>
+             <string>◈</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -340,7 +340,7 @@ radius:</string>
       <item>
        <layout class="QHBoxLayout" name="scalarVisibilityAndRescalingHorizontalLayout">
         <item>
-         <widget class="QToolButton" name="scalarVisibilityToolButton">
+         <widget class="QToolButton" name="parametricScalarVisibilityToolButton">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>

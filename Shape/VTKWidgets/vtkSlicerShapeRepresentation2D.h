@@ -169,6 +169,14 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper2D> ShapeMapper;
   vtkSmartPointer<vtkActor2D> ShapeActor;
   vtkSmartPointer<vtkProperty2D> ShapeProperty;
+
+  vtkSmartPointer<vtkTransformPolyDataFilter> SplineWorldToSliceTransformer;
+  vtkSmartPointer<vtkTransformPolyDataFilter> SplineCutWorldToSliceTransformer;
+  vtkSmartPointer<vtkPolyDataMapper2D> SplineMapper;
+  vtkSmartPointer<vtkActor2D> SplineActor;
+  vtkSmartPointer<vtkCutter> SplineWorldCutter;
+  vtkSmartPointer<vtkPolyDataMapper2D> SplineWorldCutMapper;
+  vtkSmartPointer<vtkActor2D> SplineWorldCutActor;
   
 private:
   vtkSlicerShapeRepresentation2D(const vtkSlicerShapeRepresentation2D&) = delete;
