@@ -120,16 +120,17 @@ void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     labelNode->SetLabel(scene->GenerateUniqueName(defaultConstructorLabel).c_str());
   }
   
-  if (labelNode->GetUseAlternateColors())
+  const std::string colourNodeID = labelNode->GetUseAlternateColors();
+  if (!colourNodeID.empty())
   {
     if (!labelNode->GetDisplayNode())
     {
       vtkErrorMacro("OnMRMLSceneNodeAdded failed: invalid markups label display node");
       return;
     }
-    double colour[3] = { 1.0, 0.5, 0.5};
-    this->GenerateUniqueColor(colour);
-    double selectedColour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
+    double selectedColour[3] = { 1.0, 0.5, 0.5};
+    this->GenerateUniqueColor(selectedColour, colourNodeID);
+    double colour[3] = { 1.0 - colour[0], 1.0 - colour[1], 1.0 - colour[2]};
     labelNode->GetDisplayNode()->SetSelectedColor(selectedColour);
     labelNode->GetDisplayNode()->SetColor(colour);
   }
@@ -137,14 +138,14 @@ void vtkSlicerLabelLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 
 //------------------------------------------------------------------------------
 // Poked from vtkSlicerMarkupsLogic.cxx .
-void vtkSlicerLabelLogic::GenerateUniqueColor(double color[3])
+void vtkSlicerLabelLogic::GenerateUniqueColor(double color[3], const std::string& colorNodeID)
 {
   double rgba[4] = { 1.0, 0.5, 0.5, 1.0 };
   vtkMRMLColorTableNode* colorTable = nullptr;
   vtkMRMLScene* scene = this->GetMRMLScene();
   {
     colorTable = vtkMRMLColorTableNode::SafeDownCast(
-      scene->GetNodeByID("vtkMRMLColorTableNodeFileGenericColors.txt"));
+      scene->GetNodeByID(colorNodeID.c_str()));
   }
   if (colorTable)
   {

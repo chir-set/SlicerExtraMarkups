@@ -21,6 +21,8 @@ In a 3D view, the arrow tip dimension can be
 ![3DView](Label_0.png)
 
 
+Alternate colours are used by default. This can be overridden by registering a default node in the application startup file: the 'UseAlternateColors' property must set to an empty string.
+
 ## Disclaimer
 
 Use at your own risks.

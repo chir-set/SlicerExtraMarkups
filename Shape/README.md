@@ -8,6 +8,7 @@ In the slice views, the shape is drawn as cut by the slice (intersection) or it 
 
 A specified slice view may be reformatted to fit the control points, to simplify point repositioning.
 
+Alternate colours are used by default. This can be overridden by registering a default node in the application startup file: the 'UseAlternateColors' property must set to an empty string.
 
 **Ring**
 

@@ -251,9 +251,8 @@ public:
   bool SetParametricXYZToActiveControlPoint();
 
   // Handled in logic; is ignored in the storage node.
-  vtkGetMacro(UseAlternateColors, bool);
-  void SetUseAlternateColors(bool useAlternateColors);
-  vtkBooleanMacro(UseAlternateColors, bool);
+  std::string GetUseAlternateColors() {return UseAlternateColors;};
+  void SetUseAlternateColors(const std::string& nodeID = "vtkMRMLColorTableNodeLabels");
 
 protected:
   vtkMRMLMarkupsShapeNode();
@@ -345,7 +344,7 @@ protected:
   bool ParametricClockwiseOrdering = false;
   int ParametricScalarMode = vtkParametricFunctionSource::SCALAR_NONE;
 
-  bool UseAlternateColors = true;
+  std::string UseAlternateColors = "vtkMRMLColorTableNodeLabels";
 
   // For UI control.
   std::pair<double, double> ParametricRangeU;

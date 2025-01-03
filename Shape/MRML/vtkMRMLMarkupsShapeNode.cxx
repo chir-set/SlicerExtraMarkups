@@ -1683,14 +1683,14 @@ void vtkMRMLMarkupsShapeNode::ApplyDefaultParametrics()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::SetUseAlternateColors(bool useAlternateColors)
+void vtkMRMLMarkupsShapeNode::SetUseAlternateColors(const std::string& nodeID)
 {
   // Avoid this message when CopyContent is unexpectedly called: markups creation, point placement, moving points.
   if (!this->GetDisableModifiedEvent())
   {
     vtkInfoMacro("The UseAlternateColors property is read from a default scene node only.");
   }
-  this->UseAlternateColors = useAlternateColors;
+  this->UseAlternateColors = nodeID;
 }
 
 
@@ -1707,7 +1707,7 @@ void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(ScalarVisibility);
   vtkMRMLPrintObjectMacro(ResliceNode);
   vtkMRMLPrintBooleanMacro(DisplayCappedTube);
-  vtkMRMLPrintBooleanMacro(UseAlternateColors);
+  vtkMRMLPrintStdStringMacro(UseAlternateColors);
   vtkMRMLPrintFloatMacro(ParametricN1);
   vtkMRMLPrintFloatMacro(ParametricN2);
   vtkMRMLPrintFloatMacro(ParametricN);
@@ -1747,7 +1747,7 @@ void vtkMRMLMarkupsShapeNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=tr
   vtkMRMLCopyFloatMacro(Resolution);
   vtkMRMLCopyBooleanMacro(ScalarVisibility);
   vtkMRMLCopyBooleanMacro(DisplayCappedTube);
-  vtkMRMLCopyBooleanMacro(UseAlternateColors);
+  vtkMRMLCopyStdStringMacro(UseAlternateColors);
   if (this->ShapeIsParametric)
   {
     vtkMRMLCopyFloatMacro(ParametricN1);
