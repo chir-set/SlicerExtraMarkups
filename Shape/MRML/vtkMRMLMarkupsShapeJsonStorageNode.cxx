@@ -1,6 +1,6 @@
 #include "vtkMRMLMarkupsShapeJsonStorageNode.h"
 
-#include "vtkMRMLMarkupsJsonElement.h"
+#include "vtkMRMLJsonElement.h"
 #include "vtkMRMLMarkupsShapeNode.h"
 #include "vtkMRMLScene.h"
 
@@ -25,7 +25,7 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::CanReadInReferenceNode(vtkMRMLNode *ref
 
 //----------------------------------------------------------------------------
 bool vtkMRMLMarkupsShapeJsonStorageNode::WriteBasicProperties(
-  vtkMRMLMarkupsJsonWriter* writer, vtkMRMLMarkupsNode* markupsNode)
+  vtkMRMLJsonWriter* writer, vtkMRMLMarkupsNode* markupsNode)
 {
  if (!vtkMRMLMarkupsJsonStorageNode::WriteBasicProperties(writer, markupsNode))
     {
@@ -71,7 +71,7 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::WriteBasicProperties(
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLMarkupsNode* markupsNode, vtkMRMLMarkupsJsonElement* markupsObject)
+bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLMarkupsNode* markupsNode, vtkMRMLJsonElement* markupsObject)
 {
   vtkMRMLMarkupsShapeNode* shapeNode = vtkMRMLMarkupsShapeNode::SafeDownCast(markupsNode);
   if (!shapeNode)
