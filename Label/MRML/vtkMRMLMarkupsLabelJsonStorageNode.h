@@ -10,8 +10,8 @@
 #include "vtkSlicerLabelModuleMRMLExport.h"
 #include "vtkMRMLMarkupsJsonStorageNode.h"
 
-class vtkMRMLMarkupsJsonElement;
-class vtkMRMLMarkupsJsonWriter;
+class vtkMRMLJsonElement;
+class vtkMRMLJsonWriter;
 class vtkMRMLMarkupsNode;
 
 class VTK_SLICER_LABEL_MODULE_MRML_EXPORT vtkMRMLMarkupsLabelJsonStorageNode : public vtkMRMLMarkupsJsonStorageNode
@@ -30,8 +30,8 @@ protected:
     vtkMRMLMarkupsLabelJsonStorageNode(const vtkMRMLMarkupsLabelJsonStorageNode&);
     void operator=(const vtkMRMLMarkupsLabelJsonStorageNode&);
 
-    bool WriteBasicProperties(vtkMRMLMarkupsJsonWriter* writer, vtkMRMLMarkupsNode* markupsNode) override;
-    bool UpdateMarkupsNodeFromJsonValue(vtkMRMLMarkupsNode* markupsNode, vtkMRMLMarkupsJsonElement* markupObject) override;
+    bool WriteBasicProperties(vtkMRMLJsonWriter* writer, vtkMRMLMarkupsNode* markupsNode) override;
+    bool UpdateMarkupsNodeFromJsonValue(vtkMRMLMarkupsNode* markupsNode, vtkMRMLJsonElement* markupObject) override;
 };
 
 #endif // VTKMRMLMARKUPSLABELJSONSTORAGENODE_H
