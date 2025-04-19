@@ -307,7 +307,7 @@ protected:
   int ShapeName { ShapeName_Last };
   int RadiusMode { Centered };
   int DrawMode2D { Intersection };
-  double Resolution { 45.0 };
+  double Resolution { 50.0 };
   
   bool DisplayNodeObserved = false;
   int ActiveControlPoint = 0;
