@@ -226,6 +226,7 @@ public:
   bool GetNthControlPointSplineIntersection(int pointIndex, vtkPoints * point);
   bool SnapNthControlPointToTubeSurface(int pointIndex = 0, bool bypassLockedState = false);
   bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
+  bool UpdateNumberOfControlPoints(int numberOfControlPoints, bool bypassLockedState = false);
   vtkGetMacro(DisplayCappedTube, bool);
   vtkSetMacro(DisplayCappedTube, bool);
   vtkBooleanMacro(DisplayCappedTube, bool);
@@ -294,6 +295,7 @@ protected:
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;
   static void OnPointPositionUndefined(vtkObject *caller,
                                        unsigned long event, void *clientData, void *callData);
+  bool GetControlPointPairPosition(vtkPolyData * spline, int pointIndex, vtkPoints * result);
 
   // Any shape
   vtkSmartPointer<vtkCallbackCommand> OnJumpToPointCallback;

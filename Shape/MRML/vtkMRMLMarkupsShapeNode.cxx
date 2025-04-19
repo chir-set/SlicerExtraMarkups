@@ -1149,6 +1149,125 @@ bool vtkMRMLMarkupsShapeNode::SnapAllControlPointsToTubeSurface(bool bypassLocke
   return true;
 }
 
+//----------------------------------------------------------------------------7
+bool vtkMRMLMarkupsShapeNode::GetControlPointPairPosition(vtkPolyData * spline,
+                                                          int pointIndex, vtkPoints* result)
+{
+  if (!result || pointIndex < 0)
+  {
+    vtkErrorMacro("Index must be > 0 and the resuly array must not be NULL.");
+    return false;
+  }
+  vtkDataArray * radiusArray = spline->GetPointData()->GetArray("TubeRadius");
+  if (!radiusArray)
+  {
+    vtkErrorMacro("Tube does not have a radius array named 'TubeRadius'");
+    return false;
+  }
+  // Get surface points orthogonal to the spline.
+  double splineP1[3] = {0.0};
+  double splineP2[3] = {0.0};
+  double surfaceP1[3] = {0.0};
+  double surfaceP2[3] = {0.0};
+
+  spline->GetPoint(pointIndex, splineP1);
+  if (pointIndex == (spline->GetNumberOfPoints() - 1)) // Last point.
+  {
+    spline->GetPoint(pointIndex - 1, splineP2);
+  }
+  else
+  {
+    spline->GetPoint(pointIndex + 1, splineP2);
+  }
+  double direction[3] = {0.0};
+  double perp1[3] = {0.0};
+  double perp2[3] = {0.0};
+  vtkMath::Subtract(splineP2, splineP1, direction);
+  vtkMath::Perpendiculars(direction, perp1, perp2, 0.0);
+  const double perp1Length = vtkMath::Norm(perp1); // 1.0
+  vtkMath::Add(splineP1, perp1, perp1);
+  const double radius = vtkDoubleArray::SafeDownCast(radiusArray)->GetValue(pointIndex);
+  vtkMath::GetPointAlongLine(surfaceP1, splineP1, perp1, radius - perp1Length);
+  vtkMath::GetPointAlongLine(surfaceP2, perp1, splineP1, radius);
+  result->Initialize();
+  result->InsertNextPoint(surfaceP1);
+  result->InsertNextPoint(surfaceP2);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::UpdateNumberOfControlPoints(int numberOfControlPoints, bool bypassLockedState)
+{
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return false;
+  }
+  if (!bypassLockedState && this->GetLocked())
+  {
+    vtkErrorMacro("Markups node is locked, aborting.");
+    return false;
+  }
+  if ((numberOfControlPoints < 4
+    || numberOfControlPoints % 2) != 0)
+  {
+    vtkErrorMacro("An odd number of control points"
+    "or fewer than 4 control points is requested.");
+    return false;
+  }
+  if (this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0)
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points.");
+    return false;
+  }
+
+  this->GetScene()->StartState(vtkMRMLScene::BatchProcessState);
+  vtkNew<vtkPolyData> splineCopy;
+  splineCopy->DeepCopy(this->SplineWorld);
+  const int numberOfInitialSplinePoints = this->SplineWorld->GetNumberOfPoints();
+  const int numberOfFinalControlPointPairs = numberOfControlPoints / 2;
+  const int numberOfSplinePointsPerInterval = numberOfInitialSplinePoints / numberOfFinalControlPointPairs;
+  this->RemoveAllControlPoints();
+  for (int i = 0; i < numberOfFinalControlPointPairs; i++)
+  {
+    int pointIndex = i * numberOfSplinePointsPerInterval;
+    vtkNew<vtkPoints> result;
+    if (!this->GetControlPointPairPosition(splineCopy, pointIndex, result))
+    {
+      vtkWarningMacro("Error determining control points positions.");
+      continue;
+    }
+    this->AddControlPoint(result->GetPoint(0));
+    this->AddControlPoint(result->GetPoint(1));
+  }
+
+  const int numberOfControlPointsCreated = this->GetNumberOfControlPoints();
+  vtkNew<vtkPoints> result;
+  if (!this->GetControlPointPairPosition(splineCopy, splineCopy->GetNumberOfPoints() - 1, result)) // Last spline point
+  {
+    vtkWarningMacro("Error determining last control points positions.");
+    this->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
+    return false;
+  }
+  if (numberOfControlPoints == numberOfControlPointsCreated)
+  {
+    this->SetNthControlPointPositionWorld(numberOfControlPointsCreated - 1 - 1, result->GetPoint(0));
+    this->SetNthControlPointPositionWorld(numberOfControlPointsCreated - 1, result->GetPoint(1));
+  }
+  else
+  {
+    this->AddControlPoint(result->GetPoint(0));
+    this->AddControlPoint(result->GetPoint(1));
+  }
+  this->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
+  return true;
+}
+
+
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::ResliceToTubeCrossSection(int pointIndex)
 {
