@@ -224,6 +224,7 @@ public:
   void SetNthControlPointRadius(int n, double radius);
   // - The closest spline point to the middle point between the pair of control points.
   bool GetNthControlPointSplineIntersection(int pointIndex, vtkPoints * point);
+  bool SnapNthControlPointToTubeSurface(int pointIndex = 0, bool bypassLockedState = false);
   bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
   vtkGetMacro(DisplayCappedTube, bool);
   vtkSetMacro(DisplayCappedTube, bool);
@@ -264,7 +265,6 @@ protected:
   
   void ResliceToPlane(int pointIndex1 = 0, int pointIndex2 = 1, int pointIndex3 = 2);
   void ResliceToLine(int pointIndex1 = 0, int pointIndex2 = 1);
-  bool SnapNthControlPointToTubeSurface(int pointIndex = 0, bool bypassLockedState = false);
   void ResliceToTubeCrossSection(int pointIndex = 0);
   void ForceDiskMeasurements();
   void ForceRingMeasurements();
