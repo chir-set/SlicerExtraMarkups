@@ -222,6 +222,8 @@ public:
   // For Tube shape;
   double GetNthControlPointRadius(int n);
   void SetNthControlPointRadius(int n, double radius);
+  // - The closest spline point to the middle point between the pair of control points.
+  bool GetNthControlPointSplineIntersection(int pointIndex, vtkPoints * point);
   bool SnapAllControlPointsToTubeSurface(bool bypassLockedState = false);
   vtkGetMacro(DisplayCappedTube, bool);
   vtkSetMacro(DisplayCappedTube, bool);
@@ -292,6 +294,7 @@ protected:
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;
   static void OnPointPositionUndefined(vtkObject *caller,
                                        unsigned long event, void *clientData, void *callData);
+
   // Any shape
   vtkSmartPointer<vtkCallbackCommand> OnJumpToPointCallback;
   static void OnJumpToPoint(vtkObject *caller,

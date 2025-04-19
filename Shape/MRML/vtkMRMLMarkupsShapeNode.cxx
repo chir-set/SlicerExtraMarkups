@@ -1008,6 +1008,55 @@ void vtkMRMLMarkupsShapeNode::SetNthControlPointRadius(int n, double radius)
 }
 
 //----------------------------------------------------------------------------
+bool vtkMRMLMarkupsShapeNode::GetNthControlPointSplineIntersection(int pointIndex, vtkPoints * point)
+{
+  if (this->GetShapeName() != Tube)
+  {
+    vtkErrorMacro("Not a Tube shape.");
+    return false;
+  }
+  if (!point || point->GetNumberOfPoints())
+  {
+    vtkErrorMacro("Parameter 'point' is NULL or is not empty.");
+    return false;
+  }
+  if (pointIndex < 0
+    || this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0
+    || pointIndex >= this->GetNumberOfDefinedControlPoints())
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points, or fewer control points than requested.");
+    return false;
+  }
+
+  double p1[3] = { 0.0 };
+  double p2[3] = { 0.0 };
+  if ((pointIndex % 2) == 0)
+  {
+    this->GetNthControlPointPositionWorld(pointIndex, p1);
+    this->GetNthControlPointPositionWorld(pointIndex + 1, p2);
+  }
+  else {
+    this->GetNthControlPointPositionWorld(pointIndex, p2);
+    this->GetNthControlPointPositionWorld(pointIndex - 1, p1);
+  }
+  // Middle point between p1 and p2.
+  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
+                          (p1[1] + p2[1]) / 2.0,
+                          (p1[2] + p2[2]) / 2.0};
+  double splineMiddlePoint[3] = { 0.0 };
+  vtkIdType id = this->SplineWorld->FindPoint(middlePoint);
+  // Closest point on spline to calculated middle point.
+  // NB : if the spline is a ball of wool, result is not predictable.
+  this->SplineWorld->GetPoint(id, splineMiddlePoint);
+  point->InsertNextPoint(splineMiddlePoint);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
 bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, bool bypassLockedState)
 {
   if (this->GetShapeName() != Tube)
@@ -1031,31 +1080,15 @@ bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, b
     return false;
   }
   const double radius = this->GetNthControlPointRadius(pointIndex);
-  double p1[3] = { 0.0 };
-  double p2[3] = { 0.0 };
-  if ((pointIndex % 2) == 0)
-  {
-    this->GetNthControlPointPositionWorld(pointIndex, p1);
-    this->GetNthControlPointPositionWorld(pointIndex + 1, p2);
-  }
-  else {
-    this->GetNthControlPointPositionWorld(pointIndex, p2);
-    this->GetNthControlPointPositionWorld(pointIndex - 1, p1);
-  }
-  
-  // Middle point between p1 and p2.
-  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
-                          (p1[1] + p2[1]) / 2.0,
-                          (p1[2] + p2[2]) / 2.0};
-  double splineMiddlePoint[3] = { 0.0 };
+
+  vtkNew<vtkPoints> result;
+  this->GetNthControlPointSplineIntersection(pointIndex, result);
+  double * splineMiddlePoint = result->GetPoint(0);
   double splineMiddlePointNeighbour[3] = { 0.0 };
-  vtkIdType id = this->SplineWorld->FindPoint(middlePoint);
+  vtkIdType id = this->SplineWorld->FindPoint(splineMiddlePoint);
   vtkIdType idNeighbour = (id == this->SplineWorld->GetNumberOfPoints() - 1) // Last point
                         ? id -1
                         : id + 1;
-  // Closest point on spline to calculated middle point. Use this one onwards.
-  // NB : if the spline is a ball of wool, result is not predictable.
-  this->SplineWorld->GetPoint(id, splineMiddlePoint);
   this->SplineWorld->GetPoint(idNeighbour, splineMiddlePointNeighbour);
   // Put splineMiddlePoint at origin.
   double rSplineMiddlePointNeighbour[3] = { splineMiddlePointNeighbour[0] - splineMiddlePoint[0],
@@ -1144,31 +1177,14 @@ void vtkMRMLMarkupsShapeNode::ResliceToTubeCrossSection(int pointIndex)
     " or less than 4 control points, or fewer control points than requested.");
     return;
   }
-  double p1[3] = { 0.0 };
-  double p2[3] = { 0.0 };
-  if ((pointIndex % 2) == 0)
-  {
-    this->GetNthControlPointPositionWorld(pointIndex, p1);
-    this->GetNthControlPointPositionWorld(pointIndex + 1, p2);
-  }
-  else {
-    this->GetNthControlPointPositionWorld(pointIndex, p2);
-    this->GetNthControlPointPositionWorld(pointIndex - 1, p1);
-  }
-  
-  // Middle point between p1 and p2.
-  double middlePoint[3] = { (p1[0] + p2[0]) / 2.0,
-                        (p1[1] + p2[1]) / 2.0,
-                        (p1[2] + p2[2]) / 2.0};
-  double splineMiddlePoint[3] = { 0.0 };
+  vtkNew<vtkPoints> result;
+  this->GetNthControlPointSplineIntersection(pointIndex, result);
+  double * splineMiddlePoint = result->GetPoint(0);
   double splineMiddlePointNeighbour[3] = { 0.0 };
-  vtkIdType id = this->SplineWorld->FindPoint(middlePoint);
+  vtkIdType id = this->SplineWorld->FindPoint(splineMiddlePoint);
   vtkIdType idNeighbour = (id == this->SplineWorld->GetNumberOfPoints() - 1) // Last point
                         ? id -1
                         : id + 1;
-  // Closest point on spline to calculated middle point. Use this one onwards.
-  // NB : if the spline is a ball of wool, result is not predictable.
-  this->SplineWorld->GetPoint(id, splineMiddlePoint);
   this->SplineWorld->GetPoint(idNeighbour, splineMiddlePointNeighbour);
   // Put splineMiddlePoint at origin.
   double rSplineMiddlePointNeighbour[3] = { splineMiddlePointNeighbour[0] - splineMiddlePoint[0],
