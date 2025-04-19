@@ -31,6 +31,8 @@
 #include <qSlicerCoreApplication.h>
 #include <QMenu>
 #include <QAction>
+#include <QWidgetAction>
+#include <QSpinBox>
 
 // --------------------------------------------------------------------------
 class qMRMLMarkupsShapeWidgetPrivate:
@@ -734,12 +736,25 @@ void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
   actionShowScalar->setChecked(d->MarkupsShapeNode->GetScalarVisibility());
   actionShowSpline->setChecked(d->MarkupsShapeNode->GetSplineVisibility());
 
+  QMenu* controlPointsCountMenu = new QMenu("Number of control point pairs", d->tubeMenuOptionButton);
+  controlPointsCountMenu->setObjectName("TubeControlPointsCountMenu");
+  QSpinBox * controlPointsCountSpinBox = new QSpinBox(controlPointsCountMenu);
+  controlPointsCountSpinBox->setRange(2, INT_MAX);
+  controlPointsCountSpinBox->setSingleStep(1);
+  controlPointsCountSpinBox->setValue(d->MarkupsShapeNode->GetNumberOfControlPoints() / 2);
+  QWidgetAction * controlPointsCountWidgetAction = new QWidgetAction(controlPointsCountMenu);
+  controlPointsCountWidgetAction->setDefaultWidget(controlPointsCountSpinBox);
+  controlPointsCountMenu->addAction(controlPointsCountWidgetAction);
+  d->TubeOptionMenu->addMenu(controlPointsCountMenu);
+
   QObject::connect(actionShowCappedTube, SIGNAL(triggered(bool)),
                    this, SLOT(onDisplayCappedTubeToggled(bool)));
   QObject::connect(actionShowScalar, SIGNAL(triggered(bool)),
                    this, SLOT(onScalarVisibilityToggled(bool)));
   QObject::connect(actionShowSpline, SIGNAL(triggered(bool)),
                    this, SLOT(onSplineVisivilityTogggled(bool)));
+  QObject::connect(controlPointsCountSpinBox, SIGNAL(valueChanged(int)),
+                   this, SLOT(onControlPointCountSpinBoxChanged(int)));
 
   d->tubeMenuOptionButton->showMenu();
 }
@@ -754,4 +769,16 @@ void qMRMLMarkupsShapeWidget::onSplineVisivilityTogggled(bool value)
   }
 
   d->MarkupsShapeNode->SetSplineVisibility(value);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onControlPointCountSpinBoxChanged(int value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+
+  d->MarkupsShapeNode->UpdateNumberOfControlPoints(value * 2);
 }
