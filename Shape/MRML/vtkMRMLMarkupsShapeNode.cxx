@@ -1121,7 +1121,7 @@ bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, b
   return true;
 }
 
-//--------------------------- API only ---------------------------------------
+//----------------------------------------------------------------------------
 bool vtkMRMLMarkupsShapeNode::SnapAllControlPointsToTubeSurface(bool bypassLockedState)
 {
   if (this->GetShapeName() != Tube)

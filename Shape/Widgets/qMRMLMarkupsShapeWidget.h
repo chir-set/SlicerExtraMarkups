@@ -73,6 +73,7 @@ protected slots:
   void onScalarVisibilityToggled(bool value); // Shared between Tube and Parametric shapes.
   void onSplineVisivilityTogggled(bool value);
   void onControlPointCountSpinBoxChanged(int value);
+  void onSnapControlPoints();
 
   // Parametric shapes.
   // Object parameters.

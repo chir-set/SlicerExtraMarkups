@@ -55,7 +55,8 @@ public:
   {
     ActionCapTube = 0,
     ActionScalarVisivility,
-    ActionSplineVisibility
+    ActionSplineVisibility,
+    ActionSnapControlPoints
   };
 };
 
@@ -747,6 +748,10 @@ void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
   controlPointsCountMenu->addAction(controlPointsCountWidgetAction);
   d->TubeOptionMenu->addMenu(controlPointsCountMenu);
 
+  QAction * actionSnapControlPointsOnTube = d->TubeOptionMenu->addAction("Snap control points on the tube");
+
+  actionSnapControlPointsOnTube->setData(d->ActionSnapControlPoints);
+
   QObject::connect(actionShowCappedTube, SIGNAL(triggered(bool)),
                    this, SLOT(onDisplayCappedTubeToggled(bool)));
   QObject::connect(actionShowScalar, SIGNAL(triggered(bool)),
@@ -755,6 +760,8 @@ void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
                    this, SLOT(onSplineVisivilityTogggled(bool)));
   QObject::connect(controlPointsCountSpinBox, SIGNAL(valueChanged(int)),
                    this, SLOT(onControlPointCountSpinBoxChanged(int)));
+  QObject::connect(actionSnapControlPointsOnTube, SIGNAL(triggered()),
+                   this, SLOT(onSnapControlPoints()));
 
   d->tubeMenuOptionButton->showMenu();
 }
@@ -781,4 +788,16 @@ void qMRMLMarkupsShapeWidget::onControlPointCountSpinBoxChanged(int value)
   }
 
   d->MarkupsShapeNode->UpdateNumberOfControlPoints(value * 2);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onSnapControlPoints()
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+
+  d->MarkupsShapeNode->SnapAllControlPointsToTubeSurface();
 }
