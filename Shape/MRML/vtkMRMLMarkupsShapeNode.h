@@ -282,7 +282,7 @@ protected:
   //   - Parametric shapes resized by a transform, not by object functions..
   void ForceTransformScaledMeasurements(bool withVolume = false);
   
-  void AddMeasurement(const char * name, bool enabled = false,
+  void AddLengthMeasurement(const char * name, bool enabled = false,
                             const char * format = "%-#4.4g %s", const char * units = "mm");
   void AddAreaMeasurement(const char * name, bool enabled = false,
                           const char * format = "%-#4.4g %s", // Space separator before unit gets ignored.

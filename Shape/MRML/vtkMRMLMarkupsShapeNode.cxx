@@ -723,9 +723,9 @@ void vtkMRMLMarkupsShapeNode::ForceDiskMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("innerRadius", true);
-  this->AddMeasurement("outerRadius", true);
-  this->AddMeasurement("width", false);
+  this->AddLengthMeasurement("innerRadius", true);
+  this->AddLengthMeasurement("outerRadius", true);
+  this->AddLengthMeasurement("width", false);
   this->AddAreaMeasurement("area");
   this->AddAreaMeasurement("innerArea");
   this->AddAreaMeasurement("outerArea");
@@ -736,7 +736,7 @@ void vtkMRMLMarkupsShapeNode::ForceRingMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("radius", true);
+  this->AddLengthMeasurement("radius", true);
   this->AddAreaMeasurement("area");
 }
 
@@ -745,7 +745,7 @@ void vtkMRMLMarkupsShapeNode::ForceSphereMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("radius", true);
+  this->AddLengthMeasurement("radius", true);
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -764,8 +764,8 @@ void vtkMRMLMarkupsShapeNode::ForceCylinderMeasurements()
 {
   this->RemoveAllMeasurements();
 
-  this->AddMeasurement("radius", true);
-  this->AddMeasurement("height", true);
+  this->AddLengthMeasurement("radius", true);
+  this->AddLengthMeasurement("height", true);
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -775,10 +775,10 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("radius", true);
-  this->AddMeasurement("height", true);
-  this->AddMeasurement("slant");
-  this->AddMeasurement("aperture", false, "%-#4.4g %s", "°");
+  this->AddLengthMeasurement("radius", true);
+  this->AddLengthMeasurement("height", true);
+  this->AddLengthMeasurement("slant");
+  this->AddLengthMeasurement("aperture", false, "%-#4.4g %s", "°");
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -788,8 +788,8 @@ void vtkMRMLMarkupsShapeNode::ForceArcMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("angle", true, "%-#4.4g %s", "°");
-  this->AddMeasurement("radius");
+  this->AddLengthMeasurement("angle", true, "%-#4.4g %s", "°");
+  this->AddLengthMeasurement("radius");
   this->AddAreaMeasurement("area");
 }
 
@@ -798,11 +798,11 @@ void vtkMRMLMarkupsShapeNode::ForceEllipsoidMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("radius-x");
-  this->AddMeasurement("radius-y");
-  this->AddMeasurement("radius-z");
-  this->AddMeasurement("n1", false, nullptr, nullptr);
-  this->AddMeasurement("n2", false, nullptr, nullptr);
+  this->AddLengthMeasurement("radius-x");
+  this->AddLengthMeasurement("radius-y");
+  this->AddLengthMeasurement("radius-z");
+  this->AddLengthMeasurement("n1", false, nullptr, nullptr);
+  this->AddLengthMeasurement("n2", false, nullptr, nullptr);
   this->AddVolumeMeasurement("volume");
   this->AddAreaMeasurement("area");
 }
@@ -812,13 +812,13 @@ void vtkMRMLMarkupsShapeNode::ForceToroidMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("radius-x-scalefactor", false, nullptr, nullptr);
-  this->AddMeasurement("radius-y-scalefactor", false, nullptr, nullptr);
-  this->AddMeasurement("radius-z-scalefactor", false, nullptr, nullptr);
-  this->AddMeasurement("radius-ring");
-  this->AddMeasurement("radius-crosssection");
-  this->AddMeasurement("n1", false, nullptr, nullptr);
-  this->AddMeasurement("n2", false, nullptr, nullptr);
+  this->AddLengthMeasurement("radius-x-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("radius-y-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("radius-z-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("radius-ring");
+  this->AddLengthMeasurement("radius-crosssection");
+  this->AddLengthMeasurement("n1", false, nullptr, nullptr);
+  this->AddLengthMeasurement("n2", false, nullptr, nullptr);
   this->AddVolumeMeasurement("volume");
   this->AddAreaMeasurement("area");
 }
@@ -828,9 +828,9 @@ void vtkMRMLMarkupsShapeNode::ForceBohemianDomeMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("a");
-  this->AddMeasurement("b");
-  this->AddMeasurement("c");
+  this->AddLengthMeasurement("a");
+  this->AddLengthMeasurement("b");
+  this->AddLengthMeasurement("c");
   this->AddAreaMeasurement("area");
 }
 
@@ -839,10 +839,10 @@ void vtkMRMLMarkupsShapeNode::ForceConicSpiralMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("x", false, nullptr, nullptr);
-  this->AddMeasurement("y", false, nullptr, nullptr);
-  this->AddMeasurement("z", false, nullptr, nullptr);
-  this->AddMeasurement("n", false, nullptr, nullptr);
+  this->AddLengthMeasurement("x", false, nullptr, nullptr);
+  this->AddLengthMeasurement("y", false, nullptr, nullptr);
+  this->AddLengthMeasurement("z", false, nullptr, nullptr);
+  this->AddLengthMeasurement("n", false, nullptr, nullptr);
   this->AddAreaMeasurement("area");
 }
 
@@ -851,9 +851,9 @@ void vtkMRMLMarkupsShapeNode::ForceTransformScaledMeasurements(bool withVolume)
 {
   this->RemoveAllMeasurements();
   
-  this->AddMeasurement("x-scalefactor", false, nullptr, nullptr);
-  this->AddMeasurement("y-scalefactor", false, nullptr, nullptr);
-  this->AddMeasurement("z-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("x-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("y-scalefactor", false, nullptr, nullptr);
+  this->AddLengthMeasurement("z-scalefactor", false, nullptr, nullptr);
   if (withVolume)
   {
     this->AddVolumeMeasurement("volume");
@@ -1512,7 +1512,7 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
+void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enabled,
                                                    const char* format, const char* units)
 {
   vtkNew<vtkMRMLMeasurementShape> measurement;
@@ -1527,7 +1527,7 @@ void vtkMRMLMarkupsShapeNode::AddMeasurement(const char* name, bool enabled,
   }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
-  this->Measurements->AddItem(measurement);
+  this->AddMeasurement(measurement);
 }
 
 //----------------------------------------------------------------------------
@@ -1547,7 +1547,7 @@ void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
   }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
-  this->Measurements->AddItem(measurement);
+  this->AddMeasurement(measurement);
 }
 
 //----------------------------------------------------------------------------
@@ -1566,7 +1566,7 @@ void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enable
   }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
-  this->Measurements->AddItem(measurement);
+  this->AddMeasurement(measurement);
 }
 
 //----------------------------API only----------------------------------------
