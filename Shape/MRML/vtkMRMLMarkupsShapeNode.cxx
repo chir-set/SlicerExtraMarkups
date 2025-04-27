@@ -1222,6 +1222,12 @@ bool vtkMRMLMarkupsShapeNode::UpdateNumberOfControlPoints(int numberOfControlPoi
     return false;
   }
 
+  if (!this->GetScene())
+  {
+    vtkErrorMacro("Scene is NULL, aborting.");
+    return false;
+  }
+
   this->GetScene()->StartState(vtkMRMLScene::BatchProcessState);
   vtkNew<vtkPolyData> splineCopy;
   splineCopy->DeepCopy(this->SplineWorld);
