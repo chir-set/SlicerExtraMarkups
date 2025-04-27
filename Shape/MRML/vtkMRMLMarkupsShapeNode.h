@@ -281,15 +281,12 @@ protected:
   void ForceConicSpiralMeasurements();
   //   - Parametric shapes resized by a transform, not by object functions..
   void ForceTransformScaledMeasurements(bool withVolume = false);
-  
-  void AddLengthMeasurement(const char * name, bool enabled = false,
-                            const char * format = "%-#4.4g %s", const char * units = "mm");
-  void AddAreaMeasurement(const char * name, bool enabled = false,
-                          const char * format = "%-#4.4g %s", // Space separator before unit gets ignored.
-                          double coefficient = 0.01,  const char * units = "cm2");
-  void AddVolumeMeasurement(const char * name, bool enabled = false,
-                            const char * format = "%-#4.4g %s", // Space separator before unit gets ignored.
-                            double coefficient = 0.001,  const char * units = "cm3");
+
+  void AddCustomMeasurement(const char * name, bool enabled = false,
+                            const char * format = "%-#4.4g %s", const char * units = nullptr);
+  void AddLengthMeasurement(const char * name, bool enabled = false, bool withUnit = true, const char * suffix = "");
+  void AddAreaMeasurement(const char * name, bool enabled = false);
+  void AddVolumeMeasurement(const char * name, bool enabled = false);
   
   // Tube
   vtkSmartPointer<vtkCallbackCommand> OnPointPositionUndefinedCallback;

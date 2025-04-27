@@ -297,7 +297,7 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
   {
     return;
   }
-  
+
   this->ShapeMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->RadiusMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());
   this->SplineMapper->SetScalarVisibility(shapeNode->GetScalarVisibility());

@@ -32,6 +32,7 @@
 #include <vtkMRMLScene.h>
 #include <vtkPolyLineSource.h>
 #include <vtkPointData.h>
+#include <vtkMRMLUnitNode.h>
 
 //--------------------------------------------------------------------------------
 vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
@@ -774,7 +775,7 @@ void vtkMRMLMarkupsShapeNode::ForceConeMeasurements()
   this->AddLengthMeasurement("radius", true);
   this->AddLengthMeasurement("height", true);
   this->AddLengthMeasurement("slant");
-  this->AddLengthMeasurement("aperture", false, "%-#4.4g %s", "°");
+  this->AddCustomMeasurement("aperture", false, nullptr, "°");
   this->AddAreaMeasurement("area");
   this->AddVolumeMeasurement("volume");
 }
@@ -784,7 +785,7 @@ void vtkMRMLMarkupsShapeNode::ForceArcMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddLengthMeasurement("angle", true, "%-#4.4g %s", "°");
+  this->AddCustomMeasurement("angle", true, nullptr, "°");
   this->AddLengthMeasurement("radius");
   this->AddAreaMeasurement("area");
 }
@@ -797,8 +798,8 @@ void vtkMRMLMarkupsShapeNode::ForceEllipsoidMeasurements()
   this->AddLengthMeasurement("radius-x");
   this->AddLengthMeasurement("radius-y");
   this->AddLengthMeasurement("radius-z");
-  this->AddLengthMeasurement("n1", false, nullptr, nullptr);
-  this->AddLengthMeasurement("n2", false, nullptr, nullptr);
+  this->AddCustomMeasurement("n1", false, nullptr);
+  this->AddCustomMeasurement("n2", false, nullptr);
   this->AddVolumeMeasurement("volume");
   this->AddAreaMeasurement("area");
 }
@@ -808,13 +809,13 @@ void vtkMRMLMarkupsShapeNode::ForceToroidMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddLengthMeasurement("radius-x-scalefactor", false, nullptr, nullptr);
-  this->AddLengthMeasurement("radius-y-scalefactor", false, nullptr, nullptr);
-  this->AddLengthMeasurement("radius-z-scalefactor", false, nullptr, nullptr);
+  this->AddCustomMeasurement("radius-x-scalefactor", false);
+  this->AddCustomMeasurement("radius-y-scalefactor", false);
+  this->AddCustomMeasurement("radius-z-scalefactor", false);
   this->AddLengthMeasurement("radius-ring");
   this->AddLengthMeasurement("radius-crosssection");
-  this->AddLengthMeasurement("n1", false, nullptr, nullptr);
-  this->AddLengthMeasurement("n2", false, nullptr, nullptr);
+  this->AddCustomMeasurement("n1", false, nullptr);
+  this->AddCustomMeasurement("n2", false, nullptr);
   this->AddVolumeMeasurement("volume");
   this->AddAreaMeasurement("area");
 }
@@ -835,10 +836,10 @@ void vtkMRMLMarkupsShapeNode::ForceConicSpiralMeasurements()
 {
   this->RemoveAllMeasurements();
   
-  this->AddLengthMeasurement("x", false, nullptr, nullptr);
-  this->AddLengthMeasurement("y", false, nullptr, nullptr);
-  this->AddLengthMeasurement("z", false, nullptr, nullptr);
-  this->AddLengthMeasurement("n", false, nullptr, nullptr);
+  this->AddLengthMeasurement("x", false, false);
+  this->AddLengthMeasurement("y", false, false);
+  this->AddLengthMeasurement("z", false, false);
+  this->AddCustomMeasurement("n", false, nullptr);
   this->AddAreaMeasurement("area");
 }
 
@@ -847,9 +848,9 @@ void vtkMRMLMarkupsShapeNode::ForceTransformScaledMeasurements(bool withVolume)
 {
   this->RemoveAllMeasurements();
   
-  this->AddLengthMeasurement("x-scalefactor", false, nullptr, nullptr);
-  this->AddLengthMeasurement("y-scalefactor", false, nullptr, nullptr);
-  this->AddLengthMeasurement("z-scalefactor", false, nullptr, nullptr);
+  this->AddCustomMeasurement("x-scalefactor", false);
+  this->AddCustomMeasurement("y-scalefactor", false);
+  this->AddCustomMeasurement("z-scalefactor", false);
   if (withVolume)
   {
     this->AddVolumeMeasurement("volume");
@@ -1508,13 +1509,9 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enabled,
+void vtkMRMLMarkupsShapeNode::AddCustomMeasurement(const char* name, bool enabled,
                                                    const char* format, const char* units)
 {
-  if (!this->GetScene())
-  {
-    return;
-  }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
   if (units)
@@ -1531,23 +1528,27 @@ void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enable
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
-                                                 const char* format, double coefficient, const char* units)
+void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enabled,
+                                                   bool withUnit, const char * suffix)
 {
-  if (!this->GetScene())
-  {
-    return;
-  }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  if (units)
+  vtkMRMLUnitNode * lengthUnitNode = this->GetUnitNode("length");
+  if (lengthUnitNode)
   {
-    measurement->SetUnits(units);
-  }
-  measurement->SetDisplayCoefficient(coefficient);
-  if (format)
-  {
-    measurement->SetPrintFormat(format);
+    measurement->SetPrintFormat(lengthUnitNode->GetDisplayStringFormat());
+    measurement->SetDisplayCoefficient(lengthUnitNode->GetDisplayCoefficient());
+    if (withUnit)
+    {
+      measurement->SetUnits(lengthUnitNode->GetSuffix());
+    }
+    else
+    {
+      if (suffix)
+      {
+        measurement->SetUnits(suffix);
+      }
+    }
   }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
@@ -1555,7 +1556,7 @@ void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enabled, const char* format, double coefficient, const char* units)
+void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled)
 {
   if (!this->GetScene())
   {
@@ -1563,14 +1564,33 @@ void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enable
   }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  if (units)
+  vtkMRMLUnitNode * areaUnitNode = this->GetUnitNode("length");
+  if (areaUnitNode)
   {
-    measurement->SetUnits(units);
+    measurement->SetPrintFormat(areaUnitNode->GetDisplayStringFormat());
+    measurement->SetDisplayCoefficient(areaUnitNode->GetDisplayCoefficient());
+    measurement->SetUnits(areaUnitNode->GetSuffix());
   }
-  measurement->SetDisplayCoefficient(coefficient);
-  if (format)
+  measurement->SetInputMRMLNode(this);
+  measurement->SetEnabled(enabled);
+  this->AddMeasurement(measurement);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enabled)
+{
+  if (!this->GetScene())
   {
-    measurement->SetPrintFormat(format);
+    return;
+  }
+  vtkNew<vtkMRMLMeasurementShape> measurement;
+  measurement->SetName(name);
+  vtkMRMLUnitNode * volumeUnitNode = this->GetUnitNode("length");
+  if (volumeUnitNode)
+  {
+    measurement->SetPrintFormat(volumeUnitNode->GetDisplayStringFormat());
+    measurement->SetDisplayCoefficient(volumeUnitNode->GetDisplayCoefficient());
+    measurement->SetUnits(volumeUnitNode->GetSuffix());
   }
   measurement->SetInputMRMLNode(this);
   measurement->SetEnabled(enabled);
