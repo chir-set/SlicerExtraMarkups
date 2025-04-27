@@ -336,6 +336,8 @@ void vtkSlicerShapeRepresentation3D::UpdateFromMRML(vtkMRMLNode* caller,
       case vtkMRMLMarkupsShapeNode::Arc :
         this->UpdateArcFromMRML(caller, event, callData);
         break;
+      case vtkMRMLMarkupsShapeNode::ShapeName_Last :
+        break;
       default:
         vtkErrorMacro("Unknown shape.");
         return;

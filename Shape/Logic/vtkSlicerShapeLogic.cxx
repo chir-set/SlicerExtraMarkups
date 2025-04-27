@@ -127,6 +127,7 @@ void vtkSlicerShapeLogic::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
     shapeNode->GetDisplayNode()->SetSelectedColor(selectedColour);
     shapeNode->GetDisplayNode()->SetColor(colour);
   }
+  shapeNode->SetShapeName(vtkMRMLMarkupsShapeNode::Sphere);
 }
 
 //------------------------------------------------------------------------------

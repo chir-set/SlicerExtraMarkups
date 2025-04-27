@@ -309,7 +309,6 @@ protected:
   int DrawMode2D { Intersection };
   double Resolution { 50.0 };
   
-  bool DisplayNodeObserved = false;
   int ActiveControlPoint = 0;
   bool DisplayCappedTube = false;
   bool ScalarVisibility = false;

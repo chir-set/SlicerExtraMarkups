@@ -324,11 +324,16 @@ void qMRMLMarkupsShapeWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
 void qMRMLMarkupsShapeWidget::onShapeChanged(int shapeName)
 {
   Q_D(qMRMLMarkupsShapeWidget);
-  
+
   if (d->MarkupsShapeNode == nullptr)
   {
     return;
   }
+  if (shapeName < 0)
+  {
+    shapeName = vtkMRMLMarkupsShapeNode::Sphere;
+  }
+
   d->MarkupsShapeNode->SetShapeName(shapeName);
   
   d->radiusModeLabel->setVisible(shapeName != vtkMRMLMarkupsShapeNode::Disk

@@ -39,17 +39,6 @@ vtkMRMLNodeNewMacro(vtkMRMLMarkupsShapeNode);
 //--------------------------------------------------------------------------------
 vtkMRMLMarkupsShapeNode::vtkMRMLMarkupsShapeNode()
 {
-  this->SetShapeName(Sphere);
-  
-  this->OnPointPositionUndefinedCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-  this->OnPointPositionUndefinedCallback->SetClientData( reinterpret_cast<void *>(this) );
-  this->OnPointPositionUndefinedCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnPointPositionUndefined );
-  this->AddObserver(vtkMRMLMarkupsNode::PointPositionUndefinedEvent, this->OnPointPositionUndefinedCallback);
-  
-  this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
-  this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
-  this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
-  
   const double pi = vtkMath::Pi();
   // Default UVW values for all parametric shapes; obtained from the header files.
   Parametrics[Ellipsoid] =     {-1.0 * pi, 1.0 * pi, -0.5 * pi, 0.5 * pi, 0.0, 1.0, 0, 0, 0, 0, 0, 0, 0};
@@ -95,15 +84,18 @@ void vtkMRMLMarkupsShapeNode::CreateDefaultDisplayNodes()
     return;
   }
   vtkMRMLMarkupsNode::CreateDefaultDisplayNodes();
-  /*
-   * This function gets called twice on creation.
-   * this->GetDisplayNode()->HasObserver(vtkMRMLMarkupsDisplayNode::JumpToPointEvent, this->OnJumpToPointCallback)
-   * does not help. Using one-time flag DisplayNodeObserved.
-   */
-  if (this->GetDisplayNode() && !this->DisplayNodeObserved)
+  if (this->GetDisplayNode() && !OnPointPositionUndefinedCallback && !OnJumpToPointCallback)
   {
+    this->OnPointPositionUndefinedCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+    this->OnPointPositionUndefinedCallback->SetClientData( reinterpret_cast<void *>(this) );
+    this->OnPointPositionUndefinedCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnPointPositionUndefined );
+    this->AddObserver(vtkMRMLMarkupsNode::PointPositionUndefinedEvent, this->OnPointPositionUndefinedCallback);
+    
+    this->OnJumpToPointCallback = vtkSmartPointer<vtkCallbackCommand>::New();
+    this->OnJumpToPointCallback->SetClientData( reinterpret_cast<void *>(this) );
+    this->OnJumpToPointCallback->SetCallback( vtkMRMLMarkupsShapeNode::OnJumpToPoint );
+    
     this->GetDisplayNode()->AddObserver(vtkMRMLMarkupsDisplayNode::JumpToPointEvent, this->OnJumpToPointCallback);
-    this->DisplayNodeObserved = true;
   }
 }
 
@@ -327,6 +319,8 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       this->RequiredNumberOfControlPoints = 4;
       this->MaximumNumberOfControlPoints = 4;
       break;
+    case ShapeName_Last :
+      break;
     default :
       vtkErrorMacro("Unknown shape.");
       return;
@@ -357,6 +351,8 @@ void vtkMRMLMarkupsShapeNode::SetShapeName(int shapeName)
       case CrossCap:
       case Boy:
         this->ForceTransformScaledMeasurements(true); // With volume measurement.
+        break;
+      case ShapeName_Last :
         break;
       default:
         vtkErrorMacro("Unknown shape.");
@@ -1515,6 +1511,10 @@ bool vtkMRMLMarkupsShapeNode::GetCenterWorld(double center[3])
 void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enabled,
                                                    const char* format, const char* units)
 {
+  if (!this->GetScene())
+  {
+    return;
+  }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
   if (units)
@@ -1534,6 +1534,10 @@ void vtkMRMLMarkupsShapeNode::AddLengthMeasurement(const char* name, bool enable
 void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
                                                  const char* format, double coefficient, const char* units)
 {
+  if (!this->GetScene())
+  {
+    return;
+  }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
   if (units)
@@ -1553,6 +1557,10 @@ void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled,
 //----------------------------------------------------------------------------
 void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enabled, const char* format, double coefficient, const char* units)
 {
+  if (!this->GetScene())
+  {
+    return;
+  }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
   if (units)
