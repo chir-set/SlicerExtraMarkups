@@ -1344,6 +1344,14 @@ bool vtkMRMLMarkupsShapeNode::GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
     vtkErrorMacro("Not a Tube shape.");
     return false;
   }
+  if (this->GetNumberOfUndefinedControlPoints() > 0
+    || this->GetNumberOfDefinedControlPoints() < 4
+    || (this->GetNumberOfDefinedControlPoints() % 2) != 0)
+  {
+    vtkErrorMacro("Tube shape has undefined control points, or odd number of control points,"
+    " or less than 4 control points.");
+    return false;
+  }
   vtkPoints * splinePoints = this->SplineWorld->GetPoints();
   const int numberOfSplinePoints = splinePoints->GetNumberOfPoints();
   if (numberOfPointsToTrimAtStart < 0
