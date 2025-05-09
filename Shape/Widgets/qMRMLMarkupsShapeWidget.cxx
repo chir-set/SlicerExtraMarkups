@@ -65,7 +65,7 @@ qMRMLMarkupsShapeWidgetPrivate::
 qMRMLMarkupsShapeWidgetPrivate(qMRMLMarkupsShapeWidget* object)
   : q_ptr(object)
 {
-
+  
 }
 
 // --------------------------------------------------------------------------
@@ -753,6 +753,19 @@ void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
   controlPointsCountMenu->addAction(controlPointsCountWidgetAction);
   d->TubeOptionMenu->addMenu(controlPointsCountMenu);
 
+  QMenu* splineResolutionMenu = new QMenu("Spline resolution", d->tubeMenuOptionButton);
+  splineResolutionMenu->setObjectName("SplineResolutionMenu");
+  ctkSliderWidget * splineResolutionSlider = new ctkSliderWidget(splineResolutionMenu);
+  splineResolutionSlider->setDecimals(0);
+  splineResolutionSlider->setRange(d->MarkupsShapeNode->GetSplineResolutionMinValue(),
+                                   d->MarkupsShapeNode->GetSplineResolutionMaxValue());
+  splineResolutionSlider->setSingleStep(5);
+  splineResolutionSlider->setValue(d->MarkupsShapeNode->GetSplineResolution());
+  QWidgetAction * splineResolutionWidgetAction = new QWidgetAction(splineResolutionMenu);
+  splineResolutionWidgetAction->setDefaultWidget(splineResolutionSlider);
+  splineResolutionMenu->addAction(splineResolutionWidgetAction);
+  d->TubeOptionMenu->addMenu(splineResolutionMenu);
+
   QAction * actionSnapControlPointsOnTube = d->TubeOptionMenu->addAction("Snap control points on the tube");
 
   actionSnapControlPointsOnTube->setData(d->ActionSnapControlPoints);
@@ -767,6 +780,8 @@ void qMRMLMarkupsShapeWidget::onTubeMenuOptionButtonClicked()
                    this, SLOT(onControlPointCountSpinBoxChanged(int)));
   QObject::connect(actionSnapControlPointsOnTube, SIGNAL(triggered()),
                    this, SLOT(onSnapControlPoints()));
+  QObject::connect(splineResolutionSlider, SIGNAL(valueChanged(double)),
+                   this, SLOT(onSplineResolutionChanged(double)));
 
   d->tubeMenuOptionButton->showMenu();
 }
@@ -805,4 +820,16 @@ void qMRMLMarkupsShapeWidget::onSnapControlPoints()
   }
 
   d->MarkupsShapeNode->SnapAllControlPointsToTubeSurface();
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsShapeWidget::onSplineResolutionChanged(double value)
+{
+  Q_D(qMRMLMarkupsShapeWidget);
+  if (!d->MarkupsShapeNode)
+  {
+    return;
+  }
+  
+  d->MarkupsShapeNode->SetSplineResolution((int) value);
 }

@@ -703,11 +703,12 @@ void vtkSlicerShapeRepresentation3D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     interpolatorIndex++;
   }
   int numberOfPoints = splinePoints->GetNumberOfPoints();
-  
+
+  const int splineResolution = shapeNode->GetSplineResolution();
   this->Spline->SetPoints(splinePoints);
-  this->SplineFunctionSource->SetUResolution(100 * numberOfPoints);
-  this->SplineFunctionSource->SetVResolution(100 * numberOfPoints);
-  this->SplineFunctionSource->SetWResolution(100 * numberOfPoints);
+  this->SplineFunctionSource->SetUResolution(splineResolution * numberOfPoints);
+  this->SplineFunctionSource->SetVResolution(splineResolution * numberOfPoints);
+  this->SplineFunctionSource->SetWResolution(splineResolution * numberOfPoints);
   this->SplineFunctionSource->Update();
   vtkPolyData * splinePolyData = this->SplineFunctionSource->GetOutput();
   numberOfPoints = splinePolyData->GetNumberOfPoints();

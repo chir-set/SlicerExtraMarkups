@@ -117,6 +117,8 @@ public:
   vtkGetMacro(SplineVisibility, bool);
   vtkSetMacro(SplineVisibility, bool);
   vtkBooleanMacro(SplineVisibility, bool);
+  vtkGetMacro(SplineResolution, int);
+  vtkSetClampMacro(SplineResolution, int, 10, 300)
   // Parametrics.
   vtkGetMacro(ParametricN1, double);
   vtkGetMacro(ParametricN2, double);
@@ -310,6 +312,7 @@ protected:
   bool DisplayCappedTube = false;
   bool ScalarVisibility = false;
   bool SplineVisibility = false;
+  int SplineResolution = 100;
   
   bool ShapeIsParametric = false;
   // SuperEllipsoid, SuperToroid.

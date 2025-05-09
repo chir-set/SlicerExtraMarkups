@@ -74,6 +74,7 @@ protected slots:
   void onSplineVisivilityTogggled(bool value);
   void onControlPointCountSpinBoxChanged(int value);
   void onSnapControlPoints();
+  void onSplineResolutionChanged(double value);
 
   // Parametric shapes.
   // Object parameters.
