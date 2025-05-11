@@ -844,6 +844,7 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     this->WorldCutter->SetInputConnection(this->CappedTube->GetOutputPort());
   }
   
+  // This is not the number of pairs.
   int numberOfPairedControlPoints = (shapeNode->GetNumberOfControlPoints() % 2)
                             ? shapeNode->GetNumberOfControlPoints() - 1
                             : shapeNode->GetNumberOfControlPoints();
@@ -870,16 +871,16 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     //interpolatedRadius->AddTuple(i + 1, &radius);
     interpolatorIndex++;
   }
-  int numberOfPoints = splinePoints->GetNumberOfPoints();
+  int numberOfIntervals = (numberOfPairedControlPoints / 2) - 1;
 
   const int splineResolution = shapeNode->GetSplineResolution();
   this->Spline->SetPoints(splinePoints);
-  this->SplineFunctionSource->SetUResolution(splineResolution * numberOfPoints);
-  this->SplineFunctionSource->SetVResolution(splineResolution * numberOfPoints);
-  this->SplineFunctionSource->SetWResolution(splineResolution * numberOfPoints);
+  this->SplineFunctionSource->SetUResolution(splineResolution * numberOfIntervals);
+  this->SplineFunctionSource->SetVResolution(splineResolution * numberOfIntervals);
+  this->SplineFunctionSource->SetWResolution(splineResolution * numberOfIntervals);
   this->SplineFunctionSource->Update();
   vtkPolyData * splinePolyData = this->SplineFunctionSource->GetOutput();
-  numberOfPoints = splinePolyData->GetNumberOfPoints();
+  int numberOfPoints = splinePolyData->GetNumberOfPoints();
   
   // https://kitware.github.io/vtk-examples/site/Cxx/VisualizationAlgorithms/TubesFromSplines/
   vtkSmartPointer<vtkDoubleArray> tubeRadius = vtkSmartPointer<vtkDoubleArray>::New();
