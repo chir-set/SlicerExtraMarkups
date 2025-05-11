@@ -203,7 +203,7 @@ public:
   // For Tube
   vtkPolyData * GetSplineWorld() const {return this->SplineWorld;}
   bool GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
-                             int numberOfPointsToTrimAtStart = 25, int numberOfPointsToTrimAtEnd = 25);
+                             int numberOfPointsToTrimAtStart = -1, int numberOfPointsToTrimAtEnd = -1);
   // This is to calculate volume with vtkMassProperties, it needs a closed polydata.
   vtkPolyData * GetCappedTubeWorld() const {return this->CappedTubeWorld;}
   // Used by 3D representation.

@@ -1354,18 +1354,28 @@ bool vtkMRMLMarkupsShapeNode::GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
   }
   vtkPoints * splinePoints = this->SplineWorld->GetPoints();
   const int numberOfSplinePoints = splinePoints->GetNumberOfPoints();
-  if (numberOfPointsToTrimAtStart < 0
-    || numberOfPointsToTrimAtEnd < 0
-    || (numberOfPointsToTrimAtStart + numberOfPointsToTrimAtEnd) > (numberOfSplinePoints - 3))
+  
+  int atStart = numberOfPointsToTrimAtStart;
+  if (atStart < 0)
   {
-    vtkErrorMacro("Any number of points to trim must be greater than zero and there must remain at least 3 points.");
+    atStart = this->SplineResolution * 0.25;
+  }
+  int atEnd = numberOfPointsToTrimAtEnd;
+  if (atEnd < 0)
+  {
+    atEnd = this->SplineResolution * 0.25;
+  }
+
+  if ((atStart + atEnd) > (numberOfSplinePoints - 3))
+  {
+    vtkErrorMacro("There must remain at least 3 points after trimming the spline.");
     return false;
   }
-  
+
   vtkNew<vtkPolyLineSource> polyLineSpline;
-  polyLineSpline->SetNumberOfPoints(numberOfSplinePoints - (numberOfPointsToTrimAtStart + numberOfPointsToTrimAtEnd));
+  polyLineSpline->SetNumberOfPoints(numberOfSplinePoints - (atStart + atEnd));
   vtkIdType id = 0;
-  for (int i = numberOfPointsToTrimAtStart; i < numberOfSplinePoints - numberOfPointsToTrimAtEnd; i++)
+  for (int i = atStart; i < numberOfSplinePoints - atEnd; i++)
   {
     double p[3] = { 0.0 };
     this->SplineWorld->GetPoint(i, p);
@@ -1380,7 +1390,7 @@ bool vtkMRMLMarkupsShapeNode::GetTrimmedSplineWorld(vtkPolyData * trimmedSpline,
   vtkDoubleArray * splineRadiusArray = vtkDoubleArray::SafeDownCast(this->SplineWorld->GetPointData()->GetArray("TubeRadius"));
   vtkSmartPointer<vtkDoubleArray> trimmedRadiusArray = vtkSmartPointer<vtkDoubleArray>::New();
   trimmedRadiusArray->SetName(splineRadiusArray->GetName());
-  for (int i = numberOfPointsToTrimAtStart; i < numberOfSplinePoints - numberOfPointsToTrimAtEnd; i++)
+  for (int i = atStart; i < numberOfSplinePoints - atEnd; i++)
   {
     trimmedRadiusArray->InsertNextValue(splineRadiusArray->GetValue(i));
   }
