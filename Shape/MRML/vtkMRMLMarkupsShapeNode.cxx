@@ -1903,6 +1903,9 @@ void vtkMRMLMarkupsShapeNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintObjectMacro(ResliceNode);
   vtkMRMLPrintBooleanMacro(DisplayCappedTube);
   vtkMRMLPrintStdStringMacro(UseAlternateColors);
+  vtkMRMLPrintBooleanMacro(SplineVisibility);
+  vtkMRMLPrintIntMacro(SplineResolution);
+  vtkMRMLPrintBooleanMacro(SplineNewInterpolationInterval);
   vtkMRMLPrintFloatMacro(ParametricN1);
   vtkMRMLPrintFloatMacro(ParametricN2);
   vtkMRMLPrintFloatMacro(ParametricN);
@@ -1943,6 +1946,9 @@ void vtkMRMLMarkupsShapeNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=tr
   vtkMRMLCopyBooleanMacro(ScalarVisibility);
   vtkMRMLCopyBooleanMacro(DisplayCappedTube);
   vtkMRMLCopyStdStringMacro(UseAlternateColors);
+  vtkMRMLCopyBooleanMacro(SplineVisibility);
+  vtkMRMLCopyIntMacro(SplineResolution);
+  vtkMRMLCopyBooleanMacro(SplineNewInterpolationInterval);
   if (this->ShapeIsParametric)
   {
     vtkMRMLCopyFloatMacro(ParametricN1);
