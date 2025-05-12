@@ -118,7 +118,10 @@ public:
   vtkSetMacro(SplineVisibility, bool);
   vtkBooleanMacro(SplineVisibility, bool);
   vtkGetMacro(SplineResolution, int);
-  vtkSetClampMacro(SplineResolution, int, 10, 300)
+  vtkSetClampMacro(SplineResolution, int, 10, 300);
+  vtkGetMacro(SplineNewInterpolationInterval, bool);
+  vtkSetMacro(SplineNewInterpolationInterval, bool);
+  vtkBooleanMacro(SplineNewInterpolationInterval, bool);
   // Parametrics.
   vtkGetMacro(ParametricN1, double);
   vtkGetMacro(ParametricN2, double);
@@ -313,6 +316,9 @@ protected:
   bool ScalarVisibility = false;
   bool SplineVisibility = false;
   int SplineResolution = 100;
+  // In the original scheme, this was the number of control point pairs.
+  // In the new scheme, this is the number of intervals between control point pairs.
+  bool SplineNewInterpolationInterval = false;
   
   bool ShapeIsParametric = false;
   // SuperEllipsoid, SuperToroid.

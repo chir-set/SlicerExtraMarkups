@@ -871,7 +871,7 @@ void vtkSlicerShapeRepresentation2D::UpdateTubeFromMRML(vtkMRMLNode* caller, uns
     //interpolatedRadius->AddTuple(i + 1, &radius);
     interpolatorIndex++;
   }
-  int numberOfIntervals = (numberOfPairedControlPoints / 2) - 1;
+  int numberOfIntervals = (numberOfPairedControlPoints / 2) - (int) shapeNode->GetSplineNewInterpolationInterval();
 
   const int splineResolution = shapeNode->GetSplineResolution();
   this->Spline->SetPoints(splinePoints);
