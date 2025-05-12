@@ -482,6 +482,7 @@ void vtkMRMLMarkupsShapeNode::SetRadius(double radius)
     }
     // Text actor does not move until mouse is hovered on a control point.
   }
+  this->Modified();
 }
 
 //----------------------------API only----------------------------------------
@@ -518,6 +519,7 @@ void vtkMRMLMarkupsShapeNode::SetInnerRadius(double radius)
   vtkMath::GetPointAlongLine(closestPointShifted, rasP1, closestPoint, difference);
   
   this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(closestPoint), closestPointShifted);
+  this->Modified();
 }
 
 //----------------------------API only----------------------------------------
@@ -554,6 +556,7 @@ void vtkMRMLMarkupsShapeNode::SetOuterRadius(double radius)
   vtkMath::GetPointAlongLine(farthestPointShifted, rasP1, farthestPoint, difference);
   
   this->SetNthControlPointPositionWorld(this->GetClosestControlPointIndexToPositionWorld(farthestPoint), farthestPointShifted);
+  this->Modified();
 }
 
 //----------------------------API only----------------------------------------
@@ -579,6 +582,7 @@ void vtkMRMLMarkupsShapeNode::SetHeight(double height)
   vtkMath::GetPointAlongLine(rasP3Shifted, rasP1, rasP3, difference);
   
   this->SetNthControlPointPositionWorld(2, rasP3Shifted);
+  this->Modified();
 }
 
 //----------------------------API only----------------------------------------
@@ -1002,6 +1006,7 @@ void vtkMRMLMarkupsShapeNode::SetNthControlPointRadius(int n, double radius)
     this->SetNthControlPointPositionWorld(n, p2New);
     this->SetNthControlPointPositionWorld(n - 1, p1New);
   }
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -1115,6 +1120,7 @@ bool vtkMRMLMarkupsShapeNode::SnapNthControlPointToTubeSurface(int pointIndex, b
     this->SetNthControlPointPositionWorld(pointIndex, newP2);
     this->SetNthControlPointPositionWorld(pointIndex - 1, newP1);
   }
+  this->Modified();
   return true;
 }
 
@@ -1267,6 +1273,7 @@ bool vtkMRMLMarkupsShapeNode::UpdateNumberOfControlPoints(int numberOfControlPoi
     this->AddControlPoint(result->GetPoint(1));
   }
   this->GetScene()->EndState(vtkMRMLScene::BatchProcessState);
+  this->Modified();
   return true;
 }
 
@@ -1688,6 +1695,7 @@ bool vtkMRMLMarkupsShapeNode::SetParametricAxisValue(const char axis, double dis
   vtkMath::GetPointAlongLine(pNew, center, px, distance - currentDistance);
   this->SetNthControlPointPositionWorld(pointIndex, pNew);
 
+  this->Modified();
   return true;
 }
 
