@@ -388,7 +388,10 @@ vtkObject * vtkSlicerShapeRepresentation3D::GetFirstViewNode(vtkMRMLScene* scene
   {
     return nullptr;
   }
-  return allNodes->GetItemAsObject(0);
+  vtkObject* obj = allNodes->GetItemAsObject(0);
+  allNodes->RemoveAllItems();
+  allNodes->Delete();
+  return obj;
 }
 
 //---------------------------- Disk ------------------------------------------
