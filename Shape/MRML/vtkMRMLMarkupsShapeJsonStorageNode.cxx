@@ -45,6 +45,7 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::WriteBasicProperties(
   writer->WriteDoubleProperty("resolution", shapeNode->GetResolution());
   writer->WriteBoolProperty("displayCappedTube", shapeNode->GetDisplayCappedTube());
   writer->WriteBoolProperty("scalarVisibility", shapeNode->GetScalarVisibility());
+  writer->WriteBoolProperty("splineVisibility", shapeNode->GetSplineVisibility());
   writer->WriteIntProperty("splineResolution", shapeNode->GetSplineResolution());
   writer->WriteBoolProperty("splineNewInterpolationInterval", shapeNode->GetSplineNewInterpolationInterval());
   // Ignoring shapeNode->ResliceNode.
@@ -110,6 +111,11 @@ bool vtkMRMLMarkupsShapeJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
   {
     bool scalarVisibility = markupsObject->GetBoolProperty("scalarVisibility");
     shapeNode->SetScalarVisibility(scalarVisibility);
+  }
+  if (markupsObject->HasMember("splineVisibility"))
+  {
+    bool splineVisibility = markupsObject->GetBoolProperty("splineVisibility");
+    shapeNode->SetSplineVisibility(splineVisibility);
   }
   int splineResolution = 100;
   if (markupsObject->GetIntProperty("splineResolution", splineResolution))
