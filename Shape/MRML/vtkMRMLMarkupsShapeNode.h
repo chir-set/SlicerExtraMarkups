@@ -85,10 +85,10 @@ public:
   const char* GetMarkupType() override {return "Shape";}
 
   // Get markup type GUI display name
-  const char* GetTypeDisplayName() override {return "Shape";};
+  std::string GetTypeDisplayName() override {return "Shape";};
 
   /// Get markup short name
-  const char* GetDefaultNodeNamePrefix() override {return "SH";}
+  std::string GetDefaultNodeNamePrefix() override {return "SH";}
 
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentMacro(vtkMRMLMarkupsShapeNode);

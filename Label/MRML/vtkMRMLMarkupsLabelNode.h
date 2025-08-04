@@ -59,10 +59,10 @@ public:
   const char* GetMarkupType() override {return "Label";}
 
   // Get markup type GUI display name
-  const char* GetTypeDisplayName() override {return "Label";};
+  std::string GetTypeDisplayName() override {return "Label";};
 
   /// Get markup short name
-  const char* GetDefaultNodeNamePrefix() override {return "LL";}
+  std::string GetDefaultNodeNamePrefix() override {return "LL";}
 
   /// \sa vtkMRMLNode::CopyContent
   vtkMRMLCopyContentMacro(vtkMRMLMarkupsLabelNode);
