@@ -66,6 +66,11 @@ void qMRMLMarkupsLabelWidgetPrivate::setupUi(qMRMLMarkupsLabelWidget* widget)
                    q, SLOT(onTextChanged()));
   QObject::connect(this->ThreeDTipDimensionModeComboBox, SIGNAL(currentIndexChanged(int)),
                    q, SLOT(onThreeDTipDimensionModeChanged(int)));
+  QObject::connect(this->labelLocationBaseRadioButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onLabelAtBaseClicked(bool)));
+  QObject::connect(this->labelLocationTipRadioButton, SIGNAL(clicked(bool)),
+                   q, SLOT(onLabelAtTipClicked(bool)));
+
 }
 
 // --------------------------------------------------------------------------
@@ -101,6 +106,11 @@ void qMRMLMarkupsLabelWidget::updateWidgetFromMRML()
   d->ThreeDTipDimensionModeLabel->setVisible(numberOfDefinedControlPoints == 2);
   d->ThreeDTipDimensionModeComboBox->setVisible(numberOfDefinedControlPoints == 2);
   d->labelCollapsibleButton->setVisible(true);
+
+  int numberOfControlPoints = d->MarkupsLabelNode->GetNumberOfControlPoints();
+  d->labelLocationLabel->setVisible(numberOfControlPoints > 1);
+  d->labelLocatiGroupBox->setVisible(numberOfControlPoints > 1);
+  this->setMRMLMarkupsNode(d->MarkupsLabelNode);
 }
 
 
@@ -129,6 +139,21 @@ void qMRMLMarkupsLabelWidget::setMRMLMarkupsNode(vtkMRMLMarkupsNode* markupsNode
   {
     d->labelTextEdit->setPlainText(d->MarkupsLabelNode->GetLabel());
     d->ThreeDTipDimensionModeComboBox->setCurrentIndex( d->MarkupsLabelNode->GetTipDimensionMode3D());
+    if (d->MarkupsLabelNode->GetNumberOfControlPoints() < 2)
+    {
+      return;
+    }
+    const int labelLocation = d->MarkupsLabelNode->GetLabelLocation();
+    if (labelLocation)
+    {
+      d->labelLocationBaseRadioButton->setChecked(false);
+      d->labelLocationTipRadioButton->setChecked(true);
+    }
+    else
+    {
+      d->labelLocationTipRadioButton->setChecked(false);
+      d->labelLocationBaseRadioButton->setChecked(true);
+    }
   }
 }
 
@@ -154,4 +179,34 @@ void qMRMLMarkupsLabelWidget::onThreeDTipDimensionModeChanged(int mode)
     return;
   }
   d->MarkupsLabelNode->SetTipDimensionMode3D(mode);
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsLabelWidget::onLabelAtBaseClicked(bool checked)
+{
+  Q_D(qMRMLMarkupsLabelWidget);
+
+  if (d->MarkupsLabelNode == nullptr)
+  {
+    return;
+  }
+  if (checked)
+  {
+    d->MarkupsLabelNode->SetLabelLocation(0);
+  }
+}
+
+// --------------------------------------------------------------------------
+void qMRMLMarkupsLabelWidget::onLabelAtTipClicked(bool checked)
+{
+  Q_D(qMRMLMarkupsLabelWidget);
+
+  if (d->MarkupsLabelNode == nullptr)
+  {
+    return;
+  }
+  if (checked)
+  {
+    d->MarkupsLabelNode->SetLabelLocation(1);
+  }
 }

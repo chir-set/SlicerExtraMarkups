@@ -74,6 +74,8 @@ public:
 
   vtkSetClampMacro(TipDimensionMode3D, int, ViewScaleFactor, Fixed);
   vtkGetMacro(TipDimensionMode3D, int);
+  vtkGetMacro(LabelLocation, int);
+  void SetLabelLocation(int pointId);
   // Handled in logic; is ignored in the storage node.
   std::string GetUseAlternateColors() {return UseAlternateColors;};
   void SetUseAlternateColors(const std::string& nodeID = "vtkMRMLColorTableNodeLabels");
@@ -89,6 +91,7 @@ protected:
   
   char* Label{ nullptr };
   int TipDimensionMode3D{ ViewScaleFactor };
+  int LabelLocation = 0;
   std::string UseAlternateColors = "vtkMRMLColorTableNodeLabels";
 };
 

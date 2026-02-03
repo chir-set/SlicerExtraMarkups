@@ -291,9 +291,9 @@ void vtkSlicerLabelRepresentation3D::UpdatePointerFromMRML(vtkMRMLNode* caller,
   
   this->AppendedArrow->Update();
   this->TextActor->SetInput(labelNode->GetLabel());
-  this->TextActorPositionWorld[0] = p1[0];
-  this->TextActorPositionWorld[1] = p1[1];
-  this->TextActorPositionWorld[2] = p1[2];
+  this->TextActorPositionWorld[0] = labelNode->GetLabelLocation() == 0 ? p1[0] : p2[0];
+  this->TextActorPositionWorld[1] = labelNode->GetLabelLocation() == 0 ? p1[1] : p2[1];
+  this->TextActorPositionWorld[2] = labelNode->GetLabelLocation() == 0 ? p1[2] : p2[2];
   
   this->ArrowActor->SetVisibility(true);
   this->TextActor->SetVisibility(true);

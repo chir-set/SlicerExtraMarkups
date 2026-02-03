@@ -113,6 +113,7 @@ void vtkMRMLMarkupsLabelNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintStringMacro(Label);
   vtkMRMLPrintEnumMacro(TipDimensionMode3D);
   vtkMRMLPrintStdStringMacro(UseAlternateColors);
+  vtkMRMLPrintIntMacro(LabelLocation);
   vtkMRMLPrintEndMacro();
 }
 
@@ -126,5 +127,19 @@ void vtkMRMLMarkupsLabelNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=tr
   vtkMRMLCopyStringMacro(Label);
   vtkMRMLCopyEnumMacro(TipDimensionMode3D);
   vtkMRMLCopyStdStringMacro(UseAlternateColors);
+  vtkMRMLCopyIntMacro(LabelLocation);
   vtkMRMLCopyEndMacro();
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLMarkupsLabelNode::SetLabelLocation(int pointId)
+{
+  const int numberOfControlPoints = this->GetNumberOfControlPoints();
+  if ((pointId < 0) || (pointId >= numberOfControlPoints))
+  {
+    vtkInfoMacro("pointId must be between zero and the number of control points less one.");
+    return;
+  }
+  this->LabelLocation = pointId;
+  this->Modified();
 }

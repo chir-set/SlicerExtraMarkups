@@ -40,9 +40,8 @@ bool vtkMRMLMarkupsLabelJsonStorageNode::WriteBasicProperties(
     }
 
   writer->WriteStringProperty("tipDimensionMode3D", labelNode->GetTipDimensionMode3DAsString(labelNode->GetTipDimensionMode3D()));
-
   writer->WriteStringProperty("labelText", labelNode->GetLabel());
-
+  writer->WriteIntProperty("labelLocation", labelNode->GetLabelLocation());
 
   return true;
 }
@@ -65,6 +64,10 @@ bool vtkMRMLMarkupsLabelJsonStorageNode::UpdateMarkupsNodeFromJsonValue(vtkMRMLM
   if (markupsObject->HasMember("labelText"))
     {
     labelNode->SetLabel(markupsObject->GetStringProperty("labelText").c_str());
+    }
+  if (markupsObject->HasMember("labelLocation"))
+    {
+      labelNode->SetLabelLocation(markupsObject->GetIntProperty("labelLocation"));
     }
 
   return Superclass::UpdateMarkupsNodeFromJsonValue(markupsNode, markupsObject);

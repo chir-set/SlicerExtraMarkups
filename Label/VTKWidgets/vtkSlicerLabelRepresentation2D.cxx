@@ -162,7 +162,14 @@ void vtkSlicerLabelRepresentation2D::UpdatePointerFromMRML(vtkMRMLNode* caller, 
   }
   
   this->TextActor->SetInput(labelNode->GetLabel());
-  this->TextActor->SetPosition(p1[0], p1[1]);
+  if (labelNode->GetLabelLocation() == 0)
+  {
+    this->TextActor->SetPosition(p1[0], p1[1]);
+  }
+  else
+  {
+    this->TextActor->SetPosition(p2[0], p2[1]);
+  }
   
   int controlPointType = this->GetAllControlPointsSelected() ? Selected : Unselected;
   this->LineActor->SetProperty(this->GetControlPointsPipeline(controlPointType)->Property);

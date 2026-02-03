@@ -9,7 +9,7 @@ With 2 control points, a line connects the control points which are presented as
 The text label
 
  - can be multi-line,
- - is always positioned at the first control point,
+ - can be positioned at the first or at the second control point,
  - is editable in the Markups module.
 
 In a 3D view, the arrow tip dimension can be

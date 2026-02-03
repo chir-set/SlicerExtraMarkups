@@ -60,6 +60,8 @@ public slots:
   
   void onTextChanged();
   void onThreeDTipDimensionModeChanged(int mode);
+  void onLabelAtBaseClicked(bool checked);
+  void onLabelAtTipClicked(bool checked);
 
 protected:
   void setup();
