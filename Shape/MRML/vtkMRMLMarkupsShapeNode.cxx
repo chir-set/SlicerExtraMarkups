@@ -1599,7 +1599,11 @@ void vtkMRMLMarkupsShapeNode::AddAreaMeasurement(const char* name, bool enabled)
   }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  vtkMRMLUnitNode * areaUnitNode = this->GetUnitNode("length");
+  /*
+   * It was "length" until aad0b2d, but was working like "area" everywhere,
+   * with the right suffix, mm2, except for innerArea and outerArea of a Disk.
+   */
+  vtkMRMLUnitNode * areaUnitNode = this->GetUnitNode("area");
   if (areaUnitNode)
   {
     measurement->SetPrintFormat(areaUnitNode->GetDisplayStringFormat());
@@ -1620,7 +1624,8 @@ void vtkMRMLMarkupsShapeNode::AddVolumeMeasurement(const char* name, bool enable
   }
   vtkNew<vtkMRMLMeasurementShape> measurement;
   measurement->SetName(name);
-  vtkMRMLUnitNode * volumeUnitNode = this->GetUnitNode("length");
+  // It was "length" until aad0b2d, but was working like "volume" everywhere.
+  vtkMRMLUnitNode * volumeUnitNode = this->GetUnitNode("volume");
   if (volumeUnitNode)
   {
     measurement->SetPrintFormat(volumeUnitNode->GetDisplayStringFormat());
