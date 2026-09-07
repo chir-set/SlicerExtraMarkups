@@ -16,12 +16,7 @@ This custom markups draws defined primitive shapes (circle, cone...) by placing 
 This work, as a whole, is licensed under the terms of the [CeCILL-B](http://cecill.info/licences/Licence_CeCILL-B_V1-en.txt) free software license agreement (BSD style).
 
 
+### Notes
 
-
-
-
-
-
-
-
+Only fully human contributions will be considered.
 
