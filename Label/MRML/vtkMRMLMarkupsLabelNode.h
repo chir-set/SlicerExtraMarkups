@@ -25,7 +25,6 @@
 
 #include "vtkSlicerLabelModuleMRMLExport.h"
 
-#include <QString>
 
 //-----------------------------------------------------------------------------
 class VTK_SLICER_LABEL_MODULE_MRML_EXPORT vtkMRMLMarkupsLabelNode
